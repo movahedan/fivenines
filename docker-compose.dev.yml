@@ -93,8 +93,10 @@ services:
       NESTJS_PORT: "${NESTJS_PORT:-3006}"
       NODE_ENV: development
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3001,http://127.0.0.1:3001}
-      DATABASE_URL: ${DATABASE_URL:-postgresql://fivenines:fivenines@postgres:5432/fivenines}
-    command: bun run turbo run dev --filter=@apps/nestjs
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fivenines}:${POSTGRES_PASSWORD:-fivenines}@postgres:5432/${POSTGRES_DB:-fivenines}
+    command: >
+      sh -c "cd apps/nestjs && bun run db:generate && bun run db:migrate:deploy && bun run db:seed &&
+      cd ../.. && bun run turbo run dev --filter=@apps/nestjs"
     profiles: ["nestjs", "web", "all"]
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://nestjs:${NESTJS_PORT:-3006}/status | grep -q '\"ok\":true'"]
@@ -168,7 +170,7 @@ services:
       AUTH_ISSUER: ${AUTH_ISSUER:-http://localhost:3007}
       AUTH_AUDIENCE: ${AUTH_AUDIENCE:-fivenines-api}
       AUTH_AUDIENCE_EVAL: ${AUTH_AUDIENCE_EVAL:-fivenines-eval}
-      AUTH_DATABASE_URL: ${AUTH_DATABASE_URL:-postgresql://fivenines:fivenines@postgres:5432/fivenines_auth}
+      AUTH_DATABASE_URL: postgresql://${POSTGRES_USER:-fivenines}:${POSTGRES_PASSWORD:-fivenines}@postgres:5432/fivenines_auth
       AUTH_ACCESS_TTL_SECONDS: ${AUTH_ACCESS_TTL_SECONDS:-900}
       AUTH_COOKIE_SECURE: "false"
       AUTH_SEED_ADMIN_EMAIL: ${AUTH_SEED_ADMIN_EMAIL:-admin@example.com}

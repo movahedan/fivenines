@@ -41,7 +41,7 @@ bun run container up -- --profile auth
 curl -sf http://localhost:3007/status
 ```
 
-Copy `apps/auth/.env.sample` → `apps/auth/.env` (required for host `bun run dev` — scripts load `--env-file=.env`). Root `.env` should also include `AUTH_DATABASE_URL` for compose. See [README.md](README.md) for JWT flows and Nest integration.
+Copy `apps/auth/.env.sample` → `apps/auth/.env` for host `bun run` (`--env-file=.env`, `AUTH_DATABASE_URL` → localhost). Dev compose sets `AUTH_DATABASE_URL` itself (`postgres` hostname + root `POSTGRES_*`). See [README.md](README.md) for JWT flows and Nest integration.
 
 ## Nest integration
 

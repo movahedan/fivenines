@@ -1,7 +1,9 @@
 generator client {
-  provider   = "prisma-client-js"
-  output     = "../../../node_modules/.prisma/client"
-  engineType = "library"
+  provider      = "prisma-client-js"
+  // Root node_modules (Docker volume in compose) — not under apps/, which is bind-mounted from the host.
+  output        = "../../../node_modules/.prisma/client"
+  engineType    = "library"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
 }
 
 datasource db {

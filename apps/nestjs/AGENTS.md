@@ -33,7 +33,14 @@ bun run openapi:emit     # build + write packages/nestjs-sdk/src/openapi.yaml
 
 ## Database (Prisma 7 + PostgreSQL)
 
-Set `DATABASE_URL` (see `.env.sample`). With Docker: `bun run container up -- --profile nestjs`.
+Same Postgres, two connection strings — only the hostname differs:
+
+| Who runs | Source | Host |
+|----------|--------|------|
+| `bun run` on your machine | `apps/nestjs/.env` → `DATABASE_URL` | `127.0.0.1` (published `POSTGRES_PORT`) |
+| Nest container | `docker-compose.dev.yml` from root `POSTGRES_*` | `postgres` (Compose DNS) |
+
+Credentials live in root `.env` (`POSTGRES_USER` / `PASSWORD` / `DB`). Dev compose must not copy the host `DATABASE_URL` — `127.0.0.1` inside the container is not Postgres.
 
 ```bash
 bun run db:generate        # prisma client (also runs on postinstall)
@@ -72,6 +79,8 @@ Protected today: `GET /api/v1/tenants` (`JwtAuthGuard` + `feature-flags:read`).
 **E2e note:** Auth and Nest seeds share demo tenant id `00000000-0000-4000-8000-000000000001`. Compose `nestjs` service does not yet inject `AUTH_*`; set on host `.env` for combined smoke.
 
 ## Docker
+
+The compose `nestjs` service generates the Prisma client into the container `node_modules` volume (install uses `--ignore-scripts`, so `postinstall` does not run), then `migrate deploy` and seed.
 
 ```bash
 bun run container up -- --profile nestjs   # postgres + @apps/nestjs

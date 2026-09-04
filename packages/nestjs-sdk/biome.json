@@ -1,0 +1,7 @@
+{
+	"root": false,
+	"extends": "//",
+	"files": {
+		"includes": ["src/**/*.ts", "orval.config.ts", "!src/gen"]
+	}
+}

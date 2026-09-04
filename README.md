@@ -1,0 +1,180 @@
+<div align="center">
+
+# 🏎️ Fivenines
+
+<div align="center">
+<img src="https://pbs.twimg.com/media/F6GHgqBWYAAOwUX?format=jpg&name=4096x4096" alt="Fivenines Banner" width="600" />
+
+![Fivenines Banner](https://img.shields.io/badge/Fivenines-Lightning%20Fast%20Monorepo-EF4444?style=for-the-badge&logo=turborepo&logoColor=white)
+</div>
+
+## 🎯 What Makes This Special
+
+<div align="center">
+
+### 🐚 **Advanced Monorepo Control & Scripting**
+
+<img src="https://bun.com/og/blog/the-bun-shell.png" alt="The Bun Shell" width="400">
+<br />
+<img src="https://img.shields.io/badge/Entity%20Driven-Advanced%20Control-00D4AA?style=for-the-badge&logo=turborepo&logoColor=white" alt="Entity Driven" />
+<img src="https://img.shields.io/badge/Smart%20Scripting-Optimized%20Workflows-8B5CF6?style=for-the-badge&logo=turborepo&logoColor=white" alt="Smart Scripting" />
+<!-- InterShell badge removed: now an external package -->
+
+> **Full monorepo control** with **entity-driven architecture**, **intelligent automation**, and **next-generation CLI framework**
+
+Take complete command of your monorepo! We've built powerful entity classes and smart scripting that just works. From lint-staged hooks and commit linters to CLI tools, automated version management, and changelog generation - everything is optimized for speed and simplicity.
+
+</div>
+
+<div align="center">
+
+### 🐳 **Docker-First Development**
+
+<img src="https://www.devteds.com/assets/images/post/2023/2023-11-15-devops-local-setup-with-docker-and-devcontainers-vscode.png" alt="Docker first development" width="400">
+<br />
+<img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Ready" />
+<img src="https://img.shields.io/badge/Compose%20(host)-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Compose on host" />
+
+> **Compose-driven dev and prod-shaped stacks** from your normal shell
+
+Docker is the foundation for running the full multi-service layout: use **`bun run container …`** against `docker-compose.dev.yml` on your machine (no “Reopen in Container” required). Pass **`--prod` before the subcommand** for the production-shaped `docker-compose.yml`. Install flow, health checks, and teardown: [Quick start](#quick-start) and [AGENTS.md](./AGENTS.md).
+
+</div>
+
+<div align="center">
+
+### ⚡ **Homogeneous Framework Stack**
+
+<img src="https://img.shields.io/badge/TanStack%20Start-646CFF?style=for-the-badge&logo=react&logoColor=white" alt="TanStack Start" />
+<img src="https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS" />
+<img src="https://img.shields.io/badge/Bun%20Optimized-Perfect%20Fit-000000?style=for-the-badge&logo=bun&logoColor=white" alt="Bun Optimized" />
+
+> **Curated frameworks** that **naturally align** with Bun's philosophy and performance
+
+Player UI is **TanStack Start** (`@apps/web`) with file-based routing. The control plane is **NestJS** plus an **Orval** SDK. Shared UI lives in Storybook. No extra marketing apps in this repo.
+
+</div>
+
+<div align="center">
+
+### 📚 **Comprehensive Documentation & AI-Ready**
+
+<img src="https://a.storyblok.com/f/316774/1600x900/b5ec7e9cd3/cursor-pro-tips-1.jpg" alt="Documentation & AI" width="400">
+
+<br>
+
+<img src="https://img.shields.io/badge/AI%20Optimized-Cursor%20Ready-00D4AA?style=for-the-badge&logo=turborepo&logoColor=white" alt="AI Optimized" />
+
+> **Developer-first documentation** with **AI assistant optimization**
+
+The repo uses a **four-tier documentation system**: **`.cursor/rules/`** for standards, **`AGENTS.md`** for AI-oriented structure, **`README.md`** for human onboarding, and **`docs/`** for guides — with **[CHEATSHEET.md](./docs/CHEATSHEET.md)** for every root command. [Renovate](./renovate.json) keeps dependencies pinned; quality gates run through Biome, TypeScript, and Bun tests.
+
+</div>
+
+<div align="center">
+
+### 🛠️ **Complete Tech Stack**
+
+[![Turborepo](https://img.shields.io/badge/Turborepo-Build%20System-EF4444?style=for-the-badge&logo=turborepo&logoColor=white)](https://turbo.build/)
+[![Bun](https://img.shields.io/badge/Bun-Runtime%20%26%20Tools-000000?style=for-the-badge&logo=bun&logoColor=white)](https://bun.sh/docs/runtime/bunfig#package-manager)
+
+[![Biome](https://img.shields.io/badge/Biome-Linting-60a5fa?style=for-the-badge&logo=biome&logoColor=white)](https://biomejs.dev/)
+[![Renovate](https://img.shields.io/badge/Renovate-Auto%20Updates-1A1F36?style=for-the-badge&logo=renovate&logoColor=white)](https://docs.renovatebot.com/)
+[![Lefthook](https://img.shields.io/badge/Lefthook-Git%20Hooks-00D4AA?style=for-the-badge&logo=git&logoColor=white)](https://github.com/evilmartians/lefthook)
+
+> **Minimal, powerful toolchain** with just **5 core tools** for **everything**
+
+Everything you need to build rock-solid applications is right here! We've kept it minimal - just 5 essential tools that handle build system, code quality, and version automation. No bloat, no complexity, just a lean toolchain that keeps your development process smooth and your code quality high. Plus, the solid structure we've built means you can easily create your own rules and workflows.
+
+
+
+</div>
+
+</div>
+
+---
+
+<div align="center">
+
+## 📚 Documentation
+
+### **🚀 Getting Started**
+[![Quick start](https://img.shields.io/badge/📖%20Quick%20start-495057?style=for-the-badge)](#quick-start)
+[![AGENTS map](https://img.shields.io/badge/🤖%20AGENTS-495057?style=for-the-badge)](./AGENTS.md)
+[![Command cheatsheet](https://img.shields.io/badge/⚡%20Cheatsheet-495057?style=for-the-badge)](./docs/CHEATSHEET.md)
+
+### **🛠️ Development tools**
+[![Scripting](https://img.shields.io/badge/🧩%20Scripting-495057?style=for-the-badge)](./docs/SCRIPTING.md)
+[![Auto versioning](https://img.shields.io/badge/🏷️%20Auto%20versioning-495057?style=for-the-badge)](./docs/AUTO_VERSIONING.md)
+[![Dev stack (compose)](https://img.shields.io/badge/🐳%20Dev%20stack%20(compose)-495057?style=for-the-badge)](#quick-start)
+
+### **🤖 AI and automation**
+[![Renovate (config)](https://img.shields.io/badge/🔄%20Renovate%20config-495057?style=for-the-badge)](./renovate.json)
+[![MCP integration](https://img.shields.io/badge/🔌%20MCP%20integration-495057?style=for-the-badge)](./.mcp.json)
+
+### **📋 Cursor rules**
+[![TypeScript standards](https://img.shields.io/badge/🧭%20TypeScript%20standards-495057?style=for-the-badge)](./.cursor/rules/typescript.mdc)
+[![Testing](https://img.shields.io/badge/🧪%20Testing-495057?style=for-the-badge)](./.cursor/rules/testing.mdc)
+[![Security](https://img.shields.io/badge/🔒%20Security-495057?style=for-the-badge)](./.cursor/rules/security.mdc)
+[![Advisor](https://img.shields.io/badge/🧭%20Advisor-495057?style=for-the-badge)](./.cursor/rules/advisor.mdc)
+
+## 📦 **What's Inside**
+
+**🎮 web** (`apps/web`) — **Port 3001** - Player UI (TanStack Start SSR, file-based router)
+
+**🚩 nestjs** (`apps/nestjs`) — **Port 3006** - Feature flags control plane (NestJS, OpenAPI → Orval `@packages/nestjs-sdk`)
+
+**🔐 auth** (`apps/auth`) — **Port 3007** - JWT auth (human login, refresh, M2M); Nest verifies tokens via JWKS (no per-request auth hop)
+
+**🎨 UI Package** <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=white" alt="React" style="vertical-align: middle;" /></a> + <a href="https://storybook.js.org/"><img src="https://img.shields.io/badge/Storybook-7.0-FF4785?style=flat&logo=storybook&logoColor=white" alt="Storybook" style="vertical-align: middle;" /></a> - **Port 3004** - Shared components
+
+**🧪 Test Package** <a href="https://bun.sh/"><img src="https://img.shields.io/badge/Bun-1.0-000000?style=flat&logo=bun&logoColor=white" alt="Bun" style="vertical-align: middle;" /></a> - **Testing utilities** - Development and testing tools
+
+</div>
+
+---
+
+<div align="center">
+
+## Quick start
+
+**Prerequisites:** Git, [Bun](https://bun.sh/) 1.3.x, [Docker](https://docs.docker.com/desktop/), Node **≥ 25**.
+
+```bash
+git clone https://github.com/movahedan/fivenines.git && cd fivenines
+bun install
+bun run local setup
+bun run overall
+```
+
+`bun run local setup -- --skip-tests` skips tests while iterating. `bun run local vscode` syncs VS Code workspace settings.
+
+**Docker dev stack** (recommended day-to-day):
+
+```bash
+bun run container setup
+bun run container up
+```
+
+Player UI: `bun run container up -- --profile web` then open `http://localhost:3001` (starts Postgres + Nest too).
+
+Control-plane API only: `bun run container up -- --profile nestjs` then open `http://localhost:3006/api/docs`.
+
+Auth service (optional): `bun run container up -- --profile auth` — `http://localhost:3007/login`. For auth + Nest together, see [docs/CHEATSHEET.md](./docs/CHEATSHEET.md#auth--nestjs-smoke).
+
+All commands: [docs/CHEATSHEET.md](./docs/CHEATSHEET.md) · Repo map, ports, troubleshooting: [AGENTS.md](./AGENTS.md).
+
+[![Star](https://img.shields.io/badge/⭐%20Star%20This%20Repo-Support%20Us-00D4AA?style=for-the-badge)](https://github.com/movahedan/fivenines)
+[![Fork](https://img.shields.io/badge/🍴%20Fork%20%26%20Customize-Make%20It%20Yours-646CFF?style=for-the-badge)](https://github.com/movahedan/fivenines/fork)
+
+</div>
+
+<div align="center">
+
+**Built with ❤️ using modern development tools**
+
+[![License](https://img.shields.io/badge/License-MIT-00D4AA?style=flat)](LICENSE)
+
+</div>
+
+</div>

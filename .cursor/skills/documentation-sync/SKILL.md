@@ -1,0 +1,257 @@
+---
+name: documentation-sync
+description: Use after builder-workflow checkup passes for a plan phase and before git-pr-workflow, to sync docs/AGENTS/README/skills with code per the plan Documentation before PR list. Not during builder implement.
+---
+
+# Documentation sync
+
+## When to use
+
+- Scripts, workspaces, Docker, CI, or public commands changed and docs may drift.
+- Editing or reviewing `README.md`, `AGENTS.md`, `docs/**`, or `.cursor/rules/*.mdc`.
+- User asks which docs to update or to refresh onboarding and command references.
+
+## Position in the initiative pipeline
+
+**Run after [builder-workflow](../builder-workflow/SKILL.md) completes a plan phase (checkup PASS). Run before [git-pr-workflow](../git-pr-workflow/SKILL.md).**
+
+Full order: [initiative-workflow](../initiative-workflow/SKILL.md).
+
+| Do | Do not |
+|----|--------|
+| Sync docs once code/config for the phase is stable | Edit docs during builder scout/implement/checkup |
+| Use the plan’s **Documentation before PR** path list | Drive-by doc edits outside that list |
+| Re-run targeted `rg` for stale paths/commands | Replace the plan’s verify gate |
+
+**Prerequisite message from user:** “Phase N build complete. documentation-sync per plan doc list.”
+
+## Content ownership (do not duplicate)
+
+| Topic | Owner | documentation-sync may… |
+|-------|--------|-------------------------|
+| Plan → build → docs → PR | [initiative-workflow](../initiative-workflow/SKILL.md) | Link one line only |
+| Subagents, model tiers | [builder-workflow/orchestration.md](../builder-workflow/orchestration.md) | Not edit unless on plan doc list |
+| Commit / branch / PR | [git-pr-workflow](../git-pr-workflow/SKILL.md) | Not describe steps |
+| TS strict / `noExplicitAny` | `tools/typescript/base.json`, `biome.json` | Reference paths in rules/AGENTS if renamed |
+| Command tables | [docs/CHEATSHEET.md](../../../docs/CHEATSHEET.md) | Sync when root `package.json` scripts change |
+| Quick setup | [README.md](../../../README.md) | Single bootstrap section; link CHEATSHEET for commands |
+| Compose / layout / troubleshooting | [AGENTS.md](../../../AGENTS.md) | Workspaces table, ports column, nested guides |
+| This phase’s doc files | Plan **Documentation before PR** | Edit **only** listed paths |
+
+**Do not** edit `.cursor/skills/` or `.cursor/rules/` unless the plan’s doc list explicitly includes them.
+
+## Four tiers (what to touch)
+
+1. **`.cursor/rules/`** — Code standards (compact); not workflows
+2. **`AGENTS.md`** — Map: layout, pointers, nested `AGENTS.md` links
+3. **`README.md`** — Human overview; keep aligned with architecture changes
+4. **`docs/`** — Human guides (`CHEATSHEET`, `SCRIPTING`, etc.); setup in **README**, map in **AGENTS**
+
+## Documentation relationships
+
+### Connection graph
+
+```
+README.md ──────┐
+                ├─→ Complementary pair (different audiences, same project)
+AGENTS.md ──────┘
+      │
+      ├─→ References → .cursor/rules/ (for standards)
+      │
+      └─→ Points to → docs/ (for detailed guides)
+
+.cursor/rules/ ──→ AI uses → AGENTS.md (for project context)
+
+docs/ ──→ Human reads → README.md (for overview)
+```
+
+### README.md ↔ AGENTS.md
+
+**README.md and AGENTS.md are complementary and should be kept in sync:**
+
+- **README.md**: Human-first overview, what the project is, architectural ideas, development mindset
+- **AGENTS.md**: AI-first context, detailed commands, package structure, how to work in the project
+- Both cover the same project from different angles
+- When architecture changes, update **both**
+- README has tips → AGENTS.md has detailed usage
+
+## Best practices by document type
+
+### .cursor/rules/ (AI-focused rules)
+
+```markdown
+# Code-first, compact, scannable
+- Focus on patterns, not explanations
+- Show ✅ good vs ❌ bad code examples
+- Keep under 300 lines per rule
+- Use globs/alwaysApply metadata correctly
+- Reference files with @filename when needed
+- Remove explanations, trust linter
+```
+
+### AGENTS.md (AI-focused context)
+
+```markdown
+# Map, not encyclopedia
+- Package/app structure and nested AGENTS.md links
+- Pointer to .cursor/rules/, README (quick setup), AGENTS (map), CHEATSHEET (commands)
+- Cursor skills index (one line each) — not skill bodies
+- Do not paste TypeScript/testing/security prose (rules + biome/tsconfig own that)
+```
+
+### README.md (Human-focused overview)
+
+```markdown
+# Project description and architecture
+- What the project is and why it exists
+- Architectural ideas and design decisions
+- Development mindset and philosophy
+- Quick start tips (detailed usage in AGENTS.md)
+- Visual badges and emojis for scannability
+- High-level overview, not implementation details
+- Keep in sync with AGENTS.md for same project context
+```
+
+### docs/ (Human-focused guides)
+
+```markdown
+# Brief, summarized developer guides (NOT exhaustive)
+- Friendly, enjoyable to read
+- Examples that actually work
+- Table of contents with anchor links
+- Troubleshooting guides (concise)
+- Technical summaries (not deep-dives)
+- Workflow overviews (brief)
+- Keep it summarized - developers want quick answers, not novels
+```
+
+## Syncing with package.json and tsconfig.json
+
+**Keep documentation in sync with `package.json` and `tsconfig.json`:**
+
+### package.json
+
+- **Scripts**: Sync AGENTS.md commands with `package.json` scripts (root and workspace packages you mention)
+- **Dependencies**: Reference actual dependencies from `package.json` when documenting installs
+- **When scripts change**: Update [CHEATSHEET.md](../../../docs/CHEATSHEET.md) and pointers in README / AGENTS.md
+- **Verification**: Open `package.json` when documenting commands
+
+### tsconfig.json
+
+- **Package relationships**: Use `tsconfig.json` references to describe how packages relate
+- **Module resolution**: Document import paths based on actual tsconfig paths and workspace names
+- **Cross-package dependencies**: Trace through tsconfig references before documenting imports
+
+### Documentation sync principles
+
+1. Check `package.json` when documenting commands or scripts
+2. Check `tsconfig.json` to understand package relationships
+3. Keep docs in sync when those files change
+4. Documentation should reflect actual configuration
+
+## When to update what
+
+- **`.cursor/rules/`**: Code standards, patterns, workflows change
+- **`AGENTS.md`**: Project structure, commands, scripts, package/app context change
+- **`README.md`**: Architecture changes, project description, development philosophy change
+- **`docs/`**: Workflows, processes, setup instructions, technical details change
+
+**Important**: When architecture or project structure changes, update **both** README.md and AGENTS.md.
+
+## Discovery commands
+
+Run from the **repository root**. Prefer `rg` (ripgrep); if it is missing, use `grep -RIn "TERM" <dir>` over the same paths.
+
+Replace `TERM` with concrete strings from the change: path segments (`apps/nestjs`, `packages/ui`), script names, env vars, service names, CLI flags, feature names.
+
+### Search prose and rules by keyword
+
+```bash
+rg -n "TERM" docs/
+rg -n "TERM" --glob "AGENTS.md" .
+rg -n "TERM" --glob "README.md" .
+rg -n "TERM" .cursor/rules/
+```
+
+### Git history on documentation
+
+```bash
+git log --oneline -30 -- docs/ README.md AGENTS.md .cursor/rules/
+git log --oneline -20 -- docs/ | rg -i "TERM"
+```
+
+### Blast radius by kind of change
+
+**Workspace / app / package paths** (example: UI package):
+
+```bash
+rg -n "packages/ui|@packages/ui" docs/ AGENTS.md README.md .cursor/rules/
+```
+
+**API app** (adjust `TERM` to your area):
+
+```bash
+rg -n "apps/nestjs|nestjs\b|3006" docs/ AGENTS.md README.md
+```
+
+**Docker / Compose**:
+
+```bash
+rg -n "docker|compose|container|Dockerfile" docs/ AGENTS.md README.md
+```
+
+**Scripts and documented commands**:
+
+```bash
+rg -n "bun run|npm run|turbo run" AGENTS.md README.md docs/
+```
+
+**CI / GitHub Actions**:
+
+```bash
+rg -n "github|actions|workflow|CI" docs/ AGENTS.md README.md .github/
+```
+
+**Technology names** (narrow with `TERM`):
+
+```bash
+rg -n "TERM" docs/ README.md AGENTS.md
+```
+
+### Cross-links between guides
+
+```bash
+rg -n "CHEATSHEET|SCRIPTING|AUTO_VERSIONING|AGENTS\.md|README\.md" docs/
+```
+
+### List documentation surfaces (audit)
+
+```bash
+find docs -name "*.md" -type f 2>/dev/null | sort
+find . \( -path "./node_modules" -o -path "./.git" \) -prune -o -name "README.md" -print | sort
+find . \( -path "./node_modules" -o -path "./.git" \) -prune -o -name "AGENTS.md" -print | sort
+find .cursor/rules -name "*.mdc" -type f | sort
+```
+
+### Broad search across doc types
+
+```bash
+rg -n "TERM" docs/ .cursor/rules/ --glob "*.md" --glob "*.mdc"
+rg -n "TERM" --glob "README.md" --glob "AGENTS.md" .
+```
+
+Use **multiple passes** with different `TERM`s (symbol, path, old filename) if the first pass is empty.
+
+## Update checklist
+
+1. Map the change to **When to update what** above (rules vs AGENTS vs README vs docs).
+2. Open the **smallest** set of files that still covers every surface users and agents hit (nested `AGENTS.md` / README under `apps/` and `packages/` when behavior is local).
+3. Align **commands** with `package.json` and **paths** with workspace layout and tsconfig; remove dead links.
+4. Run or sanity-check shell examples when practical.
+5. Skim related sections so terminology stays consistent across README and AGENTS.
+
+## Verification
+
+- Examples and command lines match current scripts and paths.
+- No contradictory instructions between README and AGENTS for the same workflow.
+- New recurring workflows: consider one discoverable line in root or nested `AGENTS.md`.

@@ -1,0 +1,40 @@
+---
+description: Bun test style for this monorepo — naming, AAA, mocks, file placement. Keywords: bun:test, describe, it, mock, config-tests
+globs: ["**/*.test.ts", "**/*.spec.ts"]
+alwaysApply: false
+---
+
+# Testing
+
+## Stack (configured — do not restate)
+
+- Runner: `bun:test` — see [`bunfig.toml`](../../bunfig.toml) preload
+- Preset: [`tools/tests-preset`](../../tools/tests-preset) — HappyDOM, Testing Library, cleanup
+- Details: [`tools/tests-preset/AGENTS.md`](../../tools/tests-preset/AGENTS.md)
+
+## Naming and structure
+
+- `describe('<module> - <unit>', () => {})`
+- `it('<expected outcome> when <condition>', () => {})`
+- No inline comments or JSDoc in tests; names document behavior
+- AAA layout; blank line between logical groups inside a test
+
+## Quality bar
+
+- Assert observable behavior, not internals
+- One failure reason per test; no flakiness (mock time/network/random)
+- Mock **boundaries** only (network, DB, fs, env) — not pure logic
+- Restore spies; preset handles most cleanup
+
+## File placement
+
+- Unit: `src/<area>/<thing>.test.ts` or `src/__tests__/`
+- Integration: `src/__tests__/<thing>.integration.test.ts`
+
+## Patterns
+
+- Table-driven cases via `cases.forEach` or `test.each` (Bun: `test.each` / `describe.each`, not `it.each`)
+
+## Commands
+
+See [`docs/CHEATSHEET.md`](../../docs/CHEATSHEET.md) — `bun test`, `bun run overall`.

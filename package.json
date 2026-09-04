@@ -1,0 +1,71 @@
+{
+	"root": true,
+	"private": false,
+	"name": "root",
+	"description": "A monorepo for Turbo and Bun",
+	"version": "0.2.2",
+	"workspaces": [
+		"apps/*",
+		"packages/*",
+		"tools/*"
+	],
+	"packageManager": "bun@1.4.0",
+	"engines": {
+		"node": ">=26.0.0",
+		"bun": ">=1.3.14"
+	},
+	"intershell": {
+		"config": "intershell.config.json"
+	},
+	"scripts": {
+		"postinstall": "lefthook install",
+		"nuke": "bun tools/scripts/nuke/index.tsx",
+		"local": "bun tools/scripts/local/index.tsx",
+		"turbo": "turbo",
+		"lint": "biome check .",
+		"typecheck": "turbo run typecheck",
+		"test": "bun test",
+		"dev": "turbo run dev",
+		"build": "turbo run build",
+		"start": "turbo run start",
+		"overall": "bun tools/scripts/overall/index.tsx",
+		"container": "bun tools/scripts/container/index.tsx",
+		"release": "bun tools/scripts/version/index.tsx",
+		"export-modules": "bun tools/scripts/export-modules/index.tsx",
+		"precommit": "bun tools/scripts/precommit/index.tsx",
+		"ci": "bun tools/scripts/ci/index.tsx"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.5.12",
+		"lefthook": "2.1.12",
+		"turbo": "2.9.18",
+		"typescript": "6.0.3"
+	},
+	"overrides": {
+		"@types/node": "25.9.5",
+		"@types/react": "19.2.18",
+		"@types/react-dom": "19.2.7",
+		"typescript": "6.0.3",
+		"react": "19.2.8",
+		"react-dom": "19.2.8",
+		"vite": "8.2.2"
+	},
+	"author": "Soheil Movahedan",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/movahedan/fivenines"
+	},
+	"homepage": "https://github.com/movahedan/fivenines",
+	"bugs": "https://github.com/movahedan/fivenines/issues",
+	"keywords": [
+		"turbo",
+		"bun",
+		"monorepo",
+		"typescript",
+		"react",
+		"docker",
+		"git",
+		"vite"
+	]
+}

@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react-native";
 import * as React from "react";
 import { useId } from "react";
 
@@ -58,26 +58,25 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 	const [showPassword, setShowPassword] = React.useState(false);
 	const [validationErrors, setValidationErrors] = React.useState<Partial<LoginFormData>>({});
 
-	const handleInputChange =
-		(field: keyof LoginFormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
-			const value = e.target.value;
-			setFormData((prev) => ({ ...prev, [field]: value }));
+	const handleInputChange = (field: keyof LoginFormData) => (e: { target: { value: string } }) => {
+		const value = e.target.value;
+		setFormData((prev) => ({ ...prev, [field]: value }));
 
-			// Only clear validation error if the new value is valid
-			if (validationErrors[field]) {
-				let isValid = true;
+		// Only clear validation error if the new value is valid
+		if (validationErrors[field]) {
+			let isValid = true;
 
-				if (field === "email") {
-					isValid = value === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-				} else if (field === "password") {
-					isValid = value === "" || value.length >= 6;
-				}
-
-				if (isValid) {
-					setValidationErrors((prev) => ({ ...prev, [field]: undefined }));
-				}
+			if (field === "email") {
+				isValid = value === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+			} else if (field === "password") {
+				isValid = value === "" || value.length >= 6;
 			}
-		};
+
+			if (isValid) {
+				setValidationErrors((prev) => ({ ...prev, [field]: undefined }));
+			}
+		}
+	};
 
 	const validateForm = (): boolean => {
 		const errors: Partial<LoginFormData> = {};
@@ -98,8 +97,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 		return Object.keys(errors).length === 0;
 	};
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
+	const submit = async (event?: { preventDefault: () => void }): Promise<void> => {
+		event?.preventDefault();
 
 		if (!validateForm()) {
 			return;
@@ -108,9 +107,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 		try {
 			await onSubmit(formData);
 		} catch (err) {
-			// Error handling is done by the parent component
 			console.error("Login form submission error:", err);
 		}
+	};
+
+	const handleSubmit = (event: React.FormEvent) => {
+		void submit(event);
 	};
 
 	const togglePasswordVisibility = () => {
@@ -195,8 +197,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 					)}
 
 					{/* Submit Button */}
-					<Button type="submit" className="w-full" disabled={loading}>
-						{loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+					<Button className="w-full" disabled={loading} onClick={() => void submit()}>
+						{loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
 						{submitText}
 					</Button>
 				</form>

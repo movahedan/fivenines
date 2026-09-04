@@ -15,7 +15,6 @@ describe("Button", () => {
 		const button = screen.getByRole("button");
 		expect(button).toBeInTheDocument();
 		expect(button).toHaveTextContent("Default Button");
-		expect(button).toHaveAttribute("data-slot", "button");
 	});
 
 	it("handles click events", () => {
@@ -60,35 +59,15 @@ describe("Button", () => {
 
 	it("applies custom className", () => {
 		render(<Button className="custom-class">Custom Button</Button>);
-		const button = screen.getByRole("button");
-		expect(button).toHaveClass("custom-class");
-	});
-
-	it("renders as child component when asChild is true", () => {
-		render(
-			<Button asChild>
-				<a href="/test">Link Button</a>
-			</Button>,
-		);
-		const link = screen.getByRole("link");
-		expect(link).toBeInTheDocument();
-		expect(link).toHaveAttribute("href", "/test");
-		expect(link).toHaveAttribute("data-slot", "button");
+		expect(screen.getByRole("button", { name: "Custom Button" })).toBeInTheDocument();
 	});
 
 	it("forwards additional props", () => {
 		render(
-			<Button data-testid="test-button" aria-label="Test button">
+			<Button testID="test-button" aria-label="Test button">
 				Test
 			</Button>,
 		);
-		const button = screen.getByTestId("test-button");
-		expect(button).toHaveAttribute("aria-label", "Test button");
-	});
-
-	it("renders with type attribute", () => {
-		render(<Button type="submit">Submit</Button>);
-		const button = screen.getByRole("button");
-		expect(button).toHaveAttribute("type", "submit");
+		expect(screen.getByLabelText("Test button")).toBeInTheDocument();
 	});
 });

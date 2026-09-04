@@ -28,10 +28,10 @@ todos:
     status: pending
   - id: phase-3-add-all
     content: "Phase 3: CLI add --all into src/atoms; lucide-react-native; barrels; molecule import retarget"
-    status: pending
+    status: completed
   - id: phase-3-verify
     content: "Phase 3 gate: typecheck @packages/ui + molecule tests + rg lucide-react gate"
-    status: pending
+    status: completed
   - id: phase-3-docs
     content: "Phase 3: documentation-sync"
     status: pending

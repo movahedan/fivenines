@@ -1,5 +1,6 @@
 import path from "node:path";
 
+import tailwindcss from "@tailwindcss/postcss";
 import { defineConfig } from "vite";
 
 export default defineConfig({
@@ -10,7 +11,7 @@ export default defineConfig({
 	},
 	css: {
 		postcss: {
-			plugins: [require("tailwindcss"), require("autoprefixer")],
+			plugins: [tailwindcss()],
 		},
 	},
 });

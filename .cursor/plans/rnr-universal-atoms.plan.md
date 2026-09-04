@@ -16,10 +16,10 @@ todos:
     status: pending
   - id: phase-2-toolchain
     content: "Phase 2: NativeWind v5 + react-native-css + RN peers + RNR components.json + doctor (no generate)"
-    status: pending
+    status: completed
   - id: phase-2-verify
     content: "Phase 2 gate: bunx @react-native-reusables/cli@latest doctor -c packages/ui --summary && bun run typecheck --filter=@packages/ui"
-    status: pending
+    status: completed
   - id: phase-2-docs
     content: "Phase 2: documentation-sync"
     status: pending

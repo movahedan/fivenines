@@ -1,0 +1,50 @@
+name: fivenines-prod
+
+networks:
+  prod-network:
+    driver: bridge
+
+services:
+  ui:
+    x-fivenines-package: "@packages/ui"
+    build:
+      context: .
+      dockerfile: packages/ui/Dockerfile
+    ports:
+      - "5004:${UI_PORT:-3004}"
+    networks:
+      - prod-network
+    environment:
+      PORT: ${UI_PORT:-3004}
+      UI_PORT: ${UI_PORT:-3004}
+      HOST: ${HOST:-0.0.0.0}
+      NODE_ENV: production
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:${UI_PORT:-3004}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  nestjs:
+    x-fivenines-package: "@apps/nestjs"
+    build:
+      context: .
+      dockerfile: apps/nestjs/Dockerfile
+    ports:
+      - "5006:${NESTJS_PORT:-3006}"
+    networks:
+      - prod-network
+    environment:
+      PORT: ${NESTJS_PORT:-3006}
+      NESTJS_PORT: ${NESTJS_PORT:-3006}
+      HOST: ${HOST:-0.0.0.0}
+      NODE_ENV: production
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3001,http://127.0.0.1:3001}
+      DATABASE_URL: ${DATABASE_URL}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:${NESTJS_PORT:-3006}/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s

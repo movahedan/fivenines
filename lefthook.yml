@@ -1,0 +1,31 @@
+# https://lefthook.dev/configuration/
+
+pre-commit:
+  parallel: true
+  commands:
+    staged-check:
+      glob: "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc,html,css,md,mdx,yaml,yml}"
+      run: bun run precommit --staged && bun biome check --write --no-errors-on-unmatched {staged_files}
+      stage_fixed: true
+    types:
+      glob: "*.{ts,tsx}"
+      run: bun run typecheck --affected
+
+commit-msg:
+  commands:
+    precommit:
+      run: bun run precommit --message-file {1}
+
+pre-push:
+  parallel: true
+  commands:
+    commit-validation:
+      run: bun run precommit --branch
+    staged-validation:
+      run: bun run precommit --staged
+    check:
+      run: bun run lint
+    test:
+      run: sh -c 'bun test packages tools && cd apps/nestjs && bun test'
+    build:
+      run: bun run build --affected

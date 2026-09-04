@@ -1,0 +1,48 @@
+{
+	"$schema": "https://turborepo.com/schema.json",
+	"ui": "tui",
+	"envMode": "loose",
+	"tasks": {
+		"//#lint": {
+			"cache": false
+		},
+		"typecheck": {
+			"dependsOn": ["^build", "^typecheck"]
+		},
+		"dev": {
+			"inputs": ["$TURBO_DEFAULT$", ".env*"],
+			"dependsOn": ["^build"],
+			"cache": false,
+			"persistent": true
+		},
+		"start": {
+			"dependsOn": ["^build"]
+		},
+		"build": {
+			"inputs": ["$TURBO_DEFAULT$", ".env*"],
+			"dependsOn": ["^build"],
+			"outputs": ["build/**", ".vercel/**", "dist/**", ".output/**", ".next/**", "!.next/cache/**"]
+		},
+		"build:storybook": {
+			"dependsOn": ["^typecheck", "^build"],
+			"outputs": ["dist-storybook/**"]
+		},
+		"test": {
+			"inputs": [
+				"$TURBO_DEFAULT$",
+				"**/*.test.ts",
+				"**/*.test.tsx",
+				"**/*.spec.ts",
+				"**/*.spec.tsx",
+				"**/*.test.js",
+				"**/*.test.jsx",
+				"**/*.spec.js",
+				"**/*.spec.jsx"
+			],
+			"outputs": ["coverage/**"],
+			"dependsOn": ["^build"],
+			"cache": true,
+			"persistent": false
+		}
+	}
+}

@@ -1,0 +1,53 @@
+name: Version
+
+on:
+  workflow_dispatch:
+
+jobs:
+  version-and-deploy:
+    name: 🏷️ Version and Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    outputs:
+      packages-to-deploy: ${{ steps.packages-to-deploy.outputs.packages-to-deploy }}
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v6.1.0
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🚀 Setup Bun
+        uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version: 1.4.0
+
+      - name: 🗃️ Cache Bun dependencies
+        uses: actions/cache@v5.1.0
+        id: bun-cache
+        with:
+          path: |
+            ~/.bun/install/cache
+            **/node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: 📦 Install dependencies
+        if: steps.bun-cache.outputs.cache-hit != 'true'
+        run: bun install -E --no-save
+
+      - name: 🔍 Generate changelog and bump versions
+        id: packages-to-deploy
+        run: bun run release ci
+
+      - name: 📋 Display deployment info
+        run: |
+          echo "::group::📋 Version Summary"
+          echo "Packages to deploy: ${{ steps.packages-to-deploy.outputs.packages-to-deploy }}"
+          echo "::endgroup::" 

@@ -1,0 +1,185 @@
+name: fivenines-dev
+
+networks:
+  dev-network:
+    driver: bridge
+
+volumes:
+  node_modules:
+    driver: local
+  turbo_cache:
+    driver: local
+  bun_cache:
+    driver: local
+  vscode_cache:
+    driver: local
+  postgres_data:
+    driver: local
+
+services:
+  # Apps runtime environment - shared container for all applications
+  apps:
+    build:
+      context: ./
+      dockerfile: Dockerfile.dev
+      x-bake:
+        contexts:
+          buildkit: docker-container://buildkit
+      cache_from:
+        - type=gha
+      shm_size: '1gb'
+    volumes:
+      - ${PROJECT_ROOT:-./}/apps:/app/apps:cached
+      - ${PROJECT_ROOT:-./}/packages:/app/packages:cached
+      - ${PROJECT_ROOT:-./}/tools:/app/tools:cached
+      - ${PROJECT_ROOT:-./}/package.json:/app/package.json:cached
+      - ${PROJECT_ROOT:-./}/bun.lock:/app/bun.lock:cached
+      - ${PROJECT_ROOT:-./}/turbo.json:/app/turbo.json:cached
+      - ${PROJECT_ROOT:-./}/intershell.config.ts:/app/intershell.config.ts:cached
+      - node_modules:/app/node_modules:delegated
+      - turbo_cache:/app/.turbo:delegated
+      - bun_cache:/root/.bun:delegated
+      - vscode_cache:/app/.vscode:delegated
+    command: sleep infinity
+    init: true
+    profiles: ["apps"]
+    environment:
+      # Bind mounts from macOS often miss inotify; polling makes Vite/Storybook HMR work in containers.
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    networks:
+      - dev-network
+    healthcheck:
+      test: ["CMD", "ps", "aux"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  postgres:
+    image: postgres:17-alpine
+    profiles: ["nestjs", "auth", "web", "all"]
+    networks:
+      - dev-network
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fivenines}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fivenines}
+      POSTGRES_DB: ${POSTGRES_DB:-fivenines}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fivenines} -d ${POSTGRES_DB:-fivenines}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  nestjs:
+    x-fivenines-package: "@apps/nestjs"
+    extends:
+      service: apps
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - "${NESTJS_PORT:-3006}"
+    ports:
+      - "${NESTJS_PORT:-3006}:${NESTJS_PORT:-3006}"
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "${NESTJS_PORT:-3006}"
+      NESTJS_PORT: "${NESTJS_PORT:-3006}"
+      NODE_ENV: development
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3001,http://127.0.0.1:3001}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://fivenines:fivenines@postgres:5432/fivenines}
+    command: bun run turbo run dev --filter=@apps/nestjs
+    profiles: ["nestjs", "web", "all"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://nestjs:${NESTJS_PORT:-3006}/status | grep -q '\"ok\":true'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+
+  ui:
+    x-fivenines-package: "@packages/ui"
+    extends:
+      service: apps
+    expose:
+      - "${UI_PORT:-3004}"
+    ports:
+      - "${UI_PORT:-3004}:${UI_PORT:-3004}"
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "${UI_PORT:-3004}"
+      UI_PORT: "${UI_PORT:-3004}"
+    command: bun run turbo run dev --filter=@packages/ui
+    profiles: ["ui", "all"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://ui:${UI_PORT:-3004}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+
+  web:
+    x-fivenines-package: "@apps/web"
+    extends:
+      service: apps
+    depends_on:
+      nestjs:
+        condition: service_healthy
+    expose:
+      - "${WEB_PORT:-3001}"
+    ports:
+      - "${WEB_PORT:-3001}:${WEB_PORT:-3001}"
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "${WEB_PORT:-3001}"
+      WEB_PORT: "${WEB_PORT:-3001}"
+      NESTJS_API_URL: ${NESTJS_API_URL:-http://nestjs:3006}
+      VITE_NESTJS_API_URL: ${VITE_NESTJS_API_URL:-http://localhost:3006}
+    command: bun run turbo run dev --filter=@apps/web
+    profiles: ["web", "all"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://web:${WEB_PORT:-3001}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+
+  auth:
+    extends:
+      service: apps
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - "${AUTH_PORT:-3007}"
+    ports:
+      - "${AUTH_PORT:-3007}:${AUTH_PORT:-3007}"
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "${AUTH_PORT:-3007}"
+      AUTH_PORT: "${AUTH_PORT:-3007}"
+      NODE_ENV: development
+      AUTH_ISSUER: ${AUTH_ISSUER:-http://localhost:3007}
+      AUTH_AUDIENCE: ${AUTH_AUDIENCE:-fivenines-api}
+      AUTH_AUDIENCE_EVAL: ${AUTH_AUDIENCE_EVAL:-fivenines-eval}
+      AUTH_DATABASE_URL: ${AUTH_DATABASE_URL:-postgresql://fivenines:fivenines@postgres:5432/fivenines_auth}
+      AUTH_ACCESS_TTL_SECONDS: ${AUTH_ACCESS_TTL_SECONDS:-900}
+      AUTH_COOKIE_SECURE: "false"
+      AUTH_SEED_ADMIN_EMAIL: ${AUTH_SEED_ADMIN_EMAIL:-admin@example.com}
+      AUTH_SEED_ADMIN_PASSWORD: ${AUTH_SEED_ADMIN_PASSWORD:-changeme}
+    command: >
+      sh -c "cd apps/auth && bun run db:generate && bun run db:migrate && bun run db:seed &&
+      cd ../.. && bun run turbo run dev --filter=@apps/auth"
+    profiles: ["auth", "all"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://auth:${AUTH_PORT:-3007}/status | grep -q '\"ok\":true'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s

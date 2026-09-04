@@ -1,0 +1,48 @@
+{
+	"private": false,
+	"version": "0.1.0",
+	"name": "@apps/nestjs",
+	"description": "NestJS control-plane API for multi-tenant feature flags",
+	"type": "module",
+	"scripts": {
+		"postinstall": "bun run db:generate",
+		"dev": "NODE_ENV=development tsup --watch --onSuccess \"bun --env-file=.env dist/index.js\"",
+		"build": "tsup",
+		"start": "bun --env-file=.env dist/index.js",
+		"typecheck": "bun run db:generate && tsc --noEmit",
+		"test": "bun --env-file=.env test src/__tests__",
+		"openapi:emit": "NODE_ENV=development bun --env-file=.env dist/index.js --emit-openapi",
+		"db:generate": "bunx --bun prisma generate",
+		"db:migrate": "bun --env-file=.env x prisma migrate dev",
+		"db:migrate:deploy": "bun --env-file=.env x prisma migrate deploy",
+		"db:seed": "bun --env-file=.env scripts/seed.ts",
+		"db:studio": "bun --env-file=.env x prisma studio"
+	},
+	"dependencies": {
+		"@anatine/esbuild-decorators": "0.2.19",
+		"@nestjs/common": "11.1.29",
+		"@nestjs/core": "11.1.29",
+		"@nestjs/platform-express": "11.1.29",
+		"@nestjs/swagger": "11.4.7",
+		"@packages/auth": "workspace:*",
+		"@packages/utils": "workspace:*",
+		"@prisma/adapter-pg": "7.1.0",
+		"@prisma/client": "7.1.0",
+		"jose": "6.1.0",
+		"pg": "8.16.3",
+		"reflect-metadata": "0.2.2",
+		"rxjs": "7.8.2",
+		"zod": "4.4.3"
+	},
+	"devDependencies": {
+		"@types/pg": "8.15.6",
+		"@nestjs/testing": "11.1.29",
+		"prisma": "7.1.0",
+		"@tools/tests-preset": "workspace:*",
+		"@tools/typescript": "workspace:*",
+		"@types/express": "5.0.6",
+		"@types/supertest": "7.2.1",
+		"supertest": "7.2.2",
+		"tsup": "8.5.1"
+	}
+}

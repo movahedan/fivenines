@@ -1,0 +1,22 @@
+{
+	"private": true,
+	"name": "@tools/tests-preset",
+	"type": "module",
+	"main": "./test-setup.ts",
+	"exports": {
+		".": "./test-setup.ts",
+		"./mock-modules": "./mock-modules.ts",
+		"./mock-bun": "./mock-bun.ts",
+		"./testing-library": "./testing-library.ts",
+		"./happydom": "./happydom.ts",
+		"./test-by-folder": "./test-by-folder.ts"
+	},
+	"devDependencies": {
+		"@happy-dom/global-registrator": "20.9.0",
+		"@tools/typescript": "workspace:*",
+		"@testing-library/dom": "10.4.1",
+		"@testing-library/jest-dom": "6.9.1",
+		"@testing-library/react": "16.3.3",
+		"@types/bun": "1.3.14"
+	}
+}

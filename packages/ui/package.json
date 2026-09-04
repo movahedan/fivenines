@@ -25,6 +25,10 @@
 			"types": "./src/atoms/index.ts",
 			"default": "./src/atoms/index.ts"
 		},
+		"./shadcn": {
+			"types": "./src/shadcn/index.ts",
+			"default": "./src/shadcn/index.ts"
+		},
 		"./utils": {
 			"types": "./src/utils/index.ts",
 			"default": "./src/utils/index.ts"

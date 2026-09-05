@@ -4,6 +4,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { healthControllerGetStatus } from "@packages/nestjs-sdk/server";
 
 import { HomeStatus } from "../home/home-status";
+import { PlayButton } from "../home/play-button";
 
 const getControlPlaneHealth = createServerFn({ method: "GET" }).handler(async () => {
 	try {
@@ -26,6 +27,9 @@ function HomePage() {
 		<main>
 			<h1>Five Nines</h1>
 			<HomeStatus ok={ok} service={service} />
+			<p>
+				<PlayButton />
+			</p>
 		</main>
 	);
 }

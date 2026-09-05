@@ -16,20 +16,21 @@ Routes live under `src/routes/` (same convention as xpertell product apps):
 
 | File | Route |
 |------|--------|
-| `src/routes/__root.tsx` | Root document, Query + `FetcherSettingsProvider` |
-| `src/routes/index.tsx` | `/` — SSR health check against Nest |
+| `src/routes/__root.tsx` | Root document, Query + `FetcherSettingsProvider` + `AuthProvider` (`restoreOnMount={false}`) |
+| `src/routes/index.tsx` | `/` — SSR health check against Nest; Play always links to `/hub` |
+| `src/routes/hub.tsx` | `/hub` — if no `was_logged_in`, top-level auth `/login`; else clock SSE with `credentials: "include"` |
 
 `src/router.tsx` exports `getRouter()` (required by Start). Use `trailingSlash: "never"`. `src/routeTree.gen.ts` is generated on Vite build/dev — do not hand-edit.
 
 ## Essential commands
 
 ```bash
-bun run turbo run dev --filter=@apps/web   # http://localhost:3001 (needs Nest on :3006)
+bun run turbo run dev --filter=@apps/web   # http://play.fivenines.test:3001 (hosts file; needs Nest :3006 + auth :3007)
 bun run typecheck --filter=@apps/web
 bun test apps/web
 ```
 
-Browser API origin: `VITE_NESTJS_API_URL` (see `.env.sample`). SSR fetch uses `NESTJS_API_URL`.
+Browser API origin: `VITE_NESTJS_API_URL` (default `http://api.fivenines.test:3006`). SSR fetch uses `NESTJS_API_URL`. Auth origin: `VITE_AUTH_URL`. Player origin: `VITE_APP_ORIGIN`. Vite `allowedHosts` includes `play.fivenines.test`. Home must not `restore()`.
 
 ## Docker
 

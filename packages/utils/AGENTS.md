@@ -17,11 +17,9 @@ This file provides guidance to Agents when working with the utils package.
 The package provides two main utilities:
 
 ```typescript
-// CSS class utility for Tailwind CSS
 import { cn } from '@packages/utils/cn';
-
-// Logging utility
-import { logger } from '@packages/utils/logger';
+import { log } from '@packages/utils/logger';
+import { getAppOrigin, getAuthOrigin } from '@packages/utils/origins';
 ```
 
 ## Available Utilities
@@ -152,7 +150,9 @@ packages/utils/
 │   ├── cn.ts          # CSS class utility
 │   ├── cn.test.ts     # Tests for cn utility
 │   ├── logger.ts      # Logging utility
-│   └── logger.test.ts # Tests for logger utility
+│   ├── logger.test.ts # Tests for logger utility
+│   ├── origins.ts     # HTTP origin helpers
+│   └── origins.test.ts
 ├── package.json       # Package configuration with exports
 └── AGENTS.md         # This documentation
 ```

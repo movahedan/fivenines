@@ -67,6 +67,29 @@ describe("AuthSession", () => {
 		expect(session.getAccessToken()).toBe("new");
 	});
 
+	it("refreshToken keeps the in-memory token when the body has no access_token", async () => {
+		const session = new AuthSession({ refreshUrl: "/api/refresh" });
+		session.applyLogin({
+			accessToken: "old",
+			sessionId: "sess",
+			refreshToken: "refresh",
+			user: { id: "u1", email: "a@example.com", tenantId: "t1", role: "owner" },
+		});
+
+		globalThis.fetch = mock(async () =>
+			Promise.resolve(
+				new Response(JSON.stringify({ ok: true }), {
+					status: 200,
+					headers: { "Content-Type": "application/json" },
+				}),
+			),
+		) as unknown as typeof fetch;
+
+		await session.refreshToken();
+		expect(session.getAccessToken()).toBe("old");
+		expect(session.isAuthenticated()).toBe(true);
+	});
+
 	it("clear drops auth state", () => {
 		const session = new AuthSession();
 		session.applyLogin({
@@ -104,7 +127,7 @@ describe("AuthSession", () => {
 			sessionCookieName: "auth_session",
 		});
 
-		stubDocumentCookie("auth_session=sess-id");
+		stubDocumentCookie("auth_session=sess-id; auth_refresh=refresh-token");
 
 		globalThis.fetch = mock(async (input: RequestInfo | URL) => {
 			const url = String(input);
@@ -140,12 +163,71 @@ describe("AuthSession", () => {
 		expect(session.getStatus()).toBe("ready");
 	});
 
-	it("restore becomes ready without auth when no session cookie", async () => {
-		const session = new AuthSession();
-		stubDocumentCookie("");
+	it("restore skips auth.me when refresh returns a user", async () => {
+		const session = new AuthSession({
+			refreshUrl: "/api/refresh",
+			trpcBaseUrl: "/api",
+			sessionCookieName: "auth_session",
+			refreshCookieName: "auth_refresh",
+		});
+
+		stubDocumentCookie("auth_session=sess-id; auth_refresh=refresh-token");
+
+		globalThis.fetch = mock(async (input: RequestInfo | URL) => {
+			const url = String(input);
+			if (url.includes("/refresh")) {
+				return new Response(
+					JSON.stringify({
+						access_token: "restored",
+						expires_in: 900,
+						user: {
+							id: "u1",
+							email: "a@example.com",
+							tenantId: "t1",
+							role: "owner",
+						},
+					}),
+					{ status: 200, headers: { "Content-Type": "application/json" } },
+				);
+			}
+			return new Response("not found", { status: 404 });
+		}) as unknown as typeof fetch;
+
+		const ok = await session.restore();
+		expect(ok).toBe(true);
+		expect(session.getUser()?.email).toBe("a@example.com");
+		expect(session.getAccessToken()).toBe("restored");
+	});
+
+	it("restore becomes ready without auth when refresh fails", async () => {
+		const session = new AuthSession({
+			refreshUrl: "/api/refresh",
+			sessionCookieName: "auth_session",
+			refreshCookieName: "auth_refresh",
+		});
+		stubDocumentCookie("auth_session=sess-id; auth_refresh=refresh-token");
+		globalThis.fetch = mock(async () =>
+			Promise.resolve(new Response("unauthorized", { status: 401 })),
+		) as unknown as typeof fetch;
+
 		const ok = await session.restore();
 		expect(ok).toBe(false);
 		expect(session.getStatus()).toBe("ready");
 		expect(session.isAuthenticated()).toBe(false);
+	});
+
+	it("restore is ready without a network call when cookies are missing", async () => {
+		const session = new AuthSession({ refreshUrl: "/api/refresh" });
+		stubDocumentCookie("");
+		const fetchMock = mock(async () =>
+			Promise.resolve(new Response("unauthorized", { status: 401 })),
+		);
+		globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+		const ok = await session.restore();
+		expect(ok).toBe(false);
+		expect(session.getStatus()).toBe("ready");
+		expect(session.isAuthenticated()).toBe(false);
+		expect(fetchMock).not.toHaveBeenCalled();
 	});
 });

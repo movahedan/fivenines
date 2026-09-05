@@ -35,9 +35,16 @@ describe("@apps/nestjs JwtAuthGuard", () => {
 			.expect(200);
 	});
 
+	it("GET /api/v1/tenants accepts a valid access cookie", async () => {
+		await supertest(app.getHttpServer())
+			.get("/api/v1/tenants")
+			.set("Cookie", `auth_access=${accessToken}`)
+			.expect(200);
+	});
+
 	it("GET /api/v1/tenants without token returns 401", async () => {
 		const response = await supertest(app.getHttpServer()).get("/api/v1/tenants").expect(401);
-		expect(response.body.message).toMatch(/Bearer|token/i);
+		expect(response.body.message).toBe("Missing credentials");
 	});
 
 	it("GET /api/v1/tenants with wrong scope returns 403", async () => {

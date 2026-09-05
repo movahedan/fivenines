@@ -13,6 +13,7 @@
  */
 
 export * from './apiErrorDto';
+export * from './clockNowDto';
 export * from './fieldErrorDto';
 export * from './healthStatusDto';
 export * from './listQueryDto';

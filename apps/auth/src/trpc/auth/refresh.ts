@@ -4,7 +4,9 @@ import { authConfig } from "../../config";
 import { prisma } from "../../db";
 import { humanAccessTokenForMembership } from "./access-token";
 import {
+	accessCookieHeader,
 	hashRefreshToken,
+	loggedInCookieHeader,
 	parseCookies,
 	refreshCookieHeader,
 	resolveSessionFromCookies,
@@ -31,14 +33,49 @@ async function accessTokenFromActiveMembership(session: {
 	});
 }
 
-export async function handleRefreshRequest(req: Request): Promise<Response> {
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== null;
+}
+
+async function sessionCredentialsFromRequest(
+	req: Request,
+): Promise<{ sessionId: string; refreshToken: string } | null> {
 	const cookies = parseCookies(req.headers.get("cookie"));
 	const sessionId = cookies[authConfig.cookieSession];
 	const refreshToken = cookies[authConfig.cookieRefresh];
+	if (sessionId && refreshToken) {
+		return { sessionId, refreshToken };
+	}
 
-	if (!sessionId || !refreshToken) {
+	const contentType = req.headers.get("content-type") ?? "";
+	if (!contentType.includes("application/json")) {
+		return null;
+	}
+
+	let body: unknown;
+	try {
+		body = await req.json();
+	} catch {
+		return null;
+	}
+	if (
+		!isRecord(body) ||
+		typeof body.session_id !== "string" ||
+		typeof body.refresh_token !== "string" ||
+		body.session_id.length === 0 ||
+		body.refresh_token.length === 0
+	) {
+		return null;
+	}
+	return { sessionId: body.session_id, refreshToken: body.refresh_token };
+}
+
+export async function handleRefreshRequest(req: Request): Promise<Response> {
+	const credentials = await sessionCredentialsFromRequest(req);
+	if (!credentials) {
 		return Response.json(GENERIC_ERROR, { status: 401 });
 	}
+	const { sessionId, refreshToken } = credentials;
 
 	const session = await prisma.session.findFirst({
 		where: {
@@ -73,15 +110,10 @@ export async function handleRefreshRequest(req: Request): Promise<Response> {
 	const maxAge = authConfig.refreshTtlDays * 24 * 60 * 60;
 	const headers = new Headers({ "content-type": "application/json" });
 	headers.append("set-cookie", refreshCookieHeader(rotated.refreshToken, maxAge));
+	headers.append("set-cookie", accessCookieHeader(accessToken, authConfig.accessTtlSeconds));
+	headers.append("set-cookie", loggedInCookieHeader(maxAge));
 
-	return Response.json(
-		{
-			access_token: accessToken,
-			token_type: "Bearer",
-			expires_in: authConfig.accessTtlSeconds,
-		},
-		{ headers },
-	);
+	return Response.json({ ok: true }, { headers });
 }
 
 export async function refreshFromSessionCookie(req: Request) {

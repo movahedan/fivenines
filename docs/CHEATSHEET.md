@@ -55,6 +55,14 @@ Run from repo root. Filters use workspace `name` (`@apps/nestjs`, `@packages/ui`
 
 Hot reload in containers is limited on macOS: bind mounts often do not propagate file-watch events, so Bun/tsup may not restart on save. Vite/Storybook use polling when `CHOKIDAR_USEPOLLING` is set (compose dev stack). For the fastest loop while editing, run the app on the host ([Dev (host)](#dev-host)) and use Docker for Postgres and the full stack.
 
+Local player auth uses **HTTP hostnames** (no mkcert). One `/etc/hosts` line:
+
+```text
+127.0.0.1 play.fivenines.test auth.fivenines.test api.fivenines.test
+```
+
+Then open `http://play.fivenines.test:3001` (Play), login at `http://auth.fivenines.test:3007`, API at `http://api.fivenines.test:3006`. Cookie `Domain=.fivenines.test`; `AUTH_COOKIE_SECURE=false` locally.
+
 | Command | Description |
 |---------|-------------|
 | `bun run container setup` | Dev stack setup |
@@ -88,7 +96,7 @@ curl -sf -H "x-tenant-id: 00000000-0000-4000-8000-000000000001" \
   http://localhost:3006/api/v1/tenants
 ```
 
-**Real JWT:** log in at `http://localhost:3007/login` (seed creds in `.env.sample`), obtain `access_token` via `POST /api/refresh` or tRPC `auth.login`, then:
+**Real JWT (browser):** hosts file + login form → 302 `/hub`; Nest reads `auth_access` cookie. **M2M/tests:** Bearer still works:
 
 ```bash
 curl -sf -H "Authorization: Bearer <access_token>" \

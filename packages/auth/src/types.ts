@@ -13,9 +13,9 @@ export type AuthLoginResult = {
 };
 
 export type AuthSessionOptions = {
-	/** POST refresh endpoint (same-origin proxy recommended). Default `/auth/api/refresh`. */
+	/** POST refresh endpoint on `@apps/auth`. Default `/api/refresh`. */
 	readonly refreshUrl?: string;
-	/** tRPC HTTP base (no trailing slash). Default `/auth/api`. */
+	/** tRPC HTTP base (no trailing slash). Default `/api`. */
 	readonly trpcBaseUrl?: string;
 	readonly sessionCookieName?: string;
 	readonly refreshCookieName?: string;
@@ -35,8 +35,8 @@ export type ResolvedAuthSessionOptions = {
 };
 
 export const DEFAULT_AUTH_SESSION_OPTIONS: ResolvedAuthSessionOptions = {
-	refreshUrl: "/auth/api/refresh",
-	trpcBaseUrl: "/auth/api",
+	refreshUrl: "/api/refresh",
+	trpcBaseUrl: "/api",
 	sessionCookieName: "auth_session",
 	refreshCookieName: "auth_refresh",
 	accessTtlMs: 15 * 60 * 1000,

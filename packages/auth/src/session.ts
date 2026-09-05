@@ -54,11 +54,42 @@ function clearCookie(name: string): void {
 	document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`;
 }
 
-function hasCookie(name: string): boolean {
+function getCookie(name: string): string | null {
 	if (typeof document === "undefined") {
-		return false;
+		return null;
 	}
-	return document.cookie.split(";").some((part) => part.trim().startsWith(`${name}=`));
+	const prefix = `${name}=`;
+	for (const part of document.cookie.split(";")) {
+		const trimmed = part.trim();
+		if (trimmed.startsWith(prefix)) {
+			return decodeURIComponent(trimmed.slice(prefix.length));
+		}
+	}
+	return null;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== null;
+}
+
+function parseAuthUser(value: unknown): AuthUser | null {
+	if (!isRecord(value)) {
+		return null;
+	}
+	if (
+		typeof value.id !== "string" ||
+		typeof value.email !== "string" ||
+		typeof value.tenantId !== "string" ||
+		typeof value.role !== "string"
+	) {
+		return null;
+	}
+	return {
+		id: value.id,
+		email: value.email,
+		tenantId: value.tenantId,
+		role: value.role,
+	};
 }
 
 function snapshotFromState(
@@ -80,8 +111,7 @@ function snapshotFromState(
 
 /**
  * Browser auth session for `@apps/auth`.
- * Access token stays in memory; session/refresh cookies are set for same-origin refresh/proxy.
- * Cold load: call {@link AuthSession.restore} (wired by `AuthProvider`) to exchange cookies for access + user.
+ * Player API calls use the HttpOnly access cookie; `restore()` is optional and off on Play home.
  */
 export class AuthSession {
 	readonly options: ResolvedAuthSessionOptions;
@@ -159,7 +189,7 @@ export class AuthSession {
 	}
 
 	hasSessionCookie(): boolean {
-		return hasCookie(this.options.sessionCookieName);
+		return getCookie(this.options.sessionCookieName) !== null;
 	}
 
 	applyLogin(result: AuthLoginResult): void {
@@ -217,26 +247,35 @@ export class AuthSession {
 		}
 
 		this.#restorePromise = (async () => {
-			if (!this.hasSessionCookie()) {
-				this.#publish(this.#state, "ready");
-				return false;
-			}
-
 			this.#publish(this.#state, "restoring");
 			try {
+				const sessionId = getCookie(this.options.sessionCookieName);
+				const refreshToken = getCookie(this.options.refreshCookieName);
+				if (sessionId === null || refreshToken === null) {
+					this.#publish(this.#state, "ready");
+					return false;
+				}
 				await this.refreshToken();
-				const me = await fetchAuthMe(this.options.trpcBaseUrl);
-				const user = authUserFromMe(me);
-				this.#publish(
-					{
-						accessToken: this.#state.accessToken,
-						user,
-						expiresAt: this.#state.expiresAt,
-					},
-					"ready",
-				);
+				if (this.#state.user === null) {
+					const me = await fetchAuthMe(this.options.trpcBaseUrl);
+					const user = authUserFromMe(me);
+					this.#publish(
+						{
+							accessToken: this.#state.accessToken,
+							user,
+							expiresAt: this.#state.expiresAt,
+						},
+						"ready",
+					);
+					return true;
+				}
+				this.#publish(this.#state, "ready");
 				return true;
 			} catch {
+				if (this.isAuthenticated()) {
+					this.#publish(this.#state, "ready");
+					return true;
+				}
 				this.clear();
 				return false;
 			}
@@ -263,27 +302,47 @@ export class AuthSession {
 			return this.#refreshPromise;
 		}
 		this.#refreshPromise = (async () => {
+			const sessionId = getCookie(this.options.sessionCookieName);
+			const refreshToken = getCookie(this.options.refreshCookieName);
+			const hasBody = sessionId !== null && refreshToken !== null;
 			const response = await fetch(this.options.refreshUrl, {
 				method: "POST",
 				credentials: "include",
+				headers: hasBody ? { "content-type": "application/json" } : undefined,
+				body: hasBody
+					? JSON.stringify({ session_id: sessionId, refresh_token: refreshToken })
+					: undefined,
 			});
 			if (!response.ok) {
 				this.clear();
 				throw new Error("Session expired");
 			}
-			const body = (await response.json()) as {
-				access_token?: string;
-				expires_in?: number;
-			};
-			if (!body.access_token) {
-				this.clear();
-				throw new Error("Invalid refresh response");
+			const body: unknown = await response.json().catch(() => null);
+			if (!isRecord(body) || typeof body.access_token !== "string") {
+				this.#notify();
+				return;
 			}
-			// Token-only update: keep snapshot user/auth flags stable when already logged in.
+			if (typeof body.refresh_token === "string") {
+				setCookie(
+					this.options.refreshCookieName,
+					body.refresh_token,
+					this.options.cookieMaxAgeSeconds,
+				);
+			}
+			if (typeof body.session_id === "string") {
+				setCookie(
+					this.options.sessionCookieName,
+					body.session_id,
+					this.options.cookieMaxAgeSeconds,
+				);
+			}
+			const user = parseAuthUser(body.user) ?? this.#state.user;
 			this.#state = {
 				...this.#state,
 				accessToken: body.access_token,
-				expiresAt: Date.now() + (body.expires_in ?? 900) * 1000,
+				user,
+				expiresAt:
+					Date.now() + (typeof body.expires_in === "number" ? body.expires_in : 900) * 1000,
 			};
 			this.#notify();
 		})().finally(() => {

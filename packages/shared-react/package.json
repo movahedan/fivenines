@@ -9,7 +9,8 @@
 	},
 	"exports": {
 		".": "./src/index.ts",
-		"./useDebouncedCallback": "./src/useDebouncedCallback.ts"
+		"./useDebouncedCallback": "./src/useDebouncedCallback.ts",
+		"./useVisibilityChange": "./src/useVisibilityChange.ts"
 	},
 	"scripts": {
 		"typecheck": "tsc --noEmit",

@@ -25,6 +25,7 @@ async function bootstrap(): Promise<void> {
 	app.enableCors({
 		origin: (
 			process.env.ALLOWED_ORIGINS?.split(",") ?? [
+				"http://play.fivenines.test:3001",
 				"http://localhost:3001",
 				"http://127.0.0.1:3001",
 				"http://localhost:3002",

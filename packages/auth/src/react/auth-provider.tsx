@@ -8,6 +8,7 @@ import {
 	useSyncExternalStore,
 } from "react";
 
+import { loginHref } from "../login-href";
 import {
 	type AuthSession,
 	type AuthSessionStatus,
@@ -19,19 +20,22 @@ export type AuthContextValue = {
 	readonly session: AuthSession;
 	readonly user: AuthUser | null;
 	readonly isAuthenticated: boolean;
-	/** `false` while cold-start `restore()` is in flight — avoid flashing the login screen. */
 	readonly isReady: boolean;
 	readonly status: AuthSessionStatus;
 	readonly login: (email: string, password: string) => Promise<void>;
 	readonly logout: () => Promise<void>;
+	readonly getLoginHref: (next?: string) => string;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export type AuthProviderProps = {
 	readonly session?: AuthSession;
-	/** When true (default), exchange cookies for access token + user on mount. */
 	readonly restoreOnMount?: boolean;
+	readonly authOrigin?: string;
+	readonly appOrigin?: string;
+	readonly loginPath?: string;
+	readonly callbackPath?: string;
 	readonly children: ReactNode;
 };
 
@@ -42,6 +46,10 @@ export type AuthProviderProps = {
 export function AuthProvider({
 	session = defaultAuthSession,
 	restoreOnMount = true,
+	authOrigin,
+	appOrigin,
+	loginPath = "/login",
+	callbackPath = "/hub",
 	children,
 }: AuthProviderProps) {
 	const snapshot = useSyncExternalStore(
@@ -68,6 +76,22 @@ export function AuthProvider({
 		await session.logout();
 	}, [session]);
 
+	const getLoginHref = useCallback(
+		(next = "/") => {
+			if (authOrigin && appOrigin) {
+				return loginHref({
+					authOrigin,
+					loginPath,
+					redirectUri: `${appOrigin.replace(/\/$/, "")}${callbackPath}`,
+					state: next,
+				});
+			}
+			const params = new URLSearchParams({ next });
+			return `${loginPath}?${params.toString()}`;
+		},
+		[authOrigin, appOrigin, loginPath, callbackPath],
+	);
+
 	const value = useMemo<AuthContextValue>(
 		() => ({
 			session,
@@ -77,8 +101,17 @@ export function AuthProvider({
 			status: snapshot.status,
 			login,
 			logout,
+			getLoginHref,
 		}),
-		[session, snapshot.user, snapshot.isAuthenticated, snapshot.status, login, logout],
+		[
+			session,
+			snapshot.user,
+			snapshot.isAuthenticated,
+			snapshot.status,
+			login,
+			logout,
+			getLoginHref,
+		],
 	);
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

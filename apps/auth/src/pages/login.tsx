@@ -1,7 +1,12 @@
+import { AuthReturnFields } from "./auth-return-fields";
+
 type LoginPageProps = Readonly<{
 	csrfToken: string;
 	error?: string;
 	email?: string;
+	redirectUri?: string;
+	state?: string;
+	next?: string;
 }>;
 
 export function LoginPage(props: LoginPageProps) {
@@ -22,8 +27,9 @@ export function LoginPage(props: LoginPageProps) {
 			<body>
 				<h1>Sign in</h1>
 				{props.error ? <p className="error">{props.error}</p> : null}
-				<form method="post" action="/login">
+				<form method="post" action="">
 					<input type="hidden" name="csrf" value={props.csrfToken} />
+					<AuthReturnFields redirectUri={props.redirectUri} state={props.state} next={props.next} />
 					<label>
 						Email
 						<br />
@@ -37,9 +43,9 @@ export function LoginPage(props: LoginPageProps) {
 					<button type="submit">Sign in</button>
 				</form>
 				<p style={{ marginTop: "1.5rem", fontSize: "0.9rem" }}>
-					<a href="/register">Create account</a>
+					<a href="register">Create account</a>
 					{" · "}
-					<a href="/otp">Sign in with code</a>
+					<a href="otp">Sign in with code</a>
 				</p>
 			</body>
 		</html>

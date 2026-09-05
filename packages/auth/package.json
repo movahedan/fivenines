@@ -15,6 +15,14 @@
 		"./react": {
 			"types": "./src/react/index.ts",
 			"default": "./src/react/index.ts"
+		},
+		"./login-href": {
+			"types": "./src/login-href.ts",
+			"default": "./src/login-href.ts"
+		},
+		"./was-logged-in": {
+			"types": "./src/was-logged-in.ts",
+			"default": "./src/was-logged-in.ts"
 		}
 	},
 	"scripts": {

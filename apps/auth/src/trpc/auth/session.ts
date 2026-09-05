@@ -13,36 +13,69 @@ export function createRefreshToken(): string {
 	return randomBytes(48).toString("base64url");
 }
 
-export function sessionCookieHeader(sessionId: string, maxAgeSeconds: number): string {
+type CookieFlags = {
+	readonly httpOnly: boolean;
+	readonly maxAgeSeconds: number;
+};
+
+function cookieHeader(name: string, value: string, flags: CookieFlags): string {
 	const parts = [
-		`${authConfig.cookieSession}=${sessionId}`,
+		`${name}=${encodeURIComponent(value)}`,
 		"Path=/",
-		`Max-Age=${maxAgeSeconds}`,
-		"HttpOnly",
-		"SameSite=Lax",
+		`Max-Age=${flags.maxAgeSeconds}`,
+		"SameSite=Strict",
 	];
+	if (flags.httpOnly) {
+		parts.push("HttpOnly");
+	}
+	const domain = authConfig.cookieDomain.trim();
+	if (domain.length > 0) {
+		parts.push(`Domain=${domain}`);
+	}
 	if (authConfig.cookieSecure) {
 		parts.push("Secure");
 	}
 	return parts.join("; ");
+}
+
+export function sessionCookieHeader(sessionId: string, maxAgeSeconds: number): string {
+	return cookieHeader(authConfig.cookieSession, sessionId, { httpOnly: true, maxAgeSeconds });
 }
 
 export function refreshCookieHeader(refreshToken: string, maxAgeSeconds: number): string {
-	const parts = [
-		`${authConfig.cookieRefresh}=${refreshToken}`,
-		"Path=/",
-		`Max-Age=${maxAgeSeconds}`,
-		"HttpOnly",
-		"SameSite=Lax",
-	];
+	return cookieHeader(authConfig.cookieRefresh, refreshToken, { httpOnly: true, maxAgeSeconds });
+}
+
+export function accessCookieHeader(accessToken: string, maxAgeSeconds: number): string {
+	return cookieHeader(authConfig.cookieAccess, accessToken, { httpOnly: true, maxAgeSeconds });
+}
+
+export function loggedInCookieHeader(maxAgeSeconds: number): string {
+	return cookieHeader(authConfig.cookieLoggedIn, "1", { httpOnly: false, maxAgeSeconds });
+}
+
+export function clearCookieHeader(name: string): string {
+	const parts = [`${name}=`, "Path=/", "Max-Age=0", "HttpOnly", "SameSite=Strict"];
+	const domain = authConfig.cookieDomain.trim();
+	if (domain.length > 0) {
+		parts.push(`Domain=${domain}`);
+	}
 	if (authConfig.cookieSecure) {
 		parts.push("Secure");
 	}
 	return parts.join("; ");
 }
 
-export function clearCookieHeader(name: string): string {
-	return `${name}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax`;
+export function clearLoggedInCookieHeader(): string {
+	const parts = [`${authConfig.cookieLoggedIn}=`, "Path=/", "Max-Age=0", "SameSite=Strict"];
+	const domain = authConfig.cookieDomain.trim();
+	if (domain.length > 0) {
+		parts.push(`Domain=${domain}`);
+	}
+	if (authConfig.cookieSecure) {
+		parts.push("Secure");
+	}
+	return parts.join("; ");
 }
 
 export async function createSession(input: {

@@ -14,7 +14,7 @@
 |-------|--------|
 | `/status` | GET |
 | `/.well-known/jwks.json` | GET |
-| `/api/refresh` | POST |
+| `/api/refresh` | POST (cookie or JSON session; Set-Cookie access JWT; JSON `{ ok: true }`) |
 | `/api/token` | POST (M2M) |
 | `/login`, `/logout` | GET/POST (SSR) |
 | `/register` | GET/POST (SSR password sign-up) |
@@ -40,6 +40,8 @@ bun run container compose -- --profile auth up -d postgres   # DB only (host-run
 bun run container up -- --profile auth
 curl -sf http://localhost:3007/status
 ```
+
+Login/register/OTP **302** to `AUTH_PLAY_ORIGIN/hub` and set HttpOnly `auth_access` plus public `was_logged_in` on `AUTH_COOKIE_DOMAIN` (default `.fivenines.test`). Local HTTP: `AUTH_COOKIE_SECURE=false`. Names: `play.fivenines.test`, `auth.fivenines.test`, `api.fivenines.test` (see [CHEATSHEET](../../docs/CHEATSHEET.md)).
 
 Copy `apps/auth/.env.sample` → `apps/auth/.env` for host `bun run` (`--env-file=.env`, `AUTH_DATABASE_URL` → localhost). Dev compose sets `AUTH_DATABASE_URL` itself (`postgres` hostname + root `POSTGRES_*`). See [README.md](README.md) for JWT flows and Nest integration.
 

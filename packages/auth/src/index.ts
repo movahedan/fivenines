@@ -18,6 +18,7 @@ export {
 	type TenantRole,
 } from "./contract";
 export { createAuthFetcherBindings } from "./fetcher-bindings";
+export { loginHref } from "./login-href";
 export {
 	AuthSession,
 	type AuthSessionSnapshot,
@@ -34,3 +35,4 @@ export {
 	DEFAULT_AUTH_SESSION_OPTIONS,
 	resolveAuthSessionOptions,
 } from "./types";
+export { hasWasLoggedInCookie, WAS_LOGGED_IN_COOKIE } from "./was-logged-in";

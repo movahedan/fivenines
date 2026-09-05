@@ -4,7 +4,8 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { resolveServiceHostPorts, runCiAttachServicePorts } from "./attach-service-ports";
+import { resolveServiceHostPorts } from "../shared/compose-service-ports";
+import { runCiAttachServicePorts } from "./attach-service-ports";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const PROD_COMPOSE = path.join(REPO_ROOT, "docker-compose.yml");

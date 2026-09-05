@@ -1,9 +1,10 @@
 import { setTimeout } from "node:timers/promises";
 import { parseArgs } from "node:util";
 
-import { EntityCompose, type ServiceHealth, type ServiceInfo } from "intershell";
+import { EntityCompose, type ServiceHealth } from "intershell";
 
 import { colorify } from "../shared/colorify";
+import { resolveServiceHostPorts } from "../shared/compose-service-ports";
 import { runStepsInTerminal } from "../shared/run-terminal-steps";
 import type { StepProgressStep } from "../shared/step-progress";
 import { getComposeFilePath, spawnContainerIndex } from "./stack";
@@ -36,6 +37,7 @@ async function monitorServiceHealth(
 	options: { readonly verbose: boolean },
 ): Promise<void> {
 	const services = await compose.getServices();
+	const hostPorts = await resolveServiceHostPorts(getComposeFilePath());
 	if (options.verbose) {
 		console.log(colorify.yellow("Waiting for services to become healthy..."));
 	}
@@ -77,10 +79,9 @@ async function monitorServiceHealth(
 	for (const service of healthResult) {
 		const icon = HEALTH_ICONS[service.status];
 		const color = HEALTH_COLORS[service.status];
-		const port = services.find((s: ServiceInfo) => s.name === service.name)?.ports[0]?.host;
-		console.log(
-			`${icon} ${color(service.name)}: ${service.status} ${port !== undefined ? `(${port})` : ""}`,
-		);
+		const port = hostPorts[service.name];
+		const portLabel = port !== undefined && Number.isInteger(port) && port > 0 ? ` (${port})` : "";
+		console.log(`${icon} ${color(service.name)}: ${service.status}${portLabel}`);
 	}
 
 	if (healthResult.some((s) => s.status === "unhealthy")) {

@@ -156,7 +156,11 @@ jobs:
             exit 0
           fi
 
-          bun run container --prod compose up ${{ needs.get-affected.outputs.affected-services }} -d
+          if ! bun run container --prod compose up ${{ needs.get-affected.outputs.affected-services }} -d; then
+            echo "❌ Production compose up failed"
+            bun run container --prod compose logs --no-color ${{ needs.get-affected.outputs.affected-services }} || true
+            exit 1
+          fi
 
           sleep 90
 
@@ -195,6 +199,7 @@ jobs:
 
             if [ "$healthy" -ne 1 ]; then
               echo "❌ $service did not become healthy after 3 attempts"
+              bun run container --prod compose logs --no-color "$service" || true
               exit 1
             fi
           done

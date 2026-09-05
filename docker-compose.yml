@@ -77,8 +77,6 @@ services:
       AUTH_AUDIENCE: ${AUTH_AUDIENCE:-fivenines-api}
       AUTH_ALLOW_HEADER_TENANT: ${AUTH_ALLOW_HEADER_TENANT:-false}
       AUTH_COOKIE_ACCESS: ${AUTH_COOKIE_ACCESS:-auth_access}
-    command: >
-      sh -c "cd apps/nestjs && bun x prisma migrate deploy && bun ./dist/index.js"
     healthcheck:
       test:
         [
@@ -119,9 +117,6 @@ services:
       AUTH_SEED_ADMIN_EMAIL: ${AUTH_SEED_ADMIN_EMAIL:-admin@example.com}
       AUTH_SEED_ADMIN_PASSWORD: ${AUTH_SEED_ADMIN_PASSWORD:-changeme}
       AUTH_REDIRECT_ORIGINS: ${AUTH_REDIRECT_ORIGINS:-http://play.fivenines.com:3000,http://localhost:3000,http://127.0.0.1:3000}
-    command: >
-      sh -c "cd apps/auth && bun scripts/ensure-db.ts && bun x prisma migrate deploy --schema src/prisma/schema.prisma && bun scripts/seed.ts &&
-      bun dist/index.js"
     healthcheck:
       test:
         [

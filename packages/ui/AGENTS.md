@@ -45,7 +45,7 @@ packages/ui/
 | `@packages/ui/style.css` | `src/style.css` |
 | `@packages/ui/theme.ts` | `src/theme.ts` |
 
-Molecules map web `onClick` → atom `onPress`. Icons in generated atoms: `lucide-react-native`.
+Molecules map web `onClick` → atom `onPress`. Icons in generated atoms: `lucide-react-native` (declare `react-native-svg` — prune/Docker omits undeclared peers).
 
 ## Storybook
 

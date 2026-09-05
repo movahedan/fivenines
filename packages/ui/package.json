@@ -124,6 +124,7 @@
 		"react-native-reanimated": "4.6.0",
 		"react-native-safe-area-context": "5.9.1",
 		"react-native-screens": "4.27.0",
+		"react-native-svg": "15.15.5",
 		"react-resizable-panels": "3.0.6",
 		"recharts": "2.15.4",
 		"sonner": "2.0.8",

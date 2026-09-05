@@ -16,8 +16,9 @@ RUN turbo prune --scope=@apps/nestjs --docker
 FROM turbo AS installer
 WORKDIR /app
 COPY --from=pruner /app/out/json/ .
+COPY ./bun.lock ./bun.lock
 RUN --mount=type=cache,target=/root/.bun/install/cache,id=fivenines-bun-cache-nestjs \
-	bun install --ignore-scripts
+	bun install --ignore-scripts --frozen-lockfile
 
 FROM turbo AS build
 WORKDIR /app

@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -6,7 +7,11 @@ import type { Plugin, UserConfig } from "vite";
 
 const storybookDir = path.dirname(fileURLToPath(import.meta.url));
 const uiRoot = path.resolve(storybookDir, "..");
-const repoNodeModules = path.join(uiRoot, "../../node_modules");
+const requireFromUi = createRequire(path.join(uiRoot, "package.json"));
+
+function packageDir(specifier: string): string {
+	return path.dirname(requireFromUi.resolve(`${specifier}/package.json`));
+}
 
 const sharedReactPackages = [
 	"react",
@@ -163,8 +168,8 @@ ${extra}
 
 export function shareSingleReact(): Plugin {
 	const flavor = reactBuildFlavor();
-	const reactRoot = path.join(repoNodeModules, "react");
-	const reactDomRoot = path.join(repoNodeModules, "react-dom");
+	const reactRoot = packageDir("react");
+	const reactDomRoot = packageDir("react-dom");
 	const cache = new Map<string, string>();
 
 	const entries: Record<
@@ -490,19 +495,19 @@ export function resolveStyleqStubs(): Plugin {
 }
 
 export function rnWebAliases(): Record<string, string> {
+	const rnSvgDir = packageDir("react-native-svg");
 	return {
 		"@": path.join(uiRoot, "src"),
 		"react-native": "react-native-web",
-		"react-native-svg": path.join(
-			uiRoot,
-			"../../node_modules/react-native-svg/lib/module/ReactNativeSVG.web.js",
-		),
-		[path.join(repoNodeModules, "react-native-svg/lib/module/lib/extract/transform.js")]: path.join(
+		"react-native-svg": path.join(rnSvgDir, "lib/module/ReactNativeSVG.web.js"),
+		[path.join(rnSvgDir, "lib/module/lib/extract/transform.js")]: path.join(
 			storybookDir,
 			"stubs/svg-transform.js",
 		),
-		[path.join(repoNodeModules, "react-native-svg/lib/module/lib/extract/transformToRn.js")]:
-			path.join(storybookDir, "stubs/svg-transform.js"),
+		[path.join(rnSvgDir, "lib/module/lib/extract/transformToRn.js")]: path.join(
+			storybookDir,
+			"stubs/svg-transform.js",
+		),
 		"@react-native/assets-registry/registry": path.join(storybookDir, "stubs/assets-registry.js"),
 		"react-native/Libraries/Utilities/codegenNativeComponent": path.join(
 			storybookDir,

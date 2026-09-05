@@ -29,6 +29,9 @@
 		"typecheck": "tsc --noEmit",
 		"test": "bun --cwd ../.. test packages/auth/src"
 	},
+	"dependencies": {
+		"@packages/utils": "workspace:*"
+	},
 	"devDependencies": {
 		"@tools/tests-preset": "workspace:*",
 		"@tools/typescript": "workspace:*",

@@ -74,7 +74,7 @@ Env (see `.env.sample`): `AUTH_ALLOW_REGISTRATION`, `AUTH_ALLOW_OTP`, `AUTH_OTP_
 Set on `@apps/nestjs`:
 
 - `AUTH_JWKS_URL=http://localhost:3007/.well-known/jwks.json`
-- `AUTH_ISSUER=http://auth.fivenines.test:3007`
+- `AUTH_ISSUER=http://auth.fivenines.com:3007`
 - `AUTH_AUDIENCE=fivenines-api`
 - `AUTH_ALLOW_HEADER_TENANT=true` (development only) to allow `x-tenant-id` without JWT
 

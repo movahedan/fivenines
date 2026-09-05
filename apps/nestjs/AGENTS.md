@@ -8,7 +8,7 @@ Guidance for **@apps/nestjs** — multi-tenant feature flags control-plane API (
 - **Prefix:** `/api` (e.g. `GET /api/v1/health`, `GET /api/v1/tenants`)
 - **Infra alias:** `GET /status` (no `/api` prefix)
 - **Swagger UI:** `/api/docs` · **OpenAPI JSON:** `/api/docs-json`
-- **Auth:** Access JWT from HttpOnly cookie `AUTH_COOKIE_ACCESS` (`auth_access`) **or** `Authorization: Bearer` (M2M/tests). Same JWKS. Dev fallback: `x-tenant-id` when `AUTH_ALLOW_HEADER_TENANT=true`. CORS `credentials: true`; allow `http://play.fivenines.test:3001`.
+- **Auth:** Access JWT from HttpOnly cookie `AUTH_COOKIE_ACCESS` (`auth_access`) **or** `Authorization: Bearer` (M2M/tests). Same JWKS. Dev fallback: `x-tenant-id` when `AUTH_ALLOW_HEADER_TENANT=true`. CORS `credentials: true`; allow `http://play.fivenines.com:3001`.
 
 ## API contract (OpenAPI)
 
@@ -70,14 +70,14 @@ Nest validates **human JWTs** via JWKS (`jose` + `AUTH_JWKS_URL`) — cookie or 
 | Variable | Purpose |
 |----------|---------|
 | `AUTH_JWKS_URL` | e.g. `http://localhost:3007/.well-known/jwks.json` (compose: `host.docker.internal`) |
-| `AUTH_ISSUER` | Must match JWT `iss` (local default `http://auth.fivenines.test:3007`) |
+| `AUTH_ISSUER` | Must match JWT `iss` (local default `http://auth.fivenines.com:3007`) |
 | `AUTH_AUDIENCE` | Human/mgmt tokens: `fivenines-api` |
 | `AUTH_COOKIE_ACCESS` | Cookie name for the access JWT (default `auth_access`) |
 | `AUTH_ALLOW_HEADER_TENANT` | `true` in dev only — skip JWT, use `x-tenant-id` |
 
 Protected today: `GET /api/v1/tenants` (`JwtAuthGuard` + `feature-flags:read`).
 
-**E2e note:** Auth and Nest seeds share demo tenant id `00000000-0000-4000-8000-000000000001`. Compose `nestjs` service does not yet inject `AUTH_*`; set on host `.env` for combined smoke.
+**E2e note:** Auth and Nest seeds share demo tenant id `00000000-0000-4000-8000-000000000001`. Compose `nestjs` injects `AUTH_JWKS_URL` (via `host.docker.internal`), `AUTH_ISSUER`, `AUTH_AUDIENCE`, and `AUTH_COOKIE_ACCESS`.
 
 ## Docker
 

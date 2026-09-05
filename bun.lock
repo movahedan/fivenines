@@ -99,6 +99,9 @@
     "packages/auth": {
       "name": "@packages/auth",
       "version": "0.1.0",
+      "dependencies": {
+        "@packages/utils": "workspace:*",
+      },
       "devDependencies": {
         "@tools/tests-preset": "workspace:*",
         "@tools/typescript": "workspace:*",

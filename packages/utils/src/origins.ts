@@ -1,5 +1,5 @@
-const DEFAULT_AUTH_ORIGIN = "http://auth.fivenines.test:3007";
-const DEFAULT_APP_ORIGIN = "http://play.fivenines.test:3001";
+const DEFAULT_AUTH_ORIGIN = "http://auth.fivenines.com:3007";
+const DEFAULT_APP_ORIGIN = "http://play.fivenines.com:3001";
 
 function parseHttpOrigin(raw: string | undefined): string | null {
 	if (raw == null) {

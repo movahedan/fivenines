@@ -18,7 +18,7 @@ export {
 	type TenantRole,
 } from "./contract";
 export { createAuthFetcherBindings } from "./fetcher-bindings";
-export { loginHref } from "./login-href";
+export { type LoginHrefInput, type LoginHrefOptions, loginHref } from "./login-href";
 export {
 	AuthSession,
 	type AuthSessionSnapshot,

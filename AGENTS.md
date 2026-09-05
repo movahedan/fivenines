@@ -102,6 +102,8 @@ Prod-shaped file: `bun run container --prod up`. Extra compose flags after `--`:
 ### Troubleshooting
 
 - **Docker** — `bun run container compose -- ps`
+- **Hosts** — `play.fivenines.com` / `auth.fivenines.com` / `api.fivenines.com` in `/etc/hosts` ([CHEATSHEET](docs/CHEATSHEET.md))
+- **Container deps** — `bun run container install` after new packages (named `node_modules` volume; `up --build` does not refresh it)
 - **Deps** — `bun run local cleanup` + `bun install`, or `bun run nuke`
 - **Tests** — `bun test packages/ui/src/…`; preset: [tools/tests-preset/AGENTS.md](tools/tests-preset/AGENTS.md)
 - **Filters** — workspace `name` from `package.json`, not folder name alone

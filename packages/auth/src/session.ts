@@ -1,3 +1,5 @@
+import { cookies } from "@packages/utils/cookies";
+
 import { authUserFromMe, fetchAuthMe, loginWithPassword, logoutSession } from "./client";
 import {
 	type AuthLoginResult,
@@ -52,20 +54,6 @@ function clearCookie(name: string): void {
 		return;
 	}
 	document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`;
-}
-
-function getCookie(name: string): string | null {
-	if (typeof document === "undefined") {
-		return null;
-	}
-	const prefix = `${name}=`;
-	for (const part of document.cookie.split(";")) {
-		const trimmed = part.trim();
-		if (trimmed.startsWith(prefix)) {
-			return decodeURIComponent(trimmed.slice(prefix.length));
-		}
-	}
-	return null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -189,7 +177,7 @@ export class AuthSession {
 	}
 
 	hasSessionCookie(): boolean {
-		return getCookie(this.options.sessionCookieName) !== null;
+		return cookies.get(this.options.sessionCookieName) !== null;
 	}
 
 	applyLogin(result: AuthLoginResult): void {
@@ -249,8 +237,8 @@ export class AuthSession {
 		this.#restorePromise = (async () => {
 			this.#publish(this.#state, "restoring");
 			try {
-				const sessionId = getCookie(this.options.sessionCookieName);
-				const refreshToken = getCookie(this.options.refreshCookieName);
+				const sessionId = cookies.get(this.options.sessionCookieName);
+				const refreshToken = cookies.get(this.options.refreshCookieName);
 				if (sessionId === null || refreshToken === null) {
 					this.#publish(this.#state, "ready");
 					return false;
@@ -302,8 +290,8 @@ export class AuthSession {
 			return this.#refreshPromise;
 		}
 		this.#refreshPromise = (async () => {
-			const sessionId = getCookie(this.options.sessionCookieName);
-			const refreshToken = getCookie(this.options.refreshCookieName);
+			const sessionId = cookies.get(this.options.sessionCookieName);
+			const refreshToken = cookies.get(this.options.refreshCookieName);
 			const hasBody = sessionId !== null && refreshToken !== null;
 			const response = await fetch(this.options.refreshUrl, {
 				method: "POST",

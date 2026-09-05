@@ -8,23 +8,25 @@ import {
 	useSyncExternalStore,
 } from "react";
 
-import { loginHref } from "../login-href";
+import { loginHref as buildLoginHref, type LoginHrefOptions } from "../login-href";
 import {
 	type AuthSession,
 	type AuthSessionStatus,
 	authSession as defaultAuthSession,
 } from "../session";
 import type { AuthUser } from "../types";
+import { hasWasLoggedInCookie } from "../was-logged-in";
 
 export type AuthContextValue = {
 	readonly session: AuthSession;
 	readonly user: AuthUser | null;
 	readonly isAuthenticated: boolean;
 	readonly isReady: boolean;
+	readonly wasLoggedIn: boolean;
 	readonly status: AuthSessionStatus;
 	readonly login: (email: string, password: string) => Promise<void>;
 	readonly logout: () => Promise<void>;
-	readonly getLoginHref: (next?: string) => string;
+	readonly loginHref: (options: LoginHrefOptions) => string;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -32,10 +34,9 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export type AuthProviderProps = {
 	readonly session?: AuthSession;
 	readonly restoreOnMount?: boolean;
-	readonly authOrigin?: string;
-	readonly appOrigin?: string;
+	readonly authOrigin: string;
+	readonly appOrigin: string;
 	readonly loginPath?: string;
-	readonly callbackPath?: string;
 	readonly children: ReactNode;
 };
 
@@ -49,7 +50,6 @@ export function AuthProvider({
 	authOrigin,
 	appOrigin,
 	loginPath = "/login",
-	callbackPath = "/hub",
 	children,
 }: AuthProviderProps) {
 	const snapshot = useSyncExternalStore(
@@ -76,21 +76,18 @@ export function AuthProvider({
 		await session.logout();
 	}, [session]);
 
-	const getLoginHref = useCallback(
-		(next = "/") => {
-			if (authOrigin && appOrigin) {
-				return loginHref({
-					authOrigin,
-					loginPath,
-					redirectUri: `${appOrigin.replace(/\/$/, "")}${callbackPath}`,
-					state: next,
-				});
-			}
-			const params = new URLSearchParams({ next });
-			return `${loginPath}?${params.toString()}`;
-		},
-		[authOrigin, appOrigin, loginPath, callbackPath],
+	const loginHref = useCallback(
+		(options: LoginHrefOptions): string =>
+			buildLoginHref({
+				authOrigin,
+				appOrigin,
+				loginPath,
+				redirectUri: options.redirectUri,
+			}),
+		[appOrigin, authOrigin, loginPath],
 	);
+
+	const wasLoggedIn = hasWasLoggedInCookie();
 
 	const value = useMemo<AuthContextValue>(
 		() => ({
@@ -98,19 +95,21 @@ export function AuthProvider({
 			user: snapshot.user,
 			isAuthenticated: snapshot.isAuthenticated,
 			isReady: snapshot.status === "ready",
+			wasLoggedIn,
 			status: snapshot.status,
 			login,
 			logout,
-			getLoginHref,
+			loginHref,
 		}),
 		[
 			session,
 			snapshot.user,
 			snapshot.isAuthenticated,
 			snapshot.status,
+			wasLoggedIn,
 			login,
 			logout,
-			getLoginHref,
+			loginHref,
 		],
 	);
 

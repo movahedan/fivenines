@@ -18,9 +18,9 @@ volumes:
 
 x-fivenines-extra-hosts: &fivenines-test-hosts
   - "host.docker.internal:host-gateway"
-  - "play.fivenines.test:host-gateway"
-  - "auth.fivenines.test:host-gateway"
-  - "api.fivenines.test:host-gateway"
+  - "play.fivenines.com:host-gateway"
+  - "auth.fivenines.com:host-gateway"
+  - "api.fivenines.com:host-gateway"
 
 services:
   # Apps runtime environment - shared container for all applications
@@ -99,10 +99,10 @@ services:
       PORT: "${NESTJS_PORT:-3006}"
       NESTJS_PORT: "${NESTJS_PORT:-3006}"
       NODE_ENV: development
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://play.fivenines.test:3001,http://localhost:3001,http://127.0.0.1:3001}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://play.fivenines.com:3001,http://localhost:3001,http://127.0.0.1:3001}
       DATABASE_URL: postgresql://${POSTGRES_USER:-fivenines}:${POSTGRES_PASSWORD:-fivenines}@postgres:5432/${POSTGRES_DB:-fivenines}
       AUTH_JWKS_URL: http://host.docker.internal:${AUTH_PORT:-3007}/.well-known/jwks.json
-      AUTH_ISSUER: ${AUTH_ISSUER:-http://auth.fivenines.test:3007}
+      AUTH_ISSUER: ${AUTH_ISSUER:-http://auth.fivenines.com:3007}
       AUTH_AUDIENCE: ${AUTH_AUDIENCE:-fivenines-api}
       AUTH_ALLOW_HEADER_TENANT: ${AUTH_ALLOW_HEADER_TENANT:-false}
       AUTH_COOKIE_ACCESS: ${AUTH_COOKIE_ACCESS:-auth_access}
@@ -155,9 +155,9 @@ services:
       PORT: "${WEB_PORT:-3001}"
       WEB_PORT: "${WEB_PORT:-3001}"
       NESTJS_API_URL: ${NESTJS_API_URL:-http://nestjs:3006}
-      VITE_NESTJS_API_URL: ${VITE_NESTJS_API_URL:-http://api.fivenines.test:3006}
-      VITE_AUTH_URL: ${VITE_AUTH_URL:-http://auth.fivenines.test:3007}
-      VITE_APP_ORIGIN: ${VITE_APP_ORIGIN:-http://play.fivenines.test:3001}
+      VITE_NESTJS_API_URL: ${VITE_NESTJS_API_URL:-http://api.fivenines.com:3006}
+      VITE_AUTH_URL: ${VITE_AUTH_URL:-http://auth.fivenines.com:3007}
+      VITE_APP_ORIGIN: ${VITE_APP_ORIGIN:-http://play.fivenines.com:3001}
     command: bun run turbo run dev --filter=@apps/web
     profiles: ["web", "all"]
     healthcheck:
@@ -183,19 +183,19 @@ services:
       PORT: "${AUTH_PORT:-3007}"
       AUTH_PORT: "${AUTH_PORT:-3007}"
       NODE_ENV: development
-      AUTH_ISSUER: ${AUTH_ISSUER:-http://auth.fivenines.test:3007}
+      AUTH_ISSUER: ${AUTH_ISSUER:-http://auth.fivenines.com:3007}
       AUTH_AUDIENCE: ${AUTH_AUDIENCE:-fivenines-api}
       AUTH_AUDIENCE_EVAL: ${AUTH_AUDIENCE_EVAL:-fivenines-eval}
       AUTH_DATABASE_URL: postgresql://${POSTGRES_USER:-fivenines}:${POSTGRES_PASSWORD:-fivenines}@postgres:5432/fivenines_auth
       AUTH_ACCESS_TTL_SECONDS: ${AUTH_ACCESS_TTL_SECONDS:-900}
       AUTH_COOKIE_SECURE: "false"
-      AUTH_COOKIE_DOMAIN: ${AUTH_COOKIE_DOMAIN:-.fivenines.test}
-      AUTH_PLAY_ORIGIN: ${AUTH_PLAY_ORIGIN:-http://play.fivenines.test:3001}
+      AUTH_COOKIE_DOMAIN: ${AUTH_COOKIE_DOMAIN:-.fivenines.com}
+      AUTH_PLAY_ORIGIN: ${AUTH_PLAY_ORIGIN:-http://play.fivenines.com:3001}
       AUTH_COOKIE_ACCESS: ${AUTH_COOKIE_ACCESS:-auth_access}
       AUTH_COOKIE_LOGGED_IN: ${AUTH_COOKIE_LOGGED_IN:-was_logged_in}
       AUTH_SEED_ADMIN_EMAIL: ${AUTH_SEED_ADMIN_EMAIL:-admin@example.com}
       AUTH_SEED_ADMIN_PASSWORD: ${AUTH_SEED_ADMIN_PASSWORD:-changeme}
-      AUTH_REDIRECT_ORIGINS: ${AUTH_REDIRECT_ORIGINS:-http://play.fivenines.test:3001,http://localhost:3001,http://127.0.0.1:3001}
+      AUTH_REDIRECT_ORIGINS: ${AUTH_REDIRECT_ORIGINS:-http://play.fivenines.com:3001,http://localhost:3001,http://127.0.0.1:3001}
     command: >
       sh -c "cd apps/auth && bun run db:generate && bun run db:migrate && bun run db:seed &&
       cd ../.. && bun run turbo run dev --filter=@apps/auth"

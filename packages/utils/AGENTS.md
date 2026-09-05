@@ -14,12 +14,13 @@ This file provides guidance to Agents when working with the utils package.
 
 ### Exports
 
-The package provides two main utilities:
+The package provides shared helpers:
 
 ```typescript
 import { cn } from '@packages/utils/cn';
 import { log } from '@packages/utils/logger';
 import { getAppOrigin, getAuthOrigin } from '@packages/utils/origins';
+import { cookies } from '@packages/utils/cookies';
 ```
 
 ## Available Utilities
@@ -58,6 +59,17 @@ logger.info('Application started');
 logger.error('An error occurred', error);
 logger.warn('Warning message');
 logger.debug('Debug information');
+```
+
+### `cookies` - Cookie getter
+
+`cookies.get(name)` reads `document.cookie`. Pass `req.headers` (or a raw `Cookie` header string) to parse the request instead.
+
+```typescript
+import { cookies } from '@packages/utils/cookies';
+
+cookies.get("was_logged_in");
+cookies.get("auth_access", req.headers);
 ```
 
 ## Usage in Components
@@ -152,7 +164,9 @@ packages/utils/
 │   ├── logger.ts      # Logging utility
 │   ├── logger.test.ts # Tests for logger utility
 │   ├── origins.ts     # HTTP origin helpers
-│   └── origins.test.ts
+│   ├── origins.test.ts
+│   ├── cookies.ts     # cookies.get(name, headers?)
+│   └── cookies.test.ts
 ├── package.json       # Package configuration with exports
 └── AGENTS.md         # This documentation
 ```

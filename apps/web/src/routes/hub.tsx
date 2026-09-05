@@ -1,32 +1,32 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-import { hasWasLoggedInCookie } from "@packages/auth/was-logged-in";
+import { useAuth } from "@packages/auth/react";
 
 import { useGameClock } from "../clock/use-game-clock";
-import { playLoginHref } from "../hub/play-login-href";
 
 export const Route = createFileRoute("/hub")({
 	component: HubPage,
 });
 
 export function HubPage() {
+	const { wasLoggedIn, loginHref } = useAuth();
 	const [gate, setGate] = useState<"pending" | "ok">("pending");
 	const clock = useGameClock(gate === "ok");
 
 	useEffect(() => {
-		if (!hasWasLoggedInCookie()) {
-			window.location.assign(playLoginHref());
+		if (!wasLoggedIn) {
+			window.location.assign(loginHref({ redirectUri: "/hub" }));
 			return;
 		}
 		setGate("ok");
-	}, []);
+	}, [loginHref, wasLoggedIn]);
 
 	useEffect(() => {
 		if (clock.status === "unauthenticated") {
-			window.location.assign(playLoginHref());
+			window.location.assign(loginHref({ redirectUri: "/hub" }));
 		}
-	}, [clock.status]);
+	}, [clock.status, loginHref]);
 
 	if (gate !== "ok") {
 		return (

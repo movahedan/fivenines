@@ -8,7 +8,7 @@ const webPort = Number(process.env.WEB_PORT ?? "3001");
 export default defineConfig({
 	server: {
 		port: webPort,
-		allowedHosts: ["localhost", "web", "play.fivenines.test"],
+		allowedHosts: ["localhost", "web", "play.fivenines.com"],
 	},
 	preview: {
 		port: webPort,

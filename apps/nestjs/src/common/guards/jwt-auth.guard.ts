@@ -1,6 +1,7 @@
 import { type CanActivate, type ExecutionContext, Injectable } from "@nestjs/common";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
+import { cookies } from "@packages/utils/cookies";
 import { log } from "@packages/utils/logger";
 
 import { ApiException } from "../exceptions/api.exception";
@@ -21,20 +22,6 @@ function bearerToken(authorization: string | undefined): string | undefined {
 
 function accessCookieName(): string {
 	return process.env.AUTH_COOKIE_ACCESS?.trim() || "auth_access";
-}
-
-function cookieToken(cookieHeader: string | undefined, name: string): string | undefined {
-	if (!cookieHeader) {
-		return undefined;
-	}
-	const prefix = `${name}=`;
-	for (const part of cookieHeader.split(";")) {
-		const trimmed = part.trim();
-		if (trimmed.startsWith(prefix)) {
-			return decodeURIComponent(trimmed.slice(prefix.length));
-		}
-	}
-	return undefined;
 }
 
 function jwksUrl(): string {
@@ -73,11 +60,7 @@ export class JwtAuthGuard implements CanActivate {
 				typeof request.headers.authorization === "string"
 					? request.headers.authorization
 					: undefined,
-			) ??
-			cookieToken(
-				typeof request.headers.cookie === "string" ? request.headers.cookie : undefined,
-				accessCookieName(),
-			);
+			) ?? cookies.get(accessCookieName(), request.headers);
 
 		if (!token) {
 			if (this.allowHeaderTenant(request)) {

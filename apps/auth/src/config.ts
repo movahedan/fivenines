@@ -34,8 +34,8 @@ export const authConfig = {
 	cookieLoggedIn: optionalEnv("AUTH_COOKIE_LOGGED_IN", "was_logged_in"),
 	cookieCsrf: optionalEnv("AUTH_COOKIE_CSRF", "auth_csrf"),
 	cookieSecure: optionalEnv("AUTH_COOKIE_SECURE", "false") === "true",
-	cookieDomain: optionalEnv("AUTH_COOKIE_DOMAIN", ".fivenines.test"),
-	playOrigin: optionalEnv("AUTH_PLAY_ORIGIN", "http://play.fivenines.test:3001"),
+	cookieDomain: optionalEnv("AUTH_COOKIE_DOMAIN", ".fivenines.com"),
+	playOrigin: optionalEnv("AUTH_PLAY_ORIGIN", "http://play.fivenines.com:3001"),
 	jwtPrivateKey: () => optionalEnv("AUTH_JWT_PRIVATE_KEY", "./dev-keys/private.pem"),
 	jwtPublicKey: () => optionalEnv("AUTH_JWT_PUBLIC_KEY", "./dev-keys/public.pem"),
 	seedAdminEmail: optionalEnv("AUTH_SEED_ADMIN_EMAIL", "admin@example.com"),
@@ -52,5 +52,5 @@ export const authConfig = {
 		) === "true",
 	otpLogToConsole: optionalEnv("AUTH_OTP_LOG", "false") === "true",
 	otpTtlMinutes: Number(optionalEnv("AUTH_OTP_TTL_MINUTES", "10")),
-	redirectOrigins: parseCsvOrigins("AUTH_REDIRECT_ORIGINS", "http://play.fivenines.test:3001"),
+	redirectOrigins: parseCsvOrigins("AUTH_REDIRECT_ORIGINS", "http://play.fivenines.com:3001"),
 } as const;

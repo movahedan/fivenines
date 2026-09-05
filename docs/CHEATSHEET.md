@@ -58,10 +58,10 @@ Hot reload in containers is limited on macOS: bind mounts often do not propagate
 Local player auth uses **HTTP hostnames** (no mkcert). One `/etc/hosts` line:
 
 ```text
-127.0.0.1 play.fivenines.test auth.fivenines.test api.fivenines.test
+127.0.0.1 play.fivenines.com auth.fivenines.com api.fivenines.com
 ```
 
-Then open `http://play.fivenines.test:3001` (Play), login at `http://auth.fivenines.test:3007`, API at `http://api.fivenines.test:3006`. Cookie `Domain=.fivenines.test`; `AUTH_COOKIE_SECURE=false` locally.
+Then open `http://play.fivenines.com:3001` (Play), login at `http://auth.fivenines.com:3007`, API at `http://api.fivenines.com:3006`. Cookie `Domain=.fivenines.com`; `AUTH_COOKIE_SECURE=false` locally.
 
 | Command | Description |
 |---------|-------------|
@@ -72,6 +72,7 @@ Then open `http://play.fivenines.test:3001` (Play), login at `http://auth.fiveni
 | `bun run container health` | Health check |
 | `bun run container logs` | Logs |
 | `bun run container cleanup` | Stop + remove volumes |
+| `bun run container install` | `bun install` into the compose `node_modules` volume |
 | `bun run container --prod up` | Prod-shaped compose file |
 | `bun run container compose -- ps` | `docker compose ps` |
 | `bun run container up -- --profile web` | Postgres + Nest + `@apps/web` :3001 |

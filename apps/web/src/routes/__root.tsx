@@ -29,7 +29,6 @@ function RootDocument(): ReactElement {
 					<AuthProvider
 						session={playerAuthSession}
 						restoreOnMount={false}
-						callbackPath="/hub"
 						authOrigin={getAuthOrigin(import.meta.env.VITE_AUTH_URL)}
 						appOrigin={getAppOrigin(import.meta.env.VITE_APP_ORIGIN)}
 					>

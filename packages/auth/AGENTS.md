@@ -8,7 +8,7 @@
 |--------|----------|
 | `@packages/auth` | `AuthSession`, `authSession`, `restore()`, `createAuthFetcherBindings`, login/refresh helpers, contract re-exports |
 | `@packages/auth/contract` | Scopes / JWT claim types only (server-safe; prefer this from Nest / auth service) |
-| `@packages/auth/react` | `AuthProvider` (`restoreOnMount` default true; Play sets false), `useAuth` |
+| `@packages/auth/react` | `AuthProvider` (origins + `restoreOnMount`), `useAuth` (`loginHref`, `wasLoggedIn`) |
 
 **Not included:** `FetcherSettingsProvider` — compose that in the app with `@packages/http/react`.
 
@@ -20,8 +20,8 @@
 
 ## Session model
 
-- **Access JWT** — HttpOnly cookie (`auth_access`, `Domain=.fivenines.test` locally) for Play → Nest. Bearer still used for M2M and tests.
-- **`was_logged_in`** — public cookie; hub uses it only to skip bouncing to login.
+- **Access JWT** — HttpOnly cookie (`auth_access`, `Domain=.fivenines.com` locally) for Play → Nest. Bearer still used for M2M and tests.
+- **`wasLoggedIn`** — public cookie hint on `useAuth()`; not proof of a valid session.
 - **Session / refresh** — HttpOnly cookies; `POST /api/refresh` with `credentials: "include"` rotates them. JSON may be `{ ok: true }` with no tokens.
 - Play home sets `AuthProvider` `restoreOnMount={false}`. Guarded `/hub` owns login/refresh.
 
@@ -37,12 +37,18 @@ import { FetcherSettingsProvider } from "@packages/http/react";
 const authFetch = createAuthFetcherBindings(authSession);
 
 function Shell() {
-  const { isReady, isAuthenticated, getLoginHref } = useAuth();
-  if (!isReady) return null;
-  return isAuthenticated ? <App /> : <a href={getLoginHref("/hub")}>Sign in</a>;
+  const { wasLoggedIn, loginHref } = useAuth();
+  if (!wasLoggedIn) {
+    window.location.assign(loginHref({ redirectUri: "/hub" }));
+    return null;
+  }
+  return <App />;
 }
 
-<AuthProvider>
+<AuthProvider
+  authOrigin={authOrigin}
+  appOrigin={appOrigin}
+>
   <FetcherSettingsProvider
     initialSettings={{
       config: {

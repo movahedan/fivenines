@@ -10,10 +10,10 @@ todos:
     status: completed
   - id: phase-1-docs
     content: "Phase 1: documentation-sync (after build, before PR)"
-    status: pending
+    status: completed
   - id: phase-1-pr
     content: "Phase 1: git-pr-workflow"
-    status: pending
+    status: completed
   - id: phase-2-toolchain
     content: "Phase 2: NativeWind v5 + react-native-css + RN peers + RNR components.json + doctor (no generate)"
     status: completed
@@ -22,10 +22,10 @@ todos:
     status: completed
   - id: phase-2-docs
     content: "Phase 2: documentation-sync"
-    status: pending
+    status: completed
   - id: phase-2-pr
     content: "Phase 2: git-pr-workflow"
-    status: pending
+    status: completed
   - id: phase-3-add-all
     content: "Phase 3: CLI add --all into src/atoms; lucide-react-native; barrels; molecule import retarget"
     status: completed
@@ -34,22 +34,22 @@ todos:
     status: completed
   - id: phase-3-docs
     content: "Phase 3: documentation-sync"
-    status: pending
+    status: completed
   - id: phase-3-pr
     content: "Phase 3: git-pr-workflow"
-    status: pending
+    status: completed
   - id: phase-4-storybook
-    content: "Phase 4: Vite RN-web Storybook aliases; atom stories; molecule stories still render"
-    status: pending
+    content: "Phase 4: Vite RN-web Storybook aliases; molecule stories only"
+    status: completed
   - id: phase-4-verify
     content: "Phase 4 gate: build:storybook @packages/ui + bun run overall"
-    status: pending
+    status: completed
   - id: phase-4-docs
     content: "Phase 4: documentation-sync"
-    status: pending
+    status: completed
   - id: phase-4-pr
     content: "Phase 4: git-pr-workflow"
-    status: pending
+    status: completed
 isProject: false
 ---
 
@@ -62,7 +62,7 @@ isProject: false
 | **Init** | **Do not** run `bunx @react-native-reusables/cli init` inside `packages/ui`. Current CLI `init` scaffolds a **new Expo app**. Existing library uses **manual** NativeWind + `components.json` + `doctor`. |
 | **Scope** | `bunx @react-native-reusables/cli@latest add -a -y -o --styling-library nativewind -p src/atoms` (all RNR registry components). |
 | **Legacy** | `git mv packages/ui/src/atoms` → `packages/ui/src/shadcn` (not `packages/ui/shadcn`). |
-| **Storybook** | Keep `@storybook/react-vite`. Add **atom** stories. **Molecule** stories must keep working against the new atoms. |
+| **Storybook** | Keep `@storybook/react-vite`. **No atom stories** — generated RNR atoms are overwritten by CLI. Storybook covers **molecules and above** (wrappers over atoms). |
 | **Icons** | RNR internals use `lucide-react-native`. Molecules currently use `lucide-react` (`login-form`). Switch package internals; Storybook resolves via `react-native-web`. |
 | **Tokens** | Keep existing `--background` / `--primary-foreground` (and `@theme inline`) in `src/style.css`. Do not invent a second palette. |
 | **Styling engine** | **NativeWind v5** (Tailwind CSS v4 compatible). Keep current `tailwindcss@4.x` on `@packages/ui`. Do **not** install NativeWind v4 or downgrade Tailwind to v3. Peer: `react-native-css`. Install with `bun add nativewind@5` (or `nativewind@preview` if npm has no `5` dist-tag). |
@@ -119,7 +119,7 @@ flowchart TB
 | `packages/ui/src/atoms/*` (empty then RNR) | RNR CLI output | `--path src/atoms` |
 | `packages/ui/components.json` | Same file, aliases for RNR add | `ui` → `./src/atoms`; `rsc: false` for RN |
 | `lucide-react` in UI internals | `lucide-react-native` | Molecules + generated atoms |
-| Storybook stories = molecules only | Atoms + molecules | Vite still |
+| Storybook stories = molecules only | Molecules and above only | Do not add atom stories; CLI would overwrite atoms |
 
 ---
 
@@ -292,22 +292,21 @@ rg -n "from [\"']lucide-react[\"']" packages/ui/src --glob '!**/shadcn/**'
 
 ## Phase 4 — Storybook visual gate
 
-**Goal:** Storybook shows new atoms and existing molecule stories still render.
+**Goal:** Storybook keeps rendering molecule stories (wrappers over RNR atoms). No atom-level stories.
 
 **Hard constraints (phase 4 only):**
 - Must keep `@storybook/react-vite` (no RN Storybook app).
-- Must alias `react-native` → `react-native-web` in `.storybook` Vite config; wrap overlay stories with `PortalHost` if dialogs need it.
-- Must add stories under `src/atoms` (or colocated) for generated primitives used by molecules at minimum: button, badge, card, dialog, input, select — **plus** any molecule dependency.
+- Must alias `react-native` → `react-native-web` in `.storybook` Vite config. Do **not** import `@rn-primitives/portal` (or other RN packages) from `preview.tsx` — Storybook’s Node CLI evaluates preview without Vite aliases and will parse `react-native` Flow. Add `PortalHost` on overlay stories only if needed.
+- Must **not** add `src/atoms/**/*.stories.tsx`. Molecules wrap generated atoms; Storybook coverage is **molecules and above**.
 - Must not restyle tokens; use existing `src/style.css` import in `preview.tsx`.
-- Browser verify: `bun run turbo run dev --filter=@packages/ui` (port **3004**) — open molecule Button/Card/Input/Login and new atom stories.
+- Browser verify: `bun run turbo run dev --filter=@packages/ui` (port **3004**) — open molecule Button, Card, Input, LoginForm.
 
 ### Code/config surfaces (builder-workflow)
 
 - `packages/ui/.storybook/main.ts`
 - `packages/ui/.storybook/preview.tsx`
 - `packages/ui/.storybook/vite.config.ts`
-- `packages/ui/src/atoms/**/*.stories.tsx` (new)
-- existing `packages/ui/src/molecules/**/*.stories.tsx` (fix imports/args only)
+- `packages/ui/src/molecules/**/*.stories.tsx` (fix imports/args only; no atom stories)
 
 ### Scouts (parallel inventory — code/config only)
 
@@ -326,11 +325,11 @@ bun test packages/ui
 bun run overall
 ```
 
-Plus interactive: Storybook :3004 molecule + atom stories (browser).
+Plus interactive: Storybook :3004 molecule stories (Button, Card, Input, LoginForm). No atom stories.
 
 ### Documentation before PR (documentation-sync)
 
-- `packages/ui/STORYBOOK.md` — RN-web, atom story titles, port 3004
+- `packages/ui/STORYBOOK.md` — RN-web, molecule+ stories only (no atoms), port 3004
 - `packages/ui/AGENTS.md` — Storybook structure (replace stale `src/button/` tree)
 - `docs/CHEATSHEET.md` only if Storybook command changed (it should not)
 

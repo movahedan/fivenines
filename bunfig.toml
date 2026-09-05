@@ -62,6 +62,8 @@ coveragePathIgnorePatterns = [
 	"**/packages/intershell/src/**/tag.ts",
 	"**/packages/intershell/src/**/*.shell.ts",
 	"**/packages/auth/src/client.ts",
+	"**/packages/ui/test-rn-preload.ts",
+	"**/packages/ui/.storybook/**",
 ]
 
 # Watch mode configuration

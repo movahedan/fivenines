@@ -35,7 +35,7 @@ Run from repo root. Filters use workspace `name` (`@apps/nestjs`, `@packages/ui`
 | `bun run turbo run dev --filter=@apps/web` | Player UI (TanStack Start SSR) :3001 |
 | `bun run turbo run dev --filter=@apps/nestjs` | Control-plane API :3006 |
 | `bun run turbo run dev --filter=@apps/auth` | Auth service :3007 |
-| `bun run turbo run dev --filter=@packages/ui` | UI / Storybook :3004 |
+| `bun run turbo run dev --filter=@packages/ui` | UI / Storybook :3004 (Node CLI; host vs Docker: one listener) |
 | `cd apps/nestjs && bun test` | Nest API tests (use app `bunfig.toml`) |
 | `cd packages/nestjs-sdk && bun run generate` | Regenerate Orval SDK from `openapi.yaml` |
 | `cd apps/nestjs && bun run db:migrate` | Apply Prisma migrations (needs `DATABASE_URL`) |

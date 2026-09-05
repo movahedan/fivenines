@@ -55,7 +55,11 @@ export default defineConfig({
 			configureServer: attachJsonStatusWhenAccepted,
 			configurePreviewServer: attachJsonStatusWhenAccepted,
 		},
-		tanstackStart(),
+		tanstackStart({
+			router: {
+				routeFileIgnorePattern: "\\.test\\.tsx$",
+			},
+		}),
 		viteReact(),
 		tailwindcss(),
 	],

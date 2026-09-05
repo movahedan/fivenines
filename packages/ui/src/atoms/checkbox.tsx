@@ -1,26 +1,47 @@
-"use client";
+import * as CheckboxPrimitive from "@rn-primitives/checkbox";
+import { Check } from "lucide-react-native";
+import { Platform } from "react-native";
 
-import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
-import { CheckIcon } from "lucide-react";
-import type * as React from "react";
+import { Icon } from "@/atoms/icon";
+import { cn } from "@/lib/utils";
 
-import { cn } from "@packages/utils/cn";
+const DEFAULT_HIT_SLOP = 24;
 
-function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
+function Checkbox({
+	className,
+	checkedClassName,
+	indicatorClassName,
+	iconClassName,
+	...props
+}: React.ComponentProps<typeof CheckboxPrimitive.Root> & {
+	checkedClassName?: string;
+	indicatorClassName?: string;
+	iconClassName?: string;
+}) {
 	return (
 		<CheckboxPrimitive.Root
-			data-slot="checkbox"
 			className={cn(
-				"peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-[4px] border shadow-xs transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
+				"border-input dark:bg-input/30 size-4 shrink-0 rounded-[4px] border shadow-sm shadow-black/5",
+				Platform.select({
+					web: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive peer cursor-default outline-none transition-shadow focus-visible:ring-[3px] disabled:cursor-not-allowed",
+					native: "overflow-hidden",
+				}),
+				props.checked && cn("border-primary", checkedClassName),
+				props.disabled && "opacity-50",
 				className,
 			)}
+			hitSlop={DEFAULT_HIT_SLOP}
 			{...props}
 		>
 			<CheckboxPrimitive.Indicator
-				data-slot="checkbox-indicator"
-				className="flex items-center justify-center text-current transition-none"
+				className={cn("bg-primary h-full w-full items-center justify-center", indicatorClassName)}
 			>
-				<CheckIcon className="size-3.5" />
+				<Icon
+					as={Check}
+					size={12}
+					strokeWidth={Platform.OS === "web" ? 2.5 : 3.5}
+					className={cn("text-primary-foreground", iconClassName)}
+				/>
 			</CheckboxPrimitive.Indicator>
 		</CheckboxPrimitive.Root>
 	);

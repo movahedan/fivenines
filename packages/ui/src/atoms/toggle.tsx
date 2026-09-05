@@ -1,24 +1,34 @@
-"use client";
-
-import * as TogglePrimitive from "@radix-ui/react-toggle";
+import * as TogglePrimitive from "@rn-primitives/toggle";
 import { cva, type VariantProps } from "class-variance-authority";
-import type * as React from "react";
+import * as React from "react";
+import { Platform } from "react-native";
 
-import { cn } from "@packages/utils/cn";
+import { Icon } from "@/atoms/icon";
+import { TextClassContext } from "@/atoms/text";
+import { cn } from "@/lib/utils";
 
 const toggleVariants = cva(
-	"inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium hover:bg-muted hover:text-muted-foreground disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] outline-none transition-[color,box-shadow] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive whitespace-nowrap",
+	cn(
+		"active:bg-muted group flex flex-row items-center justify-center gap-2 rounded-md",
+		Platform.select({
+			web: "hover:bg-muted hover:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive inline-flex cursor-default whitespace-nowrap outline-none transition-[color,box-shadow] focus-visible:ring-[3px] disabled:pointer-events-none [&_svg]:pointer-events-none",
+		}),
+	),
 	{
 		variants: {
 			variant: {
 				default: "bg-transparent",
-				outline:
-					"border border-input bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground",
+				outline: cn(
+					"border-input active:bg-accent border bg-transparent shadow-sm shadow-black/5",
+					Platform.select({
+						web: "hover:bg-accent hover:text-accent-foreground",
+					}),
+				),
 			},
 			size: {
-				default: "h-9 px-2 min-w-9",
-				sm: "h-8 px-1.5 min-w-8",
-				lg: "h-10 px-2.5 min-w-10",
+				default: "h-10 min-w-10 px-2.5 sm:h-9 sm:min-w-9 sm:px-2",
+				sm: "h-9 min-w-9 px-2 sm:h-8 sm:min-w-8 sm:px-1.5",
+				lg: "h-11 min-w-11 px-3 sm:h-10 sm:min-w-10 sm:px-2.5",
 			},
 		},
 		defaultVariants: {
@@ -35,12 +45,31 @@ function Toggle({
 	...props
 }: React.ComponentProps<typeof TogglePrimitive.Root> & VariantProps<typeof toggleVariants>) {
 	return (
-		<TogglePrimitive.Root
-			data-slot="toggle"
-			className={cn(toggleVariants({ variant, size, className }))}
-			{...props}
-		/>
+		<TextClassContext.Provider
+			value={cn(
+				"text-sm text-foreground font-medium",
+				props.pressed
+					? "text-accent-foreground"
+					: Platform.select({ web: "group-hover:text-muted-foreground" }),
+				className,
+			)}
+		>
+			<TogglePrimitive.Root
+				className={cn(
+					toggleVariants({ variant, size }),
+					props.disabled && "opacity-50",
+					props.pressed && "bg-accent",
+					className,
+				)}
+				{...props}
+			/>
+		</TextClassContext.Provider>
 	);
 }
 
-export { Toggle, toggleVariants };
+function ToggleIcon({ className, ...props }: React.ComponentProps<typeof Icon>) {
+	const textClass = React.useContext(TextClassContext);
+	return <Icon className={cn("size-4 shrink-0", textClass, className)} {...props} />;
+}
+
+export { Toggle, ToggleIcon, toggleVariants };

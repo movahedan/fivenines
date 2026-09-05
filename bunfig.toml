@@ -32,7 +32,7 @@ exact = true
 
 [test]
 # Preload centralized test setup from tests-preset package
-preload = ["./tools/tests-preset/reflect-metadata.ts", "./tools/tests-preset/happydom.ts", "./tools/tests-preset/testing-library.ts", "./tools/tests-preset/test-setup.ts"]
+preload = ["./tools/tests-preset/reflect-metadata.ts", "./tools/tests-preset/happydom.ts", "./tools/tests-preset/testing-library.ts", "./tools/tests-preset/test-setup.ts", "./packages/ui/test-rn-preload.ts"]
 # Environment variables for tests
 env = { 
 	NODE_ENV = "test", 
@@ -62,6 +62,8 @@ coveragePathIgnorePatterns = [
 	"**/packages/intershell/src/**/tag.ts",
 	"**/packages/intershell/src/**/*.shell.ts",
 	"**/packages/auth/src/client.ts",
+	"**/packages/ui/test-rn-preload.ts",
+	"**/packages/ui/.storybook/**",
 ]
 
 # Watch mode configuration

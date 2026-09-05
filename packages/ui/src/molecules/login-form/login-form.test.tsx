@@ -16,7 +16,7 @@ const mockLoader2 = ({ className }: { className?: string }) => (
 );
 
 // Mock the lucide-react module
-mock.module("lucide-react", () => ({
+mock.module("lucide-react-native", () => ({
 	Eye: mockEye,
 	EyeOff: mockEyeOff,
 	Loader2: mockLoader2,
@@ -34,8 +34,8 @@ describe("LoginForm", () => {
 
 		expect(screen.getByText("Welcome back")).toBeInTheDocument();
 		expect(screen.getByText("Enter your credentials to access your account")).toBeInTheDocument();
-		expect(screen.getByLabelText("Email")).toBeInTheDocument();
-		expect(screen.getByLabelText("Password")).toBeInTheDocument();
+		expect(screen.getByPlaceholderText("Enter your email")).toBeInTheDocument();
+		expect(screen.getByPlaceholderText("Enter your password")).toBeInTheDocument();
 		expect(screen.getByRole("button", { name: "Sign In" })).toBeInTheDocument();
 	});
 
@@ -71,8 +71,8 @@ describe("LoginForm", () => {
 	it("shows validation error for invalid email", async () => {
 		render(<LoginForm onSubmit={mockOnSubmit} />);
 
-		const emailInput = screen.getByLabelText("Email");
-		const passwordInput = screen.getByLabelText("Password");
+		const emailInput = screen.getByPlaceholderText("Enter your email");
+		const passwordInput = screen.getByPlaceholderText("Enter your password");
 
 		// Set invalid email and valid password to avoid password validation error
 		fireEvent.change(emailInput, { target: { value: "invalid-email" } });
@@ -88,7 +88,7 @@ describe("LoginForm", () => {
 	it("shows validation error for short password", async () => {
 		render(<LoginForm onSubmit={mockOnSubmit} />);
 
-		const passwordInput = screen.getByLabelText("Password");
+		const passwordInput = screen.getByPlaceholderText("Enter your password");
 		fireEvent.change(passwordInput, { target: { value: "123" } });
 
 		const submitButton = screen.getByRole("button", { name: "Sign In" });
@@ -104,8 +104,8 @@ describe("LoginForm", () => {
 	it("submits form with valid data", async () => {
 		render(<LoginForm onSubmit={mockOnSubmit} />);
 
-		const emailInput = screen.getByLabelText("Email");
-		const passwordInput = screen.getByLabelText("Password");
+		const emailInput = screen.getByPlaceholderText("Enter your email");
+		const passwordInput = screen.getByPlaceholderText("Enter your password");
 
 		fireEvent.change(emailInput, { target: { value: "test@example.com" } });
 		fireEvent.change(passwordInput, { target: { value: "password123" } });
@@ -124,7 +124,7 @@ describe("LoginForm", () => {
 	it("clears validation errors when user starts typing", async () => {
 		render(<LoginForm onSubmit={mockOnSubmit} />);
 
-		const emailInput = screen.getByLabelText("Email");
+		const emailInput = screen.getByPlaceholderText("Enter your email");
 		const submitButton = screen.getByRole("button", { name: "Sign In" });
 
 		// Trigger validation error
@@ -141,7 +141,7 @@ describe("LoginForm", () => {
 	it("toggles password visibility", () => {
 		render(<LoginForm onSubmit={mockOnSubmit} />);
 
-		const passwordInput = screen.getByLabelText("Password") as HTMLInputElement;
+		const passwordInput = screen.getByPlaceholderText("Enter your password") as HTMLInputElement;
 		const toggleButton = screen.getByRole("button", { name: "Show password" });
 
 		expect(passwordInput.type).toBe("password");
@@ -171,8 +171,8 @@ describe("LoginForm", () => {
 	it("disables form inputs when loading", () => {
 		render(<LoginForm onSubmit={mockOnSubmit} loading={true} />);
 
-		const emailInput = screen.getByLabelText("Email");
-		const passwordInput = screen.getByLabelText("Password");
+		const emailInput = screen.getByPlaceholderText("Enter your email");
+		const passwordInput = screen.getByPlaceholderText("Enter your password");
 
 		expect(emailInput).toBeDisabled();
 		expect(passwordInput).toBeDisabled();
@@ -199,8 +199,8 @@ describe("LoginForm", () => {
 
 		render(<LoginForm onSubmit={asyncOnSubmit} />);
 
-		const emailInput = screen.getByLabelText("Email");
-		const passwordInput = screen.getByLabelText("Password");
+		const emailInput = screen.getByPlaceholderText("Enter your email");
+		const passwordInput = screen.getByPlaceholderText("Enter your password");
 
 		fireEvent.change(emailInput, { target: { value: "test@example.com" } });
 		fireEvent.change(passwordInput, { target: { value: "password123" } });
@@ -219,8 +219,8 @@ describe("LoginForm", () => {
 	it("clears validation errors when user types valid input", () => {
 		render(<LoginForm onSubmit={mockOnSubmit} />);
 
-		const emailInput = screen.getByLabelText("Email");
-		const passwordInput = screen.getByLabelText("Password");
+		const emailInput = screen.getByPlaceholderText("Enter your email");
+		const passwordInput = screen.getByPlaceholderText("Enter your password");
 
 		// First, trigger validation errors by submitting empty form
 		const submitButton = screen.getByRole("button", { name: "Sign In" });
@@ -245,8 +245,8 @@ describe("LoginForm", () => {
 
 		render(<LoginForm onSubmit={errorOnSubmit} />);
 
-		const emailInput = screen.getByLabelText("Email");
-		const passwordInput = screen.getByLabelText("Password");
+		const emailInput = screen.getByPlaceholderText("Enter your email");
+		const passwordInput = screen.getByPlaceholderText("Enter your password");
 
 		fireEvent.change(emailInput, { target: { value: "test@example.com" } });
 		fireEvent.change(passwordInput, { target: { value: "password123" } });

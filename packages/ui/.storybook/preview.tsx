@@ -1,8 +1,8 @@
-// biome-ignore lint/correctness/noUnusedImports: storybook needs react
-import React from "react";
-import "../src/style.css";
-
 import type { Preview } from "@storybook/react";
+// biome-ignore lint/correctness/noUnusedImports: storybook JSX
+import React from "react";
+
+import "../src/style.css";
 
 const preview: Preview = {
 	parameters: {

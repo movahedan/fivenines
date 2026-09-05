@@ -1,13 +1,12 @@
-import { cn } from "@packages/utils/cn";
+import { View } from "react-native";
 
-function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
-	return (
-		<div
-			data-slot="skeleton"
-			className={cn("bg-accent animate-pulse rounded-md", className)}
-			{...props}
-		/>
-	);
+import { cn } from "@/lib/utils";
+
+function Skeleton({
+	className,
+	...props
+}: React.ComponentProps<typeof View> & React.RefAttributes<View>) {
+	return <View className={cn("bg-accent animate-pulse rounded-md", className)} {...props} />;
 }
 
 export { Skeleton };

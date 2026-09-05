@@ -1,26 +1,28 @@
-// biome-ignore-all lint/style/noParameterAssign: react ref
+import type { ComponentProps } from "react";
 
-import * as React from "react";
+import { Input as AtomInput } from "../../atoms/input";
 
-import { cn } from "@packages/utils/cn";
+export interface InputProps extends Omit<ComponentProps<typeof AtomInput>, "onChange"> {
+	onChange?: (event: { target: { value: string } }) => void;
+	disabled?: boolean;
+	type?: string;
+}
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
-
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
-	({ className, type, ...props }, ref) => {
-		return (
-			<input
-				type={type}
-				className={cn(
-					"flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
-					className,
-				)}
-				ref={ref}
-				{...props}
-			/>
-		);
-	},
-);
-Input.displayName = "Input";
+function Input({ onChange, onChangeText, disabled, editable, type, ...props }: InputProps) {
+	return (
+		<AtomInput
+			accessibilityState={{ disabled: disabled === true }}
+			aria-disabled={disabled === true}
+			editable={editable ?? (disabled === undefined ? true : !disabled)}
+			keyboardType={type === "email" ? "email-address" : undefined}
+			onChangeText={(value) => {
+				onChangeText?.(value);
+				onChange?.({ target: { value } });
+			}}
+			secureTextEntry={type === "password"}
+			{...props}
+		/>
+	);
+}
 
 export { Input };

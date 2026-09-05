@@ -43,8 +43,9 @@ async function writeMoleculesIndex(moleculesDir: string): Promise<void> {
 	await writeFile(path.join(moleculesDir, "index.ts"), `${lines.join("\n")}\n`);
 }
 
+await writeBarrelIndex(path.join(srcDir, "atoms"));
 await writeBarrelIndex(
-	path.join(srcDir, "atoms"),
+	path.join(srcDir, "shadcn"),
 	new Set(Object.keys(ATOMS_BARREL_ALIASES)),
 	ATOMS_BARREL_ALIASES,
 );

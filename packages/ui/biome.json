@@ -9,7 +9,7 @@
 	},
 	"overrides": [
 		{
-			"includes": ["src/atoms/**", "src/hooks/**"],
+			"includes": ["src/atoms/**", "src/shadcn/**", "src/hooks/**"],
 			"linter": {
 				"rules": {
 					"a11y": {

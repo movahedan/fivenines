@@ -1,16 +1,14 @@
-import path from "node:path";
-
+import tailwindcss from "@tailwindcss/postcss";
 import { defineConfig } from "vite";
 
-export default defineConfig({
-	resolve: {
-		alias: {
-			"@": path.resolve(__dirname, "../src"),
+import { applyRnWebVite } from "./rn-web-vite.ts";
+
+export default defineConfig(
+	applyRnWebVite({
+		css: {
+			postcss: {
+				plugins: [tailwindcss()],
+			},
 		},
-	},
-	css: {
-		postcss: {
-			plugins: [require("tailwindcss"), require("autoprefixer")],
-		},
-	},
-});
+	}),
+);

@@ -1,17 +1,18 @@
-"use client";
+import * as HoverCardPrimitive from "@rn-primitives/hover-card";
+import * as React from "react";
+import { Platform, StyleSheet } from "react-native";
+import { FadeIn, FadeOut, ReduceMotion } from "react-native-reanimated";
+import { FullWindowOverlay as RNFullWindowOverlay } from "react-native-screens";
 
-import * as HoverCardPrimitive from "@radix-ui/react-hover-card";
-import type * as React from "react";
+import { NativeOnlyAnimatedView } from "@/atoms/native-only-animated-view";
+import { TextClassContext } from "@/atoms/text";
+import { cn } from "@/lib/utils";
 
-import { cn } from "@packages/utils/cn";
+const HoverCard = HoverCardPrimitive.Root;
 
-function HoverCard({ ...props }: React.ComponentProps<typeof HoverCardPrimitive.Root>) {
-	return <HoverCardPrimitive.Root data-slot="hover-card" {...props} />;
-}
+const HoverCardTrigger = HoverCardPrimitive.Trigger;
 
-function HoverCardTrigger({ ...props }: React.ComponentProps<typeof HoverCardPrimitive.Trigger>) {
-	return <HoverCardPrimitive.Trigger data-slot="hover-card-trigger" {...props} />;
-}
+const FullWindowOverlay = Platform.OS === "ios" ? RNFullWindowOverlay : React.Fragment;
 
 function HoverCardContent({
 	className,
@@ -20,17 +21,38 @@ function HoverCardContent({
 	...props
 }: React.ComponentProps<typeof HoverCardPrimitive.Content>) {
 	return (
-		<HoverCardPrimitive.Portal data-slot="hover-card-portal">
-			<HoverCardPrimitive.Content
-				data-slot="hover-card-content"
-				align={align}
-				sideOffset={sideOffset}
-				className={cn(
-					"bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:-translate-y-0.5 data-[side=left]:translate-x-0.5 data-[side=right]:-translate-x-0.5 data-[side=top]:translate-y-0.5 z-50 w-64 origin-(--radix-hover-card-content-transform-origin) rounded-md border p-4 shadow-md outline-hidden",
-					className,
-				)}
-				{...props}
-			/>
+		<HoverCardPrimitive.Portal>
+			<FullWindowOverlay>
+				<HoverCardPrimitive.Overlay
+					style={Platform.select({ native: StyleSheet.absoluteFill })}
+					asChild={Platform.OS !== "web"}
+				>
+					<NativeOnlyAnimatedView
+						entering={FadeIn.reduceMotion(ReduceMotion.System)}
+						exiting={FadeOut.reduceMotion(ReduceMotion.System)}
+						as="Pressable"
+					>
+						<TextClassContext.Provider value="text-popover-foreground">
+							<HoverCardPrimitive.Content
+								align={align}
+								sideOffset={sideOffset}
+								className={cn(
+									"bg-popover border-border outline-hidden z-50 w-64 rounded-md border p-4 shadow-md shadow-black/5",
+									Platform.select({
+										web: cn(
+											"animate-in fade-in-0 zoom-in-95 origin-(--radix-hover-card-content-transform-origin) cursor-default [&>*]:cursor-auto",
+											props.side === "bottom" && "slide-in-from-top-2",
+											props.side === "top" && "slide-in-from-bottom-2",
+										),
+									}),
+									className,
+								)}
+								{...props}
+							/>
+						</TextClassContext.Provider>
+					</NativeOnlyAnimatedView>
+				</HoverCardPrimitive.Overlay>
+			</FullWindowOverlay>
 		</HoverCardPrimitive.Portal>
 	);
 }

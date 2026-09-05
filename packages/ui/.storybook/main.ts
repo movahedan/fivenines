@@ -1,8 +1,9 @@
 import type { StorybookConfig } from "@storybook/react-vite";
 
+import { applyRnWebVite } from "./rn-web-vite.ts";
+
 const config: StorybookConfig = {
-	stories: ["../src/**/*.mdx", "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
-	// Addons seem to be causing issues with the new version of storybook
+	stories: ["../src/molecules/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
 	addons: [],
 	framework: {
 		name: "@storybook/react-vite",
@@ -19,16 +20,18 @@ const config: StorybookConfig = {
 			propFilter: (prop) => (prop.parent ? !/node_modules/.test(prop.parent.fileName) : true),
 		},
 	},
-	async viteFinal(config) {
+	async viteFinal(viteConfig) {
 		const port = Number(process.env.UI_PORT ?? process.env.PORT ?? 3004);
 		const host = process.env.HOST ?? "127.0.0.1";
-		config.server = {
-			...config.server,
+		viteConfig.server = {
+			...viteConfig.server,
 			port,
 			host: host === "0.0.0.0" ? true : host,
-			allowedHosts: ["localhost", "ui"],
+			allowedHosts: ["localhost", "127.0.0.1", "ui"],
+			strictPort: true,
 		};
-		return config;
+		applyRnWebVite(viteConfig);
+		return viteConfig;
 	},
 };
 

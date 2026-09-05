@@ -1,42 +1,63 @@
-"use client";
+import * as PopoverPrimitive from "@rn-primitives/popover";
+import * as React from "react";
+import { Platform, StyleSheet } from "react-native";
+import { FadeIn, FadeOut, ReduceMotion } from "react-native-reanimated";
+import { FullWindowOverlay as RNFullWindowOverlay } from "react-native-screens";
 
-import * as PopoverPrimitive from "@radix-ui/react-popover";
-import type * as React from "react";
+import { NativeOnlyAnimatedView } from "@/atoms/native-only-animated-view";
+import { TextClassContext } from "@/atoms/text";
+import { cn } from "@/lib/utils";
 
-import { cn } from "@packages/utils/cn";
+const Popover = PopoverPrimitive.Root;
 
-function Popover({ ...props }: React.ComponentProps<typeof PopoverPrimitive.Root>) {
-	return <PopoverPrimitive.Root data-slot="popover" {...props} />;
-}
+const PopoverTrigger = PopoverPrimitive.Trigger;
 
-function PopoverTrigger({ ...props }: React.ComponentProps<typeof PopoverPrimitive.Trigger>) {
-	return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />;
-}
+const FullWindowOverlay = Platform.OS === "ios" ? RNFullWindowOverlay : React.Fragment;
 
 function PopoverContent({
 	className,
 	align = "center",
 	sideOffset = 4,
+	portalHost,
 	...props
-}: React.ComponentProps<typeof PopoverPrimitive.Content>) {
+}: React.ComponentProps<typeof PopoverPrimitive.Content> & {
+	portalHost?: string;
+}) {
 	return (
-		<PopoverPrimitive.Portal>
-			<PopoverPrimitive.Content
-				data-slot="popover-content"
-				align={align}
-				sideOffset={sideOffset}
-				className={cn(
-					"bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:-translate-y-0.5 data-[side=left]:translate-x-0.5 data-[side=right]:-translate-x-0.5 data-[side=top]:translate-y-0.5 z-50 w-72 origin-(--radix-popover-content-transform-origin) rounded-md border p-4 shadow-md outline-hidden",
-					className,
-				)}
-				{...props}
-			/>
+		<PopoverPrimitive.Portal hostName={portalHost}>
+			<FullWindowOverlay>
+				<PopoverPrimitive.Overlay
+					style={Platform.select({ native: StyleSheet.absoluteFill })}
+					asChild={Platform.OS !== "web"}
+				>
+					<NativeOnlyAnimatedView
+						entering={FadeIn.duration(200).reduceMotion(ReduceMotion.System)}
+						exiting={FadeOut.reduceMotion(ReduceMotion.System)}
+						as="Pressable"
+					>
+						<TextClassContext.Provider value="text-popover-foreground">
+							<PopoverPrimitive.Content
+								align={align}
+								sideOffset={sideOffset}
+								className={cn(
+									"bg-popover border-border outline-hidden z-50 w-72 rounded-md border p-4 shadow-md shadow-black/5",
+									Platform.select({
+										web: cn(
+											"animate-in fade-in-0 zoom-in-95 origin-(--radix-popover-content-transform-origin) cursor-auto",
+											props.side === "bottom" && "slide-in-from-top-2",
+											props.side === "top" && "slide-in-from-bottom-2",
+										),
+									}),
+									className,
+								)}
+								{...props}
+							/>
+						</TextClassContext.Provider>
+					</NativeOnlyAnimatedView>
+				</PopoverPrimitive.Overlay>
+			</FullWindowOverlay>
 		</PopoverPrimitive.Portal>
 	);
 }
 
-function PopoverAnchor({ ...props }: React.ComponentProps<typeof PopoverPrimitive.Anchor>) {
-	return <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />;
-}
-
-export { Popover, PopoverAnchor, PopoverContent, PopoverTrigger };
+export { Popover, PopoverContent, PopoverTrigger };

@@ -1,47 +1,118 @@
-"use client";
+import * as AccordionPrimitive from "@rn-primitives/accordion";
+import { ChevronDown } from "lucide-react-native";
+import { Platform, Pressable, View } from "react-native";
+import Animated, {
+	FadeOutUp,
+	LayoutAnimationConfig,
+	LinearTransition,
+	ReduceMotion,
+	useAnimatedStyle,
+	useDerivedValue,
+	withTiming,
+} from "react-native-reanimated";
 
-import * as AccordionPrimitive from "@radix-ui/react-accordion";
-import { ChevronDownIcon } from "lucide-react";
-import type * as React from "react";
+import { Icon } from "@/atoms/icon";
+import { TextClassContext } from "@/atoms/text";
+import { cn } from "@/lib/utils";
 
-import { cn } from "@packages/utils/cn";
-
-function Accordion({ ...props }: React.ComponentProps<typeof AccordionPrimitive.Root>) {
-	return <AccordionPrimitive.Root data-slot="accordion" {...props} />;
+function Accordion({
+	children,
+	ref,
+	...props
+}: Omit<React.ComponentProps<typeof AccordionPrimitive.Root>, "asChild">) {
+	return (
+		<LayoutAnimationConfig skipEntering>
+			<AccordionPrimitive.Root
+				{...(props as AccordionPrimitive.RootProps)}
+				asChild={Platform.OS !== "web"}
+			>
+				<Animated.View layout={LinearTransition.duration(200)}>{children}</Animated.View>
+			</AccordionPrimitive.Root>
+		</LayoutAnimationConfig>
+	);
 }
 
 function AccordionItem({
+	children,
 	className,
+	value,
 	...props
 }: React.ComponentProps<typeof AccordionPrimitive.Item>) {
 	return (
 		<AccordionPrimitive.Item
-			data-slot="accordion-item"
-			className={cn("border-b last:border-b-0", className)}
+			className={cn(
+				"border-border border-b",
+				Platform.select({ web: "last:border-b-0" }),
+				className,
+			)}
+			value={value}
+			asChild={Platform.OS !== "web"}
 			{...props}
-		/>
+		>
+			<Animated.View
+				className="native:overflow-hidden"
+				layout={Platform.select({ native: LinearTransition.duration(200) })}
+			>
+				{children}
+			</Animated.View>
+		</AccordionPrimitive.Item>
 	);
 }
+
+const Trigger = Platform.OS === "web" ? View : Pressable;
 
 function AccordionTrigger({
 	className,
 	children,
 	...props
-}: React.ComponentProps<typeof AccordionPrimitive.Trigger>) {
+}: React.ComponentProps<typeof AccordionPrimitive.Trigger> & {
+	children?: React.ReactNode;
+}) {
+	const { isExpanded } = AccordionPrimitive.useItemContext();
+
+	const progress = useDerivedValue(
+		() => (isExpanded ? withTiming(1, { duration: 250 }) : withTiming(0, { duration: 200 })),
+		[isExpanded],
+	);
+	const chevronStyle = useAnimatedStyle(
+		() => ({
+			transform: [{ rotate: `${progress.value * 180}deg` }],
+		}),
+		[progress],
+	);
+
 	return (
-		<AccordionPrimitive.Header className="flex">
-			<AccordionPrimitive.Trigger
-				data-slot="accordion-trigger"
-				className={cn(
-					"focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180",
-					className,
-				)}
-				{...props}
-			>
-				{children}
-				<ChevronDownIcon className="text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200" />
-			</AccordionPrimitive.Trigger>
-		</AccordionPrimitive.Header>
+		<TextClassContext.Provider
+			value={cn("text-left text-sm font-medium", Platform.select({ web: "group-hover:underline" }))}
+		>
+			<AccordionPrimitive.Header>
+				<AccordionPrimitive.Trigger {...props} asChild>
+					<Trigger
+						className={cn(
+							"flex-row items-start justify-between gap-4 rounded-md py-4 disabled:opacity-50",
+							Platform.select({
+								web: "focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 outline-none transition-all hover:underline focus-visible:ring-[3px] disabled:pointer-events-none [&[data-state=open]>svg]:rotate-180",
+							}),
+							className,
+						)}
+					>
+						{children}
+						<Animated.View style={chevronStyle}>
+							<Icon
+								as={ChevronDown}
+								size={16}
+								className={cn(
+									"text-muted-foreground shrink-0",
+									Platform.select({
+										web: "pointer-events-none translate-y-0.5 transition-transform duration-200",
+									}),
+								)}
+							/>
+						</Animated.View>
+					</Trigger>
+				</AccordionPrimitive.Trigger>
+			</AccordionPrimitive.Header>
+		</TextClassContext.Provider>
 	);
 }
 
@@ -50,14 +121,28 @@ function AccordionContent({
 	children,
 	...props
 }: React.ComponentProps<typeof AccordionPrimitive.Content>) {
+	const { isExpanded } = AccordionPrimitive.useItemContext();
 	return (
-		<AccordionPrimitive.Content
-			data-slot="accordion-content"
-			className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
-			{...props}
-		>
-			<div className={cn("pt-0 pb-4", className)}>{children}</div>
-		</AccordionPrimitive.Content>
+		<TextClassContext.Provider value="text-sm">
+			<AccordionPrimitive.Content
+				className={cn(
+					"overflow-hidden",
+					Platform.select({
+						web: isExpanded ? "animate-accordion-down" : "animate-accordion-up",
+					}),
+				)}
+				{...props}
+			>
+				<Animated.View
+					exiting={Platform.select({
+						native: FadeOutUp.duration(200).reduceMotion(ReduceMotion.System),
+					})}
+					className={cn("pb-4", className)}
+				>
+					{children}
+				</Animated.View>
+			</AccordionPrimitive.Content>
+		</TextClassContext.Provider>
 	);
 }
 

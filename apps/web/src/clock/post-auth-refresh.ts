@@ -1,8 +1,5 @@
-import { getAuthOrigin } from "@packages/utils/origins";
-
 export async function postAuthRefresh(signal?: AbortSignal): Promise<boolean> {
-	const origin = getAuthOrigin(import.meta.env.VITE_AUTH_URL);
-	const response = await fetch(`${origin}/api/refresh`, {
+	const response = await fetch(`${import.meta.env.VITE_AUTH_URL}/api/refresh`, {
 		method: "POST",
 		credentials: "include",
 		signal,

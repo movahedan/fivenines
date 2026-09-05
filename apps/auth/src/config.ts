@@ -35,7 +35,6 @@ export const authConfig = {
 	cookieCsrf: optionalEnv("AUTH_COOKIE_CSRF", "auth_csrf"),
 	cookieSecure: optionalEnv("AUTH_COOKIE_SECURE", "false") === "true",
 	cookieDomain: optionalEnv("AUTH_COOKIE_DOMAIN", ".fivenines.com"),
-	playOrigin: optionalEnv("AUTH_PLAY_ORIGIN", "http://play.fivenines.com:3001"),
 	jwtPrivateKey: () => optionalEnv("AUTH_JWT_PRIVATE_KEY", "./dev-keys/private.pem"),
 	jwtPublicKey: () => optionalEnv("AUTH_JWT_PUBLIC_KEY", "./dev-keys/public.pem"),
 	seedAdminEmail: optionalEnv("AUTH_SEED_ADMIN_EMAIL", "admin@example.com"),

@@ -14,6 +14,7 @@
 		"./mutator.server": "./src/mutator.server.ts",
 		"./hooks": "./src/gen/hooks/index.ts",
 		"./server": "./src/gen/server/index.ts",
+		"./clock-events-url": "./src/clock-events-url.ts",
 		"./types": "./src/gen/model/index.ts",
 		"./zod": "./src/gen/zod/index.zod.ts"
 	},

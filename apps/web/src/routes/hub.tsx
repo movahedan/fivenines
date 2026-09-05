@@ -9,6 +9,10 @@ export const Route = createFileRoute("/hub")({
 	component: HubPage,
 });
 
+export function PlayButton() {
+	return <a href="/hub">Play</a>;
+}
+
 export function HubPage() {
 	const { wasLoggedIn, loginHref } = useAuth();
 	const [gate, setGate] = useState<"pending" | "ok">("pending");
@@ -31,7 +35,7 @@ export function HubPage() {
 	if (gate !== "ok") {
 		return (
 			<main>
-				<p>Redirecting to sign in</p>
+				<p>Loading...</p>
 			</main>
 		);
 	}

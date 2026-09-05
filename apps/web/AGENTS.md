@@ -17,8 +17,8 @@ Routes live under `src/routes/` (same convention as xpertell product apps):
 | File | Route |
 |------|--------|
 | `src/routes/__root.tsx` | Root document, Query + `FetcherSettingsProvider` + `AuthProvider` (`restoreOnMount={false}`) |
-| `src/routes/index.tsx` | `/` — SSR health check against Nest; Play always links to `/hub` |
-| `src/routes/hub.tsx` | `/hub` — `useAuth().wasLoggedIn` / `loginHref({ redirectUri: "/hub" })`; clock SSE with cookies |
+| `src/routes/index.tsx` | `/` — SSR health check against Nest; Play links to `/hub` |
+| `src/routes/hub.tsx` | `/hub` — `PlayButton`, `useAuth().wasLoggedIn` / `loginHref({ redirectUri: "/hub" })`; clock SSE with cookies |
 
 `src/router.tsx` exports `getRouter()` (required by Start). Use `trailingSlash: "never"`. `src/routeTree.gen.ts` is generated on Vite build/dev — do not hand-edit.
 

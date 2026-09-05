@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { getClockControllerEventsUrl } from "@packages/nestjs-sdk/clock-events-url";
 import { useVisibilityChange } from "@packages/shared-react/useVisibilityChange";
 
 import { getBrowserApiBaseUrl } from "../browser-api-base-url";
 import { consumeClockStream } from "./consume-clock-stream";
 import { postAuthRefresh } from "./post-auth-refresh";
-
-const CLOCK_EVENTS_PATH = "/api/v1/clock/events";
 
 export interface GameClockState {
 	readonly at: string | null;
@@ -14,7 +13,7 @@ export interface GameClockState {
 }
 
 async function openClockStream(signal: AbortSignal, retried: boolean): Promise<Response> {
-	const response = await fetch(`${getBrowserApiBaseUrl()}${CLOCK_EVENTS_PATH}`, {
+	const response = await fetch(`${getBrowserApiBaseUrl()}${getClockControllerEventsUrl()}`, {
 		credentials: "include",
 		signal,
 	});
@@ -37,7 +36,7 @@ export function useGameClock(enabled: boolean): GameClockState {
 		abortRef.current = null;
 	}, []);
 
-	const connect = useCallback((): void => {
+	const connect = useCallback(async (): Promise<void> => {
 		if (!enabled) {
 			return;
 		}
@@ -47,32 +46,30 @@ export function useGameClock(enabled: boolean): GameClockState {
 		abortRef.current = controller;
 		setStatus("connecting");
 
-		void (async () => {
-			try {
-				const response = await openClockStream(controller.signal, false);
-				if (controller.signal.aborted) {
-					return;
-				}
-				if (response.status === 401) {
-					setStatus("unauthenticated");
-					return;
-				}
-				if (!response.ok || !response.body) {
-					throw new Error("Clock stream failed");
-				}
-
-				await consumeClockStream(response.body, controller.signal, (nextAt) => {
-					setAt(nextAt);
-					setStatus("live");
-				});
-			} catch (error: unknown) {
-				if (controller.signal.aborted) {
-					return;
-				}
-				setStatus("error");
-				void error;
+		try {
+			const response = await openClockStream(controller.signal, false);
+			if (controller.signal.aborted) {
+				return;
 			}
-		})();
+			if (response.status === 401) {
+				setStatus("unauthenticated");
+				return;
+			}
+			if (!response.ok || !response.body) {
+				throw new Error("Clock stream failed");
+			}
+
+			await consumeClockStream(response.body, controller.signal, (nextAt) => {
+				setAt(nextAt);
+				setStatus("live");
+			});
+		} catch (error: unknown) {
+			if (controller.signal.aborted) {
+				return;
+			}
+			setStatus("error");
+			void error;
+		}
 	}, [disconnect, enabled]);
 
 	useEffect(() => {
@@ -81,7 +78,7 @@ export function useGameClock(enabled: boolean): GameClockState {
 			setStatus("idle");
 			return disconnect;
 		}
-		connect();
+		void connect();
 		return disconnect;
 	}, [connect, disconnect, enabled]);
 
@@ -95,7 +92,7 @@ export function useGameClock(enabled: boolean): GameClockState {
 				setStatus("idle");
 				return;
 			}
-			connect();
+			void connect();
 		},
 		[connect, disconnect, enabled],
 	);

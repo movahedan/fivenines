@@ -1,4 +1,5 @@
 import type { AuthLoginResult } from "@packages/auth";
+import { cookies } from "@packages/utils/cookies";
 import { log } from "@packages/utils/logger";
 
 import { authConfig } from "./config";
@@ -6,61 +7,61 @@ import { LoginPage } from "./pages/login";
 import { LogoutPage } from "./pages/logout";
 import { OtpPage } from "./pages/otp";
 import { RegisterPage } from "./pages/register";
-import { createCsrfToken, csrfCookieHeader, validateCsrf } from "./trpc/auth/csrf";
+import { createCsrfToken, csrfCookieFlags, validateCsrf } from "./trpc/auth/csrf";
 import { getJwks } from "./trpc/auth/keys";
 import { handleTokenRequest } from "./trpc/auth/m2m";
 import { handleRefreshRequest } from "./trpc/auth/refresh";
-import {
-	accessCookieHeader,
-	clearCookieHeader,
-	clearLoggedInCookieHeader,
-	loggedInCookieHeader,
-	refreshCookieHeader,
-	sessionCookieHeader,
-} from "./trpc/auth/session";
+import { appendClearedAuthCookies, appendLoginSessionCookies } from "./trpc/auth/session";
 import { createCaller } from "./trpc/caller";
 import { createContext, getCsrfFromRequest } from "./trpc/context";
 import { handleTrpcRequest } from "./trpc/handler";
 import { corsPreflight, withCors } from "./utils/cors";
 import { getFormField } from "./utils/form-fields";
-import { loginReturnFieldProps, loginReturnFromRequest } from "./utils/login-return";
+import {
+	type LoginReturn,
+	type LoginReturnForm,
+	loginReturnFieldProps,
+	loginReturnFromRequest,
+	loginReturnLocation,
+} from "./utils/login-return";
 import { renderPage } from "./utils/render-page";
 
 const maxAge = authConfig.refreshTtlDays * 24 * 60 * 60;
-
-function playHubLocation(): string {
-	return `${authConfig.playOrigin.replace(/\/$/, "")}/hub`;
-}
 
 function htmlResponse(
 	body: string,
 	options: { status?: number; csrfToken?: string } = {},
 ): Response {
-	const headers = new Headers({ "content-type": "text/html; charset=utf-8" });
+	let headers = new Headers({ "content-type": "text/html; charset=utf-8" });
 	if (options.csrfToken) {
-		headers.append("set-cookie", csrfCookieHeader(options.csrfToken, maxAge));
+		headers =
+			cookies.set(authConfig.cookieCsrf, options.csrfToken, csrfCookieFlags(maxAge), headers) ??
+			headers;
 	}
 	return new Response(body, { status: options.status ?? 200, headers });
 }
 
-function redirectToPlayHub(result: AuthLoginResult): Response {
-	const headers = new Headers({ location: playHubLocation() });
-	headers.append("set-cookie", sessionCookieHeader(result.sessionId, maxAge));
-	headers.append("set-cookie", refreshCookieHeader(result.refreshToken, maxAge));
-	headers.append("set-cookie", accessCookieHeader(result.accessToken, authConfig.accessTtlSeconds));
-	headers.append("set-cookie", loggedInCookieHeader(maxAge));
+function loginReturn(req: Request, form?: FormData): LoginReturn {
+	if (!form) {
+		return loginReturnFromRequest(req);
+	}
+	return loginReturnFromRequest(req, {
+		redirectUri: getFormField(form, "redirect_uri"),
+		state: getFormField(form, "state"),
+		next: getFormField(form, "next"),
+	});
+}
+
+function redirectAfterLogin(result: AuthLoginResult, req: Request, form: FormData): Response {
+	const headers = appendLoginSessionCookies(
+		new Headers({ location: loginReturnLocation(loginReturn(req, form)) }),
+		result,
+	);
 	return new Response(null, { status: 302, headers });
 }
 
-function returnProps(req: Request, form?: FormData) {
-	const ret = form
-		? loginReturnFromRequest(req, {
-				redirectUri: getFormField(form, "redirect_uri"),
-				state: getFormField(form, "state"),
-				next: getFormField(form, "next"),
-			})
-		: loginReturnFromRequest(req);
-	return loginReturnFieldProps(ret);
+function returnProps(req: Request, form?: FormData): LoginReturnForm {
+	return loginReturnFieldProps(loginReturn(req, form));
 }
 
 function validateFormCsrf(req: Request, csrf: string): boolean {
@@ -96,7 +97,7 @@ async function handleLoginPost(req: Request): Promise<Response> {
 	try {
 		const ctx = await createContext(req);
 		const result = await createCaller(ctx).auth.login({ email, password });
-		return redirectToPlayHub(result);
+		return redirectAfterLogin(result, req, form);
 	} catch {
 		return htmlResponse(
 			renderPage(
@@ -149,7 +150,7 @@ async function handleRegisterPost(req: Request): Promise<Response> {
 			password,
 			tenantName: tenantName || undefined,
 		});
-		return redirectToPlayHub(result);
+		return redirectAfterLogin(result, req, form);
 	} catch (error) {
 		const message =
 			error instanceof Error && error.message.includes("already registered")
@@ -258,7 +259,7 @@ async function handleOtpVerifyPost(req: Request): Promise<Response> {
 	try {
 		const ctx = await createContext(req);
 		const result = await createCaller(ctx).auth.verifyOtp({ email, code });
-		return redirectToPlayHub(result);
+		return redirectAfterLogin(result, req, form);
 	} catch {
 		return htmlResponse(
 			renderPage(
@@ -280,12 +281,9 @@ async function handleLogoutGet(req: Request): Promise<Response> {
 	if (ctx.sessionId) {
 		await createCaller(ctx).auth.logout();
 	}
-	const headers = new Headers({ "content-type": "text/html; charset=utf-8" });
-	headers.append("set-cookie", clearCookieHeader(authConfig.cookieSession));
-	headers.append("set-cookie", clearCookieHeader(authConfig.cookieRefresh));
-	headers.append("set-cookie", clearCookieHeader(authConfig.cookieAccess));
-	headers.append("set-cookie", clearCookieHeader(authConfig.cookieCsrf));
-	headers.append("set-cookie", clearLoggedInCookieHeader());
+	const headers = appendClearedAuthCookies(
+		new Headers({ "content-type": "text/html; charset=utf-8" }),
+	);
 	return new Response(renderPage(<LogoutPage />), { headers });
 }
 

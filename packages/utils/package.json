@@ -8,7 +8,6 @@
 	"exports": {
 		"./cn": "./src/cn.ts",
 		"./logger": "./src/logger.ts",
-		"./origins": "./src/origins.ts",
 		"./cookies": "./src/cookies.ts"
 	},
 	"scripts": {

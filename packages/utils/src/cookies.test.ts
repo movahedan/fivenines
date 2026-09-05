@@ -49,3 +49,48 @@ describe("cookies.get - header or document", () => {
 		expect(cookies.get("sid", "sid=sess%2Did")).toBe("sess-id");
 	});
 });
+
+describe("cookies.set and cookies.delete", () => {
+	afterEach(() => {
+		Reflect.deleteProperty(document, "cookie");
+	});
+
+	it("appends Set-Cookie on a cloned Headers object", () => {
+		const original = new Headers({ "content-type": "text/plain" });
+		const next = cookies.set("auth_session", "sess-id", { path: "/", httpOnly: true }, original);
+
+		expect(original.getSetCookie()).toEqual([]);
+		expect(next.getSetCookie()[0]).toContain("auth_session=sess-id");
+		expect(next.getSetCookie()[0]).toContain("HttpOnly");
+		expect(next.get("content-type")).toBe("text/plain");
+	});
+
+	it("writes document.cookie when headers are omitted", () => {
+		let jar = "";
+		Object.defineProperty(document, "cookie", {
+			configurable: true,
+			enumerable: true,
+			get: () => jar,
+			set: (value: string) => {
+				jar = value;
+			},
+		});
+
+		cookies.set("was_logged_in", "1", { path: "/", maxAge: 60, sameSite: "Strict" });
+
+		expect(jar).toContain("was_logged_in=1");
+		expect(jar).toContain("Max-Age=60");
+	});
+
+	it("clears a cookie with Max-Age=0 on Headers", () => {
+		const next = cookies.delete(
+			"auth_session",
+			{ path: "/", domain: ".fivenines.com" },
+			new Headers(),
+		);
+
+		expect(next.getSetCookie()[0]).toContain("auth_session=");
+		expect(next.getSetCookie()[0]).toContain("Max-Age=0");
+		expect(next.getSetCookie()[0]).toContain("Domain=.fivenines.com");
+	});
+});

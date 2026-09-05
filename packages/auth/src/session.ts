@@ -43,17 +43,11 @@ const READY_EMPTY_SNAPSHOT: AuthSessionSnapshot = {
 };
 
 function setCookie(name: string, value: string, maxAgeSeconds: number): void {
-	if (typeof document === "undefined") {
-		return;
-	}
-	document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Lax`;
+	cookies.set(name, value, { path: "/", maxAge: maxAgeSeconds, sameSite: "Lax" });
 }
 
 function clearCookie(name: string): void {
-	if (typeof document === "undefined") {
-		return;
-	}
-	document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`;
+	cookies.delete(name, { path: "/", sameSite: "Lax" });
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

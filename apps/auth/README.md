@@ -65,7 +65,7 @@ Env (see `.env.sample`): `AUTH_ALLOW_REGISTRATION`, `AUTH_ALLOW_OTP`, `AUTH_OTP_
 ## Browser flow
 
 1. `GET /login` — CSRF cookie + form (or `/register`, `/otp`)
-2. `POST /login` — Set-Cookie session, refresh, access JWT, `was_logged_in`; **302** to `AUTH_PLAY_ORIGIN/hub`
+2. `POST /login` — Set-Cookie session, refresh, access JWT, `was_logged_in`; **302** to the consumer’s allowlisted `redirect_uri` (or relative `next`)
 3. Browser calls Nest with `credentials: "include"` (cookie). `POST /api/refresh` with cookies rotates the access JWT.
 4. `GET /logout` — revokes session, clears Domain cookies
 

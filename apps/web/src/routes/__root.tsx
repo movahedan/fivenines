@@ -6,7 +6,6 @@ import { createAuthFetcherBindings } from "@packages/auth";
 import { AuthProvider } from "@packages/auth/react";
 import { defaultFetcherSettingsInput } from "@packages/http";
 import { FetcherSettingsProvider } from "@packages/http/react";
-import { getAppOrigin, getAuthOrigin } from "@packages/utils/origins";
 
 import { getBrowserApiBaseUrl } from "../browser-api-base-url";
 import { playerAuthSession } from "../player-session";
@@ -29,8 +28,8 @@ function RootDocument(): ReactElement {
 					<AuthProvider
 						session={playerAuthSession}
 						restoreOnMount={false}
-						authOrigin={getAuthOrigin(import.meta.env.VITE_AUTH_URL)}
-						appOrigin={getAppOrigin(import.meta.env.VITE_APP_ORIGIN)}
+						authOrigin={import.meta.env.VITE_AUTH_URL}
+						appOrigin={import.meta.env.VITE_APP_ORIGIN}
 					>
 						<FetcherSettingsProvider
 							initialSettings={{

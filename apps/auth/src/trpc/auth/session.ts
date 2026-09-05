@@ -1,7 +1,10 @@
 import { createHash, randomBytes } from "node:crypto";
 
+import { type CookieFlags, cookies } from "@packages/utils/cookies";
+
 import { authConfig } from "../../config";
 import { prisma } from "../../db";
+import { csrfCookieFlags } from "./csrf";
 
 const REFRESH_TTL_MS = authConfig.refreshTtlDays * 24 * 60 * 60 * 1000;
 
@@ -13,69 +16,68 @@ export function createRefreshToken(): string {
 	return randomBytes(48).toString("base64url");
 }
 
-type CookieFlags = {
-	readonly httpOnly: boolean;
-	readonly maxAgeSeconds: number;
-};
-
-function cookieHeader(name: string, value: string, flags: CookieFlags): string {
-	const parts = [
-		`${name}=${encodeURIComponent(value)}`,
-		"Path=/",
-		`Max-Age=${flags.maxAgeSeconds}`,
-		"SameSite=Strict",
-	];
-	if (flags.httpOnly) {
-		parts.push("HttpOnly");
-	}
+export function authCookieFlags(maxAgeSeconds: number, httpOnly: boolean): CookieFlags {
 	const domain = authConfig.cookieDomain.trim();
-	if (domain.length > 0) {
-		parts.push(`Domain=${domain}`);
-	}
-	if (authConfig.cookieSecure) {
-		parts.push("Secure");
-	}
-	return parts.join("; ");
+	return {
+		path: "/",
+		maxAge: maxAgeSeconds,
+		sameSite: "Strict",
+		httpOnly,
+		secure: authConfig.cookieSecure,
+		domain: domain.length > 0 ? domain : undefined,
+	};
 }
 
-export function sessionCookieHeader(sessionId: string, maxAgeSeconds: number): string {
-	return cookieHeader(authConfig.cookieSession, sessionId, { httpOnly: true, maxAgeSeconds });
+export function appendAuthCookie(
+	headers: Headers,
+	name: string,
+	value: string,
+	flags: CookieFlags,
+): Headers {
+	return cookies.set(name, value, flags, headers) ?? headers;
 }
 
-export function refreshCookieHeader(refreshToken: string, maxAgeSeconds: number): string {
-	return cookieHeader(authConfig.cookieRefresh, refreshToken, { httpOnly: true, maxAgeSeconds });
+export function clearAuthCookie(headers: Headers, name: string, httpOnly: boolean): Headers {
+	return cookies.delete(name, authCookieFlags(0, httpOnly), headers) ?? headers;
 }
 
-export function accessCookieHeader(accessToken: string, maxAgeSeconds: number): string {
-	return cookieHeader(authConfig.cookieAccess, accessToken, { httpOnly: true, maxAgeSeconds });
+export function appendLoginSessionCookies(
+	headers: Headers,
+	result: { sessionId: string; refreshToken: string; accessToken: string },
+): Headers {
+	const persistentSeconds = authConfig.refreshTtlDays * 24 * 60 * 60;
+	let next = appendAuthCookie(
+		headers,
+		authConfig.cookieSession,
+		result.sessionId,
+		authCookieFlags(persistentSeconds, true),
+	);
+	next = appendAuthCookie(
+		next,
+		authConfig.cookieRefresh,
+		result.refreshToken,
+		authCookieFlags(persistentSeconds, true),
+	);
+	next = appendAuthCookie(
+		next,
+		authConfig.cookieAccess,
+		result.accessToken,
+		authCookieFlags(authConfig.accessTtlSeconds, true),
+	);
+	return appendAuthCookie(
+		next,
+		authConfig.cookieLoggedIn,
+		"1",
+		authCookieFlags(persistentSeconds, false),
+	);
 }
 
-export function loggedInCookieHeader(maxAgeSeconds: number): string {
-	return cookieHeader(authConfig.cookieLoggedIn, "1", { httpOnly: false, maxAgeSeconds });
-}
-
-export function clearCookieHeader(name: string): string {
-	const parts = [`${name}=`, "Path=/", "Max-Age=0", "HttpOnly", "SameSite=Strict"];
-	const domain = authConfig.cookieDomain.trim();
-	if (domain.length > 0) {
-		parts.push(`Domain=${domain}`);
-	}
-	if (authConfig.cookieSecure) {
-		parts.push("Secure");
-	}
-	return parts.join("; ");
-}
-
-export function clearLoggedInCookieHeader(): string {
-	const parts = [`${authConfig.cookieLoggedIn}=`, "Path=/", "Max-Age=0", "SameSite=Strict"];
-	const domain = authConfig.cookieDomain.trim();
-	if (domain.length > 0) {
-		parts.push(`Domain=${domain}`);
-	}
-	if (authConfig.cookieSecure) {
-		parts.push("Secure");
-	}
-	return parts.join("; ");
+export function appendClearedAuthCookies(headers: Headers): Headers {
+	let next = clearAuthCookie(headers, authConfig.cookieSession, true);
+	next = clearAuthCookie(next, authConfig.cookieRefresh, true);
+	next = clearAuthCookie(next, authConfig.cookieAccess, true);
+	next = cookies.delete(authConfig.cookieCsrf, csrfCookieFlags(0), next) ?? next;
+	return clearAuthCookie(next, authConfig.cookieLoggedIn, false);
 }
 
 export async function createSession(input: {
@@ -121,25 +123,9 @@ export async function revokeSession(sessionId: string): Promise<void> {
 	});
 }
 
-export function parseCookies(header: string | null): Record<string, string> {
-	if (!header) {
-		return {};
-	}
-	const out: Record<string, string> = {};
-	for (const part of header.split(";")) {
-		const [rawKey, ...rest] = part.trim().split("=");
-		if (!rawKey) {
-			continue;
-		}
-		out[rawKey] = decodeURIComponent(rest.join("="));
-	}
-	return out;
-}
-
 export async function resolveSessionFromCookies(cookieHeader: string | null) {
-	const cookies = parseCookies(cookieHeader);
-	const sessionId = cookies[authConfig.cookieSession];
-	const refreshToken = cookies[authConfig.cookieRefresh];
+	const sessionId = cookies.get(authConfig.cookieSession, cookieHeader ?? undefined);
+	const refreshToken = cookies.get(authConfig.cookieRefresh, cookieHeader ?? undefined);
 	if (!sessionId || !refreshToken) {
 		return null;
 	}

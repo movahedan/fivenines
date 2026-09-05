@@ -34,6 +34,13 @@ export function loginReturnFieldProps(ret: LoginReturn): LoginReturnForm {
 	return { next: ret.path };
 }
 
+export function loginReturnLocation(ret: LoginReturn): string {
+	if (ret.kind === "external") {
+		return ret.redirectUri;
+	}
+	return ret.path;
+}
+
 function nonempty(value: string | undefined): string | undefined {
 	if (value === undefined || value.length === 0) {
 		return undefined;

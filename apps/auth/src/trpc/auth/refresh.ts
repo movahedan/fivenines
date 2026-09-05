@@ -1,14 +1,13 @@
 import type { TenantRole } from "@packages/auth/contract";
+import { cookies } from "@packages/utils/cookies";
 
 import { authConfig } from "../../config";
 import { prisma } from "../../db";
 import { humanAccessTokenForMembership } from "./access-token";
 import {
-	accessCookieHeader,
+	appendAuthCookie,
+	authCookieFlags,
 	hashRefreshToken,
-	loggedInCookieHeader,
-	parseCookies,
-	refreshCookieHeader,
 	resolveSessionFromCookies,
 	rotateSessionRefresh,
 } from "./session";
@@ -40,9 +39,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 async function sessionCredentialsFromRequest(
 	req: Request,
 ): Promise<{ sessionId: string; refreshToken: string } | null> {
-	const cookies = parseCookies(req.headers.get("cookie"));
-	const sessionId = cookies[authConfig.cookieSession];
-	const refreshToken = cookies[authConfig.cookieRefresh];
+	const sessionId = cookies.get(authConfig.cookieSession, req.headers);
+	const refreshToken = cookies.get(authConfig.cookieRefresh, req.headers);
 	if (sessionId && refreshToken) {
 		return { sessionId, refreshToken };
 	}
@@ -108,10 +106,25 @@ export async function handleRefreshRequest(req: Request): Promise<Response> {
 	}
 
 	const maxAge = authConfig.refreshTtlDays * 24 * 60 * 60;
-	const headers = new Headers({ "content-type": "application/json" });
-	headers.append("set-cookie", refreshCookieHeader(rotated.refreshToken, maxAge));
-	headers.append("set-cookie", accessCookieHeader(accessToken, authConfig.accessTtlSeconds));
-	headers.append("set-cookie", loggedInCookieHeader(maxAge));
+	let headers = new Headers({ "content-type": "application/json" });
+	headers = appendAuthCookie(
+		headers,
+		authConfig.cookieRefresh,
+		rotated.refreshToken,
+		authCookieFlags(maxAge, true),
+	);
+	headers = appendAuthCookie(
+		headers,
+		authConfig.cookieAccess,
+		accessToken,
+		authCookieFlags(authConfig.accessTtlSeconds, true),
+	);
+	headers = appendAuthCookie(
+		headers,
+		authConfig.cookieLoggedIn,
+		"1",
+		authCookieFlags(maxAge, false),
+	);
 
 	return Response.json({ ok: true }, { headers });
 }

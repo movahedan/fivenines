@@ -1,39 +1,23 @@
-const NEXT_MAX_LENGTH = 256;
+const NEXT_BASE = "https://auth.local";
 
 export function safeNextPath(raw: string | undefined | null, fallback = "/"): string {
-	if (raw == null || raw.length === 0 || raw.length > NEXT_MAX_LENGTH) {
+	if (raw == null || raw.length === 0) {
 		return fallback;
 	}
 
-	let decoded = raw;
 	try {
-		decoded = decodeURIComponent(raw);
+		const url = new URL(raw, NEXT_BASE);
+		if (url.origin !== new URL(NEXT_BASE).origin) {
+			return fallback;
+		}
+		const path = `${url.pathname}${url.search}`;
+		if (!path.startsWith("/") || path.startsWith("//")) {
+			return fallback;
+		}
+		return path;
 	} catch {
 		return fallback;
 	}
-
-	if (decoded.length === 0 || decoded.length > NEXT_MAX_LENGTH) {
-		return fallback;
-	}
-	if (decoded[0] !== "/") {
-		return fallback;
-	}
-	if (decoded[1] === "/") {
-		return fallback;
-	}
-
-	for (let i = 0; i < decoded.length; i++) {
-		const char = decoded[i];
-		if (char === "\\" || char === "\0" || char === "\n" || char === "\r") {
-			return fallback;
-		}
-	}
-
-	if (decoded.includes("://")) {
-		return fallback;
-	}
-
-	return decoded;
 }
 
 export function nextFromRequest(req: Request, formNext?: string): string {

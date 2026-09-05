@@ -4,7 +4,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 
 import { AuthProvider } from "@packages/auth/react";
 
-import { HubPage } from "./hub";
+import { HubPage, PlayButton } from "./hub";
 
 function stubLoggedInHint(present: boolean): void {
 	Object.defineProperty(document, "cookie", {
@@ -58,5 +58,13 @@ describe("HubPage - session gate", () => {
 		await waitFor(() => {
 			expect(screen.getByRole("heading", { name: "Hub" })).toBeTruthy();
 		});
+	});
+});
+
+describe("PlayButton - hub entry", () => {
+	it("always links to the guarded hub", () => {
+		render(<PlayButton />);
+
+		expect(screen.getByRole("link", { name: "Play" }).getAttribute("href")).toBe("/hub");
 	});
 });

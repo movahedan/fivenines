@@ -1,16 +1,21 @@
 import { describe, expect, it } from "bun:test";
 
 import { authConfig } from "../../config";
-import {
-	accessCookieHeader,
-	loggedInCookieHeader,
-	refreshCookieHeader,
-	sessionCookieHeader,
-} from "./session";
+import { appendAuthCookie, authCookieFlags } from "./session";
+
+function firstSetCookie(headers: Headers): string {
+	return headers.getSetCookie()[0] ?? "";
+}
 
 describe("auth cookies - shared Domain and SameSite=Strict", () => {
 	it("sets HttpOnly session cookie with Domain", () => {
-		const header = sessionCookieHeader("sess-id", 3600);
+		const headers = appendAuthCookie(
+			new Headers(),
+			authConfig.cookieSession,
+			"sess-id",
+			authCookieFlags(3600, true),
+		);
+		const header = firstSetCookie(headers);
 
 		expect(header).toContain(`${authConfig.cookieSession}=sess-id`);
 		expect(header).toContain("HttpOnly");
@@ -19,7 +24,13 @@ describe("auth cookies - shared Domain and SameSite=Strict", () => {
 	});
 
 	it("sets a public was-logged-in cookie without HttpOnly", () => {
-		const header = loggedInCookieHeader(3600);
+		const headers = appendAuthCookie(
+			new Headers(),
+			authConfig.cookieLoggedIn,
+			"1",
+			authCookieFlags(3600, false),
+		);
+		const header = firstSetCookie(headers);
 
 		expect(header).toContain(`${authConfig.cookieLoggedIn}=1`);
 		expect(header).not.toContain("HttpOnly");
@@ -27,10 +38,25 @@ describe("auth cookies - shared Domain and SameSite=Strict", () => {
 	});
 
 	it("sets an HttpOnly access JWT cookie", () => {
-		const header = accessCookieHeader("header.payload.sig", 900);
+		const access = firstSetCookie(
+			appendAuthCookie(
+				new Headers(),
+				authConfig.cookieAccess,
+				"header.payload.sig",
+				authCookieFlags(900, true),
+			),
+		);
+		const refresh = firstSetCookie(
+			appendAuthCookie(
+				new Headers(),
+				authConfig.cookieRefresh,
+				"refresh",
+				authCookieFlags(3600, true),
+			),
+		);
 
-		expect(header).toContain(`${authConfig.cookieAccess}=`);
-		expect(header).toContain("HttpOnly");
-		expect(refreshCookieHeader("refresh", 3600)).toContain("HttpOnly");
+		expect(access).toContain(`${authConfig.cookieAccess}=`);
+		expect(access).toContain("HttpOnly");
+		expect(refresh).toContain("HttpOnly");
 	});
 });

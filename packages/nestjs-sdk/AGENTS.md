@@ -24,6 +24,7 @@ bun run typecheck
 | `@packages/nestjs-sdk/zod` | Zod schemas (grouped by OpenAPI tag) |
 | `@packages/nestjs-sdk/hooks` | React Query hooks (client mutator) |
 | `@packages/nestjs-sdk/server` | Fetch functions (server mutator) |
+| `@packages/nestjs-sdk/clock-events-url` | SSE path for `GET /api/v1/clock/events` (same as generated `getClockControllerEventsUrl`; the fetch clients JSON-parse the body) |
 | `@packages/nestjs-sdk/mutator.client` | Browser `customFetch` via `@packages/http` `fetcher` |
 | `@packages/nestjs-sdk/mutator.server` | `customFetch` via `publicServerClient`; also `createServerClient` |
 

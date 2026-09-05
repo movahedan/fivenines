@@ -190,7 +190,6 @@ services:
       AUTH_ACCESS_TTL_SECONDS: ${AUTH_ACCESS_TTL_SECONDS:-900}
       AUTH_COOKIE_SECURE: "false"
       AUTH_COOKIE_DOMAIN: ${AUTH_COOKIE_DOMAIN:-.fivenines.com}
-      AUTH_PLAY_ORIGIN: ${AUTH_PLAY_ORIGIN:-http://play.fivenines.com:3001}
       AUTH_COOKIE_ACCESS: ${AUTH_COOKIE_ACCESS:-auth_access}
       AUTH_COOKIE_LOGGED_IN: ${AUTH_COOKIE_LOGGED_IN:-was_logged_in}
       AUTH_SEED_ADMIN_EMAIL: ${AUTH_SEED_ADMIN_EMAIL:-admin@example.com}

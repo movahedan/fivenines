@@ -37,7 +37,9 @@ preload = ["./tools/tests-preset/reflect-metadata.ts", "./tools/tests-preset/hap
 env = { 
 	NODE_ENV = "test", 
 	DOM_ENV = "jsdom",
-	TEST_TIMEOUT = "5000"
+	TEST_TIMEOUT = "5000",
+	VITE_AUTH_URL = "http://auth.fivenines.com:3007",
+	VITE_APP_ORIGIN = "http://play.fivenines.com:3001"
 }
 
 # Test timeout in milliseconds

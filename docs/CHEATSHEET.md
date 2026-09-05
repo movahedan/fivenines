@@ -97,7 +97,7 @@ curl -sf -H "x-tenant-id: 00000000-0000-4000-8000-000000000001" \
   http://localhost:3006/api/v1/tenants
 ```
 
-**Real JWT (browser):** hosts file + login form → 302 `/hub`; Nest reads `auth_access` cookie. **M2M/tests:** Bearer still works:
+**Real JWT (browser):** hosts file + login form → 302 to the allowlisted `redirect_uri` (Play sends `/hub`); Nest reads `auth_access` cookie. **M2M/tests:** Bearer still works:
 
 ```bash
 curl -sf -H "Authorization: Bearer <access_token>" \

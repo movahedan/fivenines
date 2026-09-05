@@ -76,7 +76,7 @@ function buildSwaggerConfig() {
 			"TenantAuth",
 		)
 		.addServer(
-			`http://localhost:${process.env.NESTJS_PORT ?? process.env.PORT ?? 3006}`,
+			`http://localhost:${process.env.NESTJS_PORT ?? process.env.PORT ?? 3002}`,
 			"Development",
 		)
 		.addTag("Health", "Liveness and readiness")

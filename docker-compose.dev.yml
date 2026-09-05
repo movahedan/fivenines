@@ -90,19 +90,19 @@ services:
       postgres:
         condition: service_healthy
     expose:
-      - "${NESTJS_PORT:-3006}"
+      - "${NESTJS_PORT:-3002}"
     ports:
-      - "${NESTJS_PORT:-3006}:${NESTJS_PORT:-3006}"
+      - "${NESTJS_PORT:-3002}:${NESTJS_PORT:-3002}"
     extra_hosts: *fivenines-test-hosts
     environment:
       HOST: "0.0.0.0"
-      PORT: "${NESTJS_PORT:-3006}"
-      NESTJS_PORT: "${NESTJS_PORT:-3006}"
+      PORT: "${NESTJS_PORT:-3002}"
+      NESTJS_PORT: "${NESTJS_PORT:-3002}"
       NODE_ENV: development
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://play.fivenines.com:3001,http://localhost:3001,http://127.0.0.1:3001}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://play.fivenines.com:3000,http://localhost:3000,http://127.0.0.1:3000}
       DATABASE_URL: postgresql://${POSTGRES_USER:-fivenines}:${POSTGRES_PASSWORD:-fivenines}@postgres:5432/${POSTGRES_DB:-fivenines}
-      AUTH_JWKS_URL: http://host.docker.internal:${AUTH_PORT:-3007}/.well-known/jwks.json
-      AUTH_ISSUER: ${AUTH_ISSUER:-http://auth.fivenines.com:3007}
+      AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://auth.fivenines.com:3001/.well-known/jwks.json}
+      AUTH_ISSUER: ${AUTH_ISSUER:-http://auth.fivenines.com:3001}
       AUTH_AUDIENCE: ${AUTH_AUDIENCE:-fivenines-api}
       AUTH_ALLOW_HEADER_TENANT: ${AUTH_ALLOW_HEADER_TENANT:-false}
       AUTH_COOKIE_ACCESS: ${AUTH_COOKIE_ACCESS:-auth_access}
@@ -111,7 +111,11 @@ services:
       cd ../.. && bun run turbo run dev --filter=@apps/nestjs"
     profiles: ["nestjs", "web", "all"]
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://nestjs:${NESTJS_PORT:-3006}/status | grep -q '\"ok\":true'"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -sf -H 'Accept: application/json' http://127.0.0.1:${NESTJS_PORT:-3002}/status | grep -Eq '\"ok\"[[:space:]]*:[[:space:]]*true'",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -122,17 +126,21 @@ services:
     extends:
       service: apps
     expose:
-      - "${UI_PORT:-3004}"
+      - "${UI_PORT:-9000}"
     ports:
-      - "${UI_PORT:-3004}:${UI_PORT:-3004}"
+      - "${UI_PORT:-9000}:${UI_PORT:-9000}"
     environment:
       HOST: "0.0.0.0"
-      PORT: "${UI_PORT:-3004}"
-      UI_PORT: "${UI_PORT:-3004}"
+      PORT: "${UI_PORT:-9000}"
+      UI_PORT: "${UI_PORT:-9000}"
     command: bun run turbo run dev --filter=@packages/ui
     profiles: ["ui", "all"]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://ui:${UI_PORT:-3004}"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -sf -H 'Accept: application/json' http://127.0.0.1:${UI_PORT:-9000}/status | grep -Eq '\"ok\"[[:space:]]*:[[:space:]]*true'",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -146,44 +154,49 @@ services:
       nestjs:
         condition: service_healthy
     expose:
-      - "${WEB_PORT:-3001}"
+      - "${WEB_PORT:-3000}"
     ports:
-      - "${WEB_PORT:-3001}:${WEB_PORT:-3001}"
+      - "${WEB_PORT:-3000}:${WEB_PORT:-3000}"
     extra_hosts: *fivenines-test-hosts
     environment:
       HOST: "0.0.0.0"
-      PORT: "${WEB_PORT:-3001}"
-      WEB_PORT: "${WEB_PORT:-3001}"
-      NESTJS_API_URL: ${NESTJS_API_URL:-http://nestjs:3006}
-      VITE_NESTJS_API_URL: ${VITE_NESTJS_API_URL:-http://api.fivenines.com:3006}
-      VITE_AUTH_URL: ${VITE_AUTH_URL:-http://auth.fivenines.com:3007}
-      VITE_APP_ORIGIN: ${VITE_APP_ORIGIN:-http://play.fivenines.com:3001}
+      PORT: "${WEB_PORT:-3000}"
+      WEB_PORT: "${WEB_PORT:-3000}"
+      NESTJS_API_URL: ${VITE_NESTJS_API_URL:-http://api.fivenines.com:3002}
+      VITE_NESTJS_API_URL: ${VITE_NESTJS_API_URL:-http://api.fivenines.com:3002}
+      VITE_AUTH_URL: ${VITE_AUTH_URL:-http://auth.fivenines.com:3001}
+      VITE_APP_ORIGIN: ${VITE_APP_ORIGIN:-http://play.fivenines.com:3000}
     command: bun run turbo run dev --filter=@apps/web
     profiles: ["web", "all"]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://web:${WEB_PORT:-3001}"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -sf -H 'Accept: application/json' http://127.0.0.1:${WEB_PORT:-3000}/status | grep -Eq '\"ok\"[[:space:]]*:[[:space:]]*true'",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 90s
 
   auth:
+    x-fivenines-package: "@apps/auth"
     extends:
       service: apps
     depends_on:
       postgres:
         condition: service_healthy
     expose:
-      - "${AUTH_PORT:-3007}"
+      - "${AUTH_PORT:-3001}"
     ports:
-      - "${AUTH_PORT:-3007}:${AUTH_PORT:-3007}"
+      - "${AUTH_PORT:-3001}:${AUTH_PORT:-3001}"
     extra_hosts: *fivenines-test-hosts
     environment:
       HOST: "0.0.0.0"
-      PORT: "${AUTH_PORT:-3007}"
-      AUTH_PORT: "${AUTH_PORT:-3007}"
+      PORT: "${AUTH_PORT:-3001}"
+      AUTH_PORT: "${AUTH_PORT:-3001}"
       NODE_ENV: development
-      AUTH_ISSUER: ${AUTH_ISSUER:-http://auth.fivenines.com:3007}
+      AUTH_ISSUER: ${AUTH_ISSUER:-http://auth.fivenines.com:3001}
       AUTH_AUDIENCE: ${AUTH_AUDIENCE:-fivenines-api}
       AUTH_AUDIENCE_EVAL: ${AUTH_AUDIENCE_EVAL:-fivenines-eval}
       AUTH_DATABASE_URL: postgresql://${POSTGRES_USER:-fivenines}:${POSTGRES_PASSWORD:-fivenines}@postgres:5432/fivenines_auth
@@ -194,14 +207,18 @@ services:
       AUTH_COOKIE_LOGGED_IN: ${AUTH_COOKIE_LOGGED_IN:-was_logged_in}
       AUTH_SEED_ADMIN_EMAIL: ${AUTH_SEED_ADMIN_EMAIL:-admin@example.com}
       AUTH_SEED_ADMIN_PASSWORD: ${AUTH_SEED_ADMIN_PASSWORD:-changeme}
-      AUTH_REDIRECT_ORIGINS: ${AUTH_REDIRECT_ORIGINS:-http://play.fivenines.com:3001,http://localhost:3001,http://127.0.0.1:3001}
+      AUTH_REDIRECT_ORIGINS: ${AUTH_REDIRECT_ORIGINS:-http://play.fivenines.com:3000,http://localhost:3000,http://127.0.0.1:3000}
     command: >
       sh -c "cd apps/auth && bun run db:generate && bun run db:migrate && bun run db:seed &&
       cd ../.. && bun run turbo run dev --filter=@apps/auth"
     profiles: ["auth", "all"]
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://auth:${AUTH_PORT:-3007}/status | grep -q '\"ok\":true'"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -sf -H 'Accept: application/json' http://127.0.0.1:${AUTH_PORT:-3001}/status | grep -Eq '\"ok\"[[:space:]]*:[[:space:]]*true'",
+        ]
       interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 3
       start_period: 90s

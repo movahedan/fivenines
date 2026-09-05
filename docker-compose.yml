@@ -4,23 +4,50 @@ networks:
   prod-network:
     driver: bridge
 
+volumes:
+  postgres_data:
+    driver: local
+
 services:
+  postgres:
+    image: postgres:17-alpine
+    networks:
+      - prod-network
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fivenines}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fivenines}
+      POSTGRES_DB: ${POSTGRES_DB:-fivenines}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fivenines} -d ${POSTGRES_DB:-fivenines}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
   ui:
     x-fivenines-package: "@packages/ui"
     build:
       context: .
       dockerfile: packages/ui/Dockerfile
     ports:
-      - "5004:${UI_PORT:-3004}"
+      - "${UI_PORT:-9000}:${UI_PORT:-9000}"
     networks:
       - prod-network
     environment:
-      PORT: ${UI_PORT:-3004}
-      UI_PORT: ${UI_PORT:-3004}
+      PORT: ${UI_PORT:-9000}
+      UI_PORT: ${UI_PORT:-9000}
       HOST: ${HOST:-0.0.0.0}
       NODE_ENV: production
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:${UI_PORT:-3004}"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -sf -H 'Accept: application/json' http://127.0.0.1:${UI_PORT:-9000}/status | grep -Eq '\"ok\"[[:space:]]*:[[:space:]]*true'",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -31,20 +58,109 @@ services:
     build:
       context: .
       dockerfile: apps/nestjs/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
-      - "5006:${NESTJS_PORT:-3006}"
+      - "${NESTJS_PORT:-3002}:${NESTJS_PORT:-3002}"
     networks:
       - prod-network
     environment:
-      PORT: ${NESTJS_PORT:-3006}
-      NESTJS_PORT: ${NESTJS_PORT:-3006}
+      PORT: ${NESTJS_PORT:-3002}
+      NESTJS_PORT: ${NESTJS_PORT:-3002}
       HOST: ${HOST:-0.0.0.0}
       NODE_ENV: production
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3001,http://127.0.0.1:3001}
-      DATABASE_URL: ${DATABASE_URL}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://play.fivenines.com:3000,http://localhost:3000,http://127.0.0.1:3000}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fivenines}:${POSTGRES_PASSWORD:-fivenines}@postgres:5432/${POSTGRES_DB:-fivenines}
+      AUTH_JWKS_URL: http://auth:${AUTH_PORT:-3001}/.well-known/jwks.json
+      AUTH_ISSUER: ${AUTH_ISSUER:-http://auth.fivenines.com:3001}
+      AUTH_AUDIENCE: ${AUTH_AUDIENCE:-fivenines-api}
+      AUTH_ALLOW_HEADER_TENANT: ${AUTH_ALLOW_HEADER_TENANT:-false}
+      AUTH_COOKIE_ACCESS: ${AUTH_COOKIE_ACCESS:-auth_access}
+    command: >
+      sh -c "cd apps/nestjs && bun x prisma migrate deploy && bun ./dist/index.js"
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:${NESTJS_PORT:-3006}/status"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -sf -H 'Accept: application/json' http://127.0.0.1:${NESTJS_PORT:-3002}/status | grep -Eq '\"ok\"[[:space:]]*:[[:space:]]*true'",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 45s
+
+  auth:
+    x-fivenines-package: "@apps/auth"
+    build:
+      context: .
+      dockerfile: apps/auth/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${AUTH_PORT:-3001}:${AUTH_PORT:-3001}"
+    networks:
+      - prod-network
+    environment:
+      HOST: ${HOST:-0.0.0.0}
+      PORT: ${AUTH_PORT:-3001}
+      AUTH_PORT: ${AUTH_PORT:-3001}
+      NODE_ENV: production
+      AUTH_ISSUER: ${AUTH_ISSUER:-http://auth.fivenines.com:3001}
+      AUTH_AUDIENCE: ${AUTH_AUDIENCE:-fivenines-api}
+      AUTH_AUDIENCE_EVAL: ${AUTH_AUDIENCE_EVAL:-fivenines-eval}
+      AUTH_DATABASE_URL: postgresql://${POSTGRES_USER:-fivenines}:${POSTGRES_PASSWORD:-fivenines}@postgres:5432/fivenines_auth
+      AUTH_ACCESS_TTL_SECONDS: ${AUTH_ACCESS_TTL_SECONDS:-900}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
+      AUTH_COOKIE_DOMAIN: ${AUTH_COOKIE_DOMAIN:-.fivenines.com}
+      AUTH_COOKIE_ACCESS: ${AUTH_COOKIE_ACCESS:-auth_access}
+      AUTH_COOKIE_LOGGED_IN: ${AUTH_COOKIE_LOGGED_IN:-was_logged_in}
+      AUTH_SEED_ADMIN_EMAIL: ${AUTH_SEED_ADMIN_EMAIL:-admin@example.com}
+      AUTH_SEED_ADMIN_PASSWORD: ${AUTH_SEED_ADMIN_PASSWORD:-changeme}
+      AUTH_REDIRECT_ORIGINS: ${AUTH_REDIRECT_ORIGINS:-http://play.fivenines.com:3000,http://localhost:3000,http://127.0.0.1:3000}
+    command: >
+      sh -c "cd apps/auth && bun scripts/ensure-db.ts && bun x prisma migrate deploy --schema src/prisma/schema.prisma && bun scripts/seed.ts &&
+      bun dist/index.js"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -sf -H 'Accept: application/json' http://127.0.0.1:${AUTH_PORT:-3001}/status | grep -Eq '\"ok\"[[:space:]]*:[[:space:]]*true'",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+
+  web:
+    x-fivenines-package: "@apps/web"
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    depends_on:
+      nestjs:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-3000}:${WEB_PORT:-3000}"
+    networks:
+      - prod-network
+    environment:
+      HOST: ${HOST:-0.0.0.0}
+      PORT: ${WEB_PORT:-3000}
+      WEB_PORT: ${WEB_PORT:-3000}
+      NODE_ENV: production
+      NESTJS_API_URL: ${VITE_NESTJS_API_URL:-http://api.fivenines.com:3002}
+      VITE_NESTJS_API_URL: ${VITE_NESTJS_API_URL:-http://api.fivenines.com:3002}
+      VITE_AUTH_URL: ${VITE_AUTH_URL:-http://auth.fivenines.com:3001}
+      VITE_APP_ORIGIN: ${VITE_APP_ORIGIN:-http://play.fivenines.com:3000}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -sf -H 'Accept: application/json' http://127.0.0.1:${WEB_PORT:-3000}/status | grep -Eq '\"ok\"[[:space:]]*:[[:space:]]*true'",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s

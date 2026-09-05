@@ -150,35 +150,52 @@ jobs:
       - name: 🧪 Test Production Services
         run: |
           echo "::group::🧪 Testing Production Services"
-          
-          # Check if we have any affected packages
+
           if [ -z "${{ needs.get-affected.outputs.affected-services }}" ]; then
             echo "No affected packages to test"
             exit 0
           fi
-          
-          # Start services in background
+
           bun run container --prod compose up ${{ needs.get-affected.outputs.affected-services }} -d
-          
-          # Wait for services to start
-          sleep 30
-          
-          # Check service status
+
+          sleep 90
+
           bun run container --prod compose ps
-          
-          # Test service health (basic connectivity)
+
+          HTTP_SERVICES="web auth nestjs ui"
+
           for service in ${{ needs.get-affected.outputs.affected-services }}; do
-            echo "Testing $service..."
-            
-            # Get port from the ports output - use proper jq syntax with quotes
-            port=$(echo '${{ needs.get-affected.outputs.service-ports }}' | jq -r --arg service "$service" '.[$service] // empty' 2>/dev/null || echo "")
-            
-            if [ -n "$port" ] && [ "$port" != "null" ] && [ "$port" != "" ]; then
-              echo "Service $service is accessible on port $port"
-              # Test basic connectivity (don't fail if service doesn't respond, just log)
-              curl -s --max-time 5 http://localhost:$port > /dev/null && echo "✅ $service is responding" || echo "⚠️ $service is not responding (may be normal for some services)"
-            else
-              echo "⚠️ Service $service has no exposed port (may be a library package)"
+            case " $HTTP_SERVICES " in
+              *" $service "*) ;;
+              *)
+                echo "Skipping $service (not an HTTP /status probe target)"
+                continue
+                ;;
+            esac
+
+            port=$(echo '${{ needs.get-affected.outputs.service-ports }}' | jq -r --arg service "$service" '.[$service] // empty')
+            if [ -z "$port" ] || [ "$port" = "null" ]; then
+              echo "❌ Service $service is missing a published port in service-ports"
+              exit 1
+            fi
+
+            echo "Probing $service on port $port"
+            healthy=0
+            for attempt in 1 2 3; do
+              if curl -sf -H 'Accept: application/json' --max-time 5 "http://localhost:${port}/status" | grep -Eq '"ok"[[:space:]]*:[[:space:]]*true'; then
+                echo "✅ $service is healthy (attempt ${attempt})"
+                healthy=1
+                break
+              fi
+              echo "Attempt ${attempt} failed for $service"
+              if [ "$attempt" -lt 3 ]; then
+                sleep 5
+              fi
+            done
+
+            if [ "$healthy" -ne 1 ]; then
+              echo "❌ $service did not become healthy after 3 attempts"
+              exit 1
             fi
           done
 

@@ -5,9 +5,9 @@
 	"version": "0.1.0",
 	"description": "Five Nines player UI — TanStack Start SSR",
 	"scripts": {
-		"dev": "bun --bun vite --host --port ${WEB_PORT:-3001}",
+		"dev": "bun --bun vite --host --port ${WEB_PORT:-3000}",
 		"build": "vite build",
-		"start": "bun --bun vite preview --host --port ${WEB_PORT:-3001}",
+		"start": "bun --bun vite preview --host --port ${WEB_PORT:-${PORT:-3000}}",
 		"typecheck": "tsc --noEmit",
 		"test": "bun --cwd ../.. test apps/web/src"
 	},

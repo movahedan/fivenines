@@ -1,4 +1,7 @@
+import type { IncomingMessage, ServerResponse } from "node:http";
+
 import type { StorybookConfig } from "@storybook/react-vite";
+import type { Plugin, ViteDevServer } from "vite";
 
 import { applyRnWebVite } from "./rn-web-vite.ts";
 
@@ -21,7 +24,7 @@ const config: StorybookConfig = {
 		},
 	},
 	async viteFinal(viteConfig) {
-		const port = Number(process.env.UI_PORT ?? process.env.PORT ?? 3004);
+		const port = Number(process.env.UI_PORT ?? process.env.PORT ?? 9000);
 		const host = process.env.HOST ?? "127.0.0.1";
 		viteConfig.server = {
 			...viteConfig.server,
@@ -30,9 +33,34 @@ const config: StorybookConfig = {
 			allowedHosts: ["localhost", "127.0.0.1", "ui"],
 			strictPort: true,
 		};
+		const plugins = viteConfig.plugins ?? [];
+		viteConfig.plugins = [statusJsonAlwaysPlugin(), ...plugins];
 		applyRnWebVite(viteConfig);
 		return viteConfig;
 	},
 };
+
+function sendStatusJson(res: ServerResponse): void {
+	res.statusCode = 200;
+	res.setHeader("Content-Type", "application/json");
+	res.end(JSON.stringify({ ok: true, timestamp: new Date().toISOString() }));
+}
+
+function statusJsonAlwaysPlugin(): Plugin {
+	return {
+		name: "ui-status-json",
+		configureServer(server: ViteDevServer) {
+			server.middlewares.use((req: IncomingMessage, res, next) => {
+				const path = req.url?.split("?")[0];
+				if (req.method === "GET" && path === "/status") {
+					sendStatusJson(res);
+					return;
+				}
+
+				next();
+			});
+		},
+	};
+}
 
 export default config;

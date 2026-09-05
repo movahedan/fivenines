@@ -18,8 +18,8 @@ function renderHub(): ReturnType<typeof render> {
 	return render(
 		<AuthProvider
 			restoreOnMount={false}
-			authOrigin="http://auth.fivenines.com:3007"
-			appOrigin="http://play.fivenines.com:3001"
+			authOrigin="http://auth.fivenines.com:3001"
+			appOrigin="http://play.fivenines.com:3000"
 		>
 			<HubPage />
 		</AuthProvider>,

@@ -1,11 +1,12 @@
 import { defaultFetcherSettingsInput, FetcherSettings } from "@packages/http";
 
 function getApiBaseUrl(): string {
-	const raw = (process.env.NESTJS_API_URL ?? process.env.API_BASE_URL ?? "").trim();
-	if (/^https?:\/\//i.test(raw)) {
-		return raw.replace(/\/$/, "");
+	const url = process.env.NESTJS_API_URL;
+	if (url === undefined || url === "") {
+		throw new Error("Missing required env: NESTJS_API_URL");
 	}
-	return `http://localhost:${process.env.NESTJS_PORT ?? "3006"}`;
+
+	return url;
 }
 
 export const serverBaseSettings = new FetcherSettings({

@@ -4,11 +4,11 @@ Guidance for **@apps/nestjs** — multi-tenant feature flags control-plane API (
 
 ## Overview
 
-- **Port:** 3006 (`NESTJS_PORT`)
+- **Port:** 3002 (`NESTJS_PORT`)
 - **Prefix:** `/api` (e.g. `GET /api/v1/health`, `GET /api/v1/tenants`)
 - **Infra alias:** `GET /status` (no `/api` prefix)
 - **Swagger UI:** `/api/docs` · **OpenAPI JSON:** `/api/docs-json`
-- **Auth:** Access JWT from HttpOnly cookie `AUTH_COOKIE_ACCESS` (`auth_access`) **or** `Authorization: Bearer` (M2M/tests). Same JWKS. Dev fallback: `x-tenant-id` when `AUTH_ALLOW_HEADER_TENANT=true`. CORS `credentials: true`; allow `http://play.fivenines.com:3001`.
+- **Auth:** Access JWT from HttpOnly cookie `AUTH_COOKIE_ACCESS` (`auth_access`) **or** `Authorization: Bearer` (M2M/tests). Same JWKS. Dev fallback: `x-tenant-id` when `AUTH_ALLOW_HEADER_TENANT=true`. CORS `credentials: true`; allow `http://play.fivenines.com:3000`.
 
 ## API contract (OpenAPI)
 
@@ -69,15 +69,15 @@ Nest validates **human JWTs** via JWKS (`jose` + `AUTH_JWKS_URL`) — cookie or 
 
 | Variable | Purpose |
 |----------|---------|
-| `AUTH_JWKS_URL` | e.g. `http://localhost:3007/.well-known/jwks.json` (compose: `host.docker.internal`) |
-| `AUTH_ISSUER` | Must match JWT `iss` (local default `http://auth.fivenines.com:3007`) |
+| `AUTH_JWKS_URL` | e.g. `http://auth.fivenines.com:3001/.well-known/jwks.json` (prod compose: service DNS `auth`) |
+| `AUTH_ISSUER` | Must match JWT `iss` (local default `http://auth.fivenines.com:3001`) |
 | `AUTH_AUDIENCE` | Human/mgmt tokens: `fivenines-api` |
 | `AUTH_COOKIE_ACCESS` | Cookie name for the access JWT (default `auth_access`) |
 | `AUTH_ALLOW_HEADER_TENANT` | `true` in dev only — skip JWT, use `x-tenant-id` |
 
 Protected today: `GET /api/v1/tenants` (`JwtAuthGuard` + `feature-flags:read`).
 
-**E2e note:** Auth and Nest seeds share demo tenant id `00000000-0000-4000-8000-000000000001`. Compose `nestjs` injects `AUTH_JWKS_URL` (via `host.docker.internal`), `AUTH_ISSUER`, `AUTH_AUDIENCE`, and `AUTH_COOKIE_ACCESS`.
+**E2e note:** Auth and Nest seeds share demo tenant id `00000000-0000-4000-8000-000000000001`. Compose `nestjs` injects `AUTH_JWKS_URL`, `AUTH_ISSUER`, `AUTH_AUDIENCE`, and `AUTH_COOKIE_ACCESS`.
 
 ## Docker
 
@@ -85,7 +85,7 @@ The compose `nestjs` service generates the Prisma client into the container `nod
 
 ```bash
 bun run container up -- --profile nestjs   # postgres + @apps/nestjs
-curl -sf http://localhost:3006/status
+curl -sf -H 'Accept: application/json' http://localhost:3002/status
 ```
 
 Combined with auth: `bun run container up -- --profile auth --profile nestjs` (see [CHEATSHEET.md](../../docs/CHEATSHEET.md#auth--nestjs-smoke)).

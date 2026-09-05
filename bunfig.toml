@@ -38,8 +38,9 @@ env = {
 	NODE_ENV = "test", 
 	DOM_ENV = "jsdom",
 	TEST_TIMEOUT = "5000",
-	VITE_AUTH_URL = "http://auth.fivenines.com:3007",
-	VITE_APP_ORIGIN = "http://play.fivenines.com:3001"
+	VITE_AUTH_URL = "http://auth.fivenines.com:3001",
+	VITE_APP_ORIGIN = "http://play.fivenines.com:3000",
+	NESTJS_API_URL = "http://api.fivenines.com:3002"
 }
 
 # Test timeout in milliseconds

@@ -32,7 +32,7 @@ Setup: [README.md](README.md#quick-start) · Commands: [docs/CHEATSHEET.md](docs
 
 - `bun run overall` — quality gate before commit/PR
 - `bun test` — tests (`bunfig.toml` + `tools/tests-preset`)
-- `bun run turbo run dev --filter=@apps/web` — player UI (needs Nest on :3006)
+- `bun run turbo run dev --filter=@apps/web` — player UI (needs Nest on :3002)
 - `bun run precommit` — staged files, branch name, commit message
 
 ## Architecture overview
@@ -68,10 +68,10 @@ Nested `AGENTS.md` under each app, package, and tool workspace.
 
 | Path | `name` | Port | Role | Guide |
 |------|--------|------|------|-------|
-| `apps/web` | `@apps/web` | 3001 | Player UI (TanStack Start SSR) | [AGENTS.md](apps/web/AGENTS.md) |
-| `apps/nestjs` | `@apps/nestjs` | 3006 | Feature flags control plane (OpenAPI) | [AGENTS.md](apps/nestjs/AGENTS.md) |
-| `apps/auth` | `@apps/auth` | 3007 | Auth (JWT, refresh, M2M) | [AGENTS.md](apps/auth/AGENTS.md) |
-| `packages/ui` | `@packages/ui` | 3004 | React + Storybook | [AGENTS.md](packages/ui/AGENTS.md) |
+| `apps/web` | `@apps/web` | 3000 | Player UI (TanStack Start SSR) | [AGENTS.md](apps/web/AGENTS.md) |
+| `apps/nestjs` | `@apps/nestjs` | 3002 | Feature flags control plane (OpenAPI) | [AGENTS.md](apps/nestjs/AGENTS.md) |
+| `apps/auth` | `@apps/auth` | 3001 | Auth (JWT, refresh, M2M) | [AGENTS.md](apps/auth/AGENTS.md) |
+| `packages/ui` | `@packages/ui` | 9000 | React + Storybook | [AGENTS.md](packages/ui/AGENTS.md) |
 | `packages/utils` | `@packages/utils` | — | Shared utilities | [AGENTS.md](packages/utils/AGENTS.md) |
 | `packages/auth` | `@packages/auth` | — | Auth session, React provider, scopes/JWT contract | [AGENTS.md](packages/auth/AGENTS.md) |
 | `packages/http` | `@packages/http` | — | HTTP fetcher (client / server / static; Orval mutator shape) | [AGENTS.md](packages/http/AGENTS.md) |

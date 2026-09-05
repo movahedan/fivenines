@@ -28,7 +28,7 @@ bun run typecheck
 | `@packages/nestjs-sdk/mutator.client` | Browser `customFetch` via `@packages/http` `fetcher` |
 | `@packages/nestjs-sdk/mutator.server` | `customFetch` via `publicServerClient`; also `createServerClient` |
 
-Set `NESTJS_API_URL` (default `http://localhost:3006`) for the server mutator.
+Set `NESTJS_API_URL` (required; same origin as the Nest API, e.g. `http://api.fivenines.com:3002`) for the server mutator.
 
 ## Client (browser)
 

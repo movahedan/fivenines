@@ -120,13 +120,13 @@ Everything you need to build rock-solid applications is right here! We've kept i
 
 ## 📦 **What's Inside**
 
-**🎮 web** (`apps/web`) — **Port 3001** - Player UI (TanStack Start SSR, file-based router)
+**🎮 web** (`apps/web`) — **Port 3000** - Player UI (TanStack Start SSR, file-based router)
 
-**🚩 nestjs** (`apps/nestjs`) — **Port 3006** - Feature flags control plane (NestJS, OpenAPI → Orval `@packages/nestjs-sdk`)
+**🚩 nestjs** (`apps/nestjs`) — **Port 3002** - Feature flags control plane (NestJS, OpenAPI → Orval `@packages/nestjs-sdk`)
 
-**🔐 auth** (`apps/auth`) — **Port 3007** - JWT auth (human login, refresh, M2M); Nest verifies tokens via JWKS (no per-request auth hop)
+**🔐 auth** (`apps/auth`) — **Port 3001** - JWT auth (human login, refresh, M2M); Nest verifies tokens via JWKS (no per-request auth hop)
 
-**🎨 UI Package** <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=white" alt="React" style="vertical-align: middle;" /></a> + <a href="https://storybook.js.org/"><img src="https://img.shields.io/badge/Storybook-7.0-FF4785?style=flat&logo=storybook&logoColor=white" alt="Storybook" style="vertical-align: middle;" /></a> - **Port 3004** - Shared components
+**🎨 UI Package** <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=white" alt="React" style="vertical-align: middle;" /></a> + <a href="https://storybook.js.org/"><img src="https://img.shields.io/badge/Storybook-7.0-FF4785?style=flat&logo=storybook&logoColor=white" alt="Storybook" style="vertical-align: middle;" /></a> - **Port 9000** - Shared components
 
 **🧪 Test Package** <a href="https://bun.sh/"><img src="https://img.shields.io/badge/Bun-1.0-000000?style=flat&logo=bun&logoColor=white" alt="Bun" style="vertical-align: middle;" /></a> - **Testing utilities** - Development and testing tools
 
@@ -156,11 +156,11 @@ bun run container setup
 bun run container up
 ```
 
-Player UI: `bun run container up -- --profile web` then open `http://play.fivenines.com:3001` after adding the `/etc/hosts` line in [docs/CHEATSHEET.md](./docs/CHEATSHEET.md) (starts Postgres + Nest too; login needs the auth profile or `all`).
+Player UI: `bun run container up -- --profile web` then open `http://play.fivenines.com:3000` after adding the `/etc/hosts` line in [docs/CHEATSHEET.md](./docs/CHEATSHEET.md) (starts Postgres + Nest too; login needs the auth profile or `all`).
 
-Control-plane API only: `bun run container up -- --profile nestjs` then open `http://localhost:3006/api/docs`.
+Control-plane API only: `bun run container up -- --profile nestjs` then open `http://localhost:3002/api/docs`.
 
-Auth service: `bun run container up -- --profile auth` — `http://auth.fivenines.com:3007/login`. For auth + Nest together, see [docs/CHEATSHEET.md](./docs/CHEATSHEET.md#auth--nestjs-smoke).
+Auth service: `bun run container up -- --profile auth` — `http://auth.fivenines.com:3001/login`. For auth + Nest together, see [docs/CHEATSHEET.md](./docs/CHEATSHEET.md#auth--nestjs-smoke).
 
 All commands: [docs/CHEATSHEET.md](./docs/CHEATSHEET.md) · Repo map, ports, troubleshooting: [AGENTS.md](./AGENTS.md).
 

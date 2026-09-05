@@ -10,7 +10,7 @@ From repo root:
 bun run turbo run dev --filter=@packages/ui
 ```
 
-URL: **http://localhost:3004**. `dev-storybook.ts` launches the Storybook CLI with **Node** (Bun cannot parse React Native Flow). If Docker already binds 3004, the host process falls back (often 3005).
+URL: **http://localhost:9000**. `dev-storybook.ts` launches the Storybook CLI with **Node** (Bun cannot parse React Native Flow). If Docker already binds 9000, stop that listener first (`strictPort`).
 
 Preview CSS: `.storybook/preview.tsx` imports `../src/style.css`. Do not import `react-native` or `@rn-primitives` in preview (the Node CLI loads that file without Vite aliases).
 
@@ -28,7 +28,7 @@ Shared Vite config: `.storybook/rn-web-vite.ts`.
 
 | Script | Output |
 |--------|--------|
-| `dev` / `dev:storybook` | Dev server :3004 |
+| `dev` / `dev:storybook` | Dev server :9000 |
 | `build:storybook` | `dist-storybook/` |
 | `start` | Build then serve static |
 

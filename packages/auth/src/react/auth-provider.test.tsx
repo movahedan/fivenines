@@ -33,15 +33,15 @@ describe("AuthProvider - consumer tools", () => {
 		render(
 			<AuthProvider
 				restoreOnMount={false}
-				authOrigin="http://auth.fivenines.com:3007"
-				appOrigin="http://play.fivenines.com:3001"
+				authOrigin="http://auth.fivenines.com:3001"
+				appOrigin="http://play.fivenines.com:3000"
 			>
 				<Probe />
 			</AuthProvider>,
 		);
 
 		expect(screen.getByRole("link", { name: "Sign in" }).getAttribute("href")).toBe(
-			"http://auth.fivenines.com:3007/login?redirect_uri=http%3A%2F%2Fplay.fivenines.com%3A3001%2Fhub&state=%2Fhub",
+			"http://auth.fivenines.com:3001/login?redirect_uri=http%3A%2F%2Fplay.fivenines.com%3A3000%2Fhub&state=%2Fhub",
 		);
 		expect(screen.getByText("no-hint")).toBeTruthy();
 	});
@@ -51,8 +51,8 @@ describe("AuthProvider - consumer tools", () => {
 		render(
 			<AuthProvider
 				restoreOnMount={false}
-				authOrigin="http://auth.fivenines.com:3007"
-				appOrigin="http://play.fivenines.com:3001"
+				authOrigin="http://auth.fivenines.com:3001"
+				appOrigin="http://play.fivenines.com:3000"
 			>
 				<Probe />
 			</AuthProvider>,

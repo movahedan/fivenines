@@ -1,0 +1,29 @@
+{
+	"name": "fivenines",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"user": "ubuntu",
+	"install": "bash .cursor/scripts/install.sh",
+	"start": "bash .cursor/scripts/start.sh",
+	"terminals": [
+		{
+			"name": "auth",
+			"command": "cd apps/auth && bun run dev"
+		},
+		{
+			"name": "nestjs",
+			"command": "cd apps/nestjs && bun run dev"
+		},
+		{
+			"name": "web",
+			"command": "cd apps/web && bun run dev"
+		}
+	],
+	"ports": [
+		{ "name": "web", "port": 3001 },
+		{ "name": "ui-storybook", "port": 3004 },
+		{ "name": "nestjs-api", "port": 3006 },
+		{ "name": "auth", "port": 3007 }
+	]
+}

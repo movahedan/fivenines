@@ -39,6 +39,8 @@ COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build /app/packages/utils ./packages/utils
 COPY --from=build /app/apps/nestjs ./apps/nestjs
 
+RUN bun apps/nestjs/scripts/hoist-prisma-client-runtime-utils.ts
+
 RUN chmod -R a-w /app \
 	&& chown -R runner-user:runner-group /app
 

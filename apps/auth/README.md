@@ -32,7 +32,7 @@ curl -sf -X POST http://localhost:3007/api/refresh \
   -H "Cookie: auth_session=...; auth_refresh=..."
 ```
 
-Returns `{ access_token, token_type, expires_in }` and rotates refresh cookie.
+Returns `{ ok: true }` and Set-Cookie for rotated refresh + access JWT (`auth_access`) + `was_logged_in`.
 
 ### M2M token (RFC 7523 client assertion)
 
@@ -65,16 +65,16 @@ Env (see `.env.sample`): `AUTH_ALLOW_REGISTRATION`, `AUTH_ALLOW_OTP`, `AUTH_OTP_
 ## Browser flow
 
 1. `GET /login` — CSRF cookie + form (or `/register`, `/otp`)
-2. `POST /login` — sets `auth_session` + `auth_refresh` (httpOnly)
-3. Use `access_token` from login response or `POST /api/refresh` for Bearer calls
-4. `GET /logout` — revokes session, clears cookies
+2. `POST /login` — Set-Cookie session, refresh, access JWT, `was_logged_in`; **302** to the consumer’s allowlisted `redirect_uri` (or relative `next`)
+3. Browser calls Nest with `credentials: "include"` (cookie). `POST /api/refresh` with cookies rotates the access JWT.
+4. `GET /logout` — revokes session, clears Domain cookies
 
 ## Nest verification
 
 Set on `@apps/nestjs`:
 
 - `AUTH_JWKS_URL=http://localhost:3007/.well-known/jwks.json`
-- `AUTH_ISSUER=http://localhost:3007`
+- `AUTH_ISSUER=http://auth.fivenines.com:3007`
 - `AUTH_AUDIENCE=fivenines-api`
 - `AUTH_ALLOW_HEADER_TENANT=true` (development only) to allow `x-tenant-id` without JWT
 

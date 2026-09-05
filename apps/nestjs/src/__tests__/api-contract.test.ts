@@ -40,7 +40,7 @@ describe("@apps/nestjs API contract", () => {
 	it("GET /api/v1/tenants without Bearer returns 401 ApiError", async () => {
 		const response = await supertest(app.getHttpServer()).get("/api/v1/tenants").expect(401);
 
-		expect(response.body.message).toMatch(/Bearer|token/i);
+		expect(response.body.message).toBe("Missing credentials");
 		expect(response.body.success).toBeUndefined();
 	});
 

@@ -7,7 +7,8 @@
 	},
 	"exports": {
 		"./cn": "./src/cn.ts",
-		"./logger": "./src/logger.ts"
+		"./logger": "./src/logger.ts",
+		"./cookies": "./src/cookies.ts"
 	},
 	"scripts": {
 		"typecheck": "tsc --noEmit"

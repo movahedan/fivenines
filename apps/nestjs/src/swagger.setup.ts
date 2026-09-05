@@ -6,6 +6,7 @@ import { DocumentBuilder, type OpenAPIObject, SwaggerModule } from "@nestjs/swag
 
 import { log } from "@packages/utils/logger";
 
+import * as ClockModels from "./clock/clock.model";
 import * as ApiModels from "./common/api/api-error.model";
 import * as ListModels from "./common/api/list-query.model";
 import * as PageInfoModels from "./common/api/page-info.model";
@@ -17,7 +18,14 @@ const isDevelopment = process.env.NODE_ENV === "development";
 const NESTJS_SDK_PATH = resolve(process.cwd(), "../../packages/nestjs-sdk");
 const OPENAPI_YAML_PATH = resolve(NESTJS_SDK_PATH, "src/openapi.yaml");
 
-const dtoModules = [ApiModels, ListModels, PageInfoModels, HealthModels, TenantModels] as const;
+const dtoModules = [
+	ApiModels,
+	ListModels,
+	PageInfoModels,
+	HealthModels,
+	ClockModels,
+	TenantModels,
+] as const;
 
 type Constructor = new (...args: never[]) => unknown;
 
@@ -72,6 +80,7 @@ function buildSwaggerConfig() {
 			"Development",
 		)
 		.addTag("Health", "Liveness and readiness")
+		.addTag("Clock", "Server wall-clock stream")
 		.addTag("Tenants", "Tenant directory (management)")
 		.build();
 }

@@ -67,6 +67,39 @@ paths:
       summary: Health check
       tags: 
         *tags
+  /api/v1/clock/events: 
+    get: 
+      operationId: ClockController_events
+      parameters: 
+        []
+      responses: 
+        "200": 
+          description: ""
+          content: 
+            application/json: 
+              schema: 
+                $ref: "#/components/schemas/ClockNowDto"
+        "400": 
+          description: Invalid request
+          content: 
+            application/json: 
+              schema: 
+                $ref: "#/components/schemas/ApiErrorDto"
+        "401": 
+          description: Missing or invalid credentials
+          content: 
+            application/json: 
+              schema: 
+                $ref: "#/components/schemas/ApiErrorDto"
+        "404": 
+          description: Resource not found
+          content: 
+            application/json: 
+              schema: 
+                $ref: "#/components/schemas/ApiErrorDto"
+      summary: "Server wall-clock as SSE (emits immediately, then every second)"
+      tags: 
+        - Clock
   /api/v1/tenants: 
     get: 
       operationId: TenantsController_listTenants
@@ -129,6 +162,8 @@ info:
 tags: 
   - name: Health
     description: Liveness and readiness
+  - name: Clock
+    description: Server wall-clock stream
   - name: Tenants
     description: Tenant directory (management)
 servers: 
@@ -176,6 +211,15 @@ components:
           type: array
           items: 
             $ref: "#/components/schemas/FieldErrorDto"
+    ClockNowDto: 
+      type: object
+      properties: 
+        at: 
+          type: string
+          format: date-time
+          example: 2026-09-04T08:00:00.000Z
+      required: 
+        - at
     TenantDto: 
       type: object
       properties: 

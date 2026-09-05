@@ -27,7 +27,7 @@ function parseTrpcPayload<TOutput>(payload: unknown, responseOk: boolean): TOutp
 }
 
 /**
- * Call `@apps/auth` tRPC mutation over a same-origin base (e.g. Vite `/auth/api` proxy).
+ * Call `@apps/auth` tRPC mutation (browser CORS to the auth origin).
  */
 export async function authTrpcMutation<TInput, TOutput>(
 	trpcBaseUrl: string,

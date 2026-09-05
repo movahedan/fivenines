@@ -156,11 +156,11 @@ bun run container setup
 bun run container up
 ```
 
-Player UI: `bun run container up -- --profile web` then open `http://localhost:3001` (starts Postgres + Nest too).
+Player UI: `bun run container up -- --profile web` then open `http://play.fivenines.com:3001` after adding the `/etc/hosts` line in [docs/CHEATSHEET.md](./docs/CHEATSHEET.md) (starts Postgres + Nest too; login needs the auth profile or `all`).
 
 Control-plane API only: `bun run container up -- --profile nestjs` then open `http://localhost:3006/api/docs`.
 
-Auth service (optional): `bun run container up -- --profile auth` — `http://localhost:3007/login`. For auth + Nest together, see [docs/CHEATSHEET.md](./docs/CHEATSHEET.md#auth--nestjs-smoke).
+Auth service: `bun run container up -- --profile auth` — `http://auth.fivenines.com:3007/login`. For auth + Nest together, see [docs/CHEATSHEET.md](./docs/CHEATSHEET.md#auth--nestjs-smoke).
 
 All commands: [docs/CHEATSHEET.md](./docs/CHEATSHEET.md) · Repo map, ports, troubleshooting: [AGENTS.md](./AGENTS.md).
 

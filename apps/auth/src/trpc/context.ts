@@ -1,5 +1,7 @@
+import { cookies } from "@packages/utils/cookies";
+
 import { authConfig } from "../config";
-import { parseCookies, resolveSessionFromCookies } from "./auth/session";
+import { resolveSessionFromCookies } from "./auth/session";
 
 export type AuthContext = {
 	req: Request;
@@ -22,5 +24,5 @@ export async function createContext(req: Request): Promise<AuthContext> {
 }
 
 export function getCsrfFromRequest(req: Request): string | undefined {
-	return parseCookies(req.headers.get("cookie"))[authConfig.cookieCsrf];
+	return cookies.get(authConfig.cookieCsrf, req.headers) ?? undefined;
 }

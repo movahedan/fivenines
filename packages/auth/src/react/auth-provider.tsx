@@ -8,30 +8,35 @@ import {
 	useSyncExternalStore,
 } from "react";
 
+import { loginHref as buildLoginHref, type LoginHrefOptions } from "../login-href";
 import {
 	type AuthSession,
 	type AuthSessionStatus,
 	authSession as defaultAuthSession,
 } from "../session";
 import type { AuthUser } from "../types";
+import { hasWasLoggedInCookie } from "../was-logged-in";
 
 export type AuthContextValue = {
 	readonly session: AuthSession;
 	readonly user: AuthUser | null;
 	readonly isAuthenticated: boolean;
-	/** `false` while cold-start `restore()` is in flight — avoid flashing the login screen. */
 	readonly isReady: boolean;
+	readonly wasLoggedIn: boolean;
 	readonly status: AuthSessionStatus;
 	readonly login: (email: string, password: string) => Promise<void>;
 	readonly logout: () => Promise<void>;
+	readonly loginHref: (options: LoginHrefOptions) => string;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export type AuthProviderProps = {
 	readonly session?: AuthSession;
-	/** When true (default), exchange cookies for access token + user on mount. */
 	readonly restoreOnMount?: boolean;
+	readonly authOrigin: string;
+	readonly appOrigin: string;
+	readonly loginPath?: string;
 	readonly children: ReactNode;
 };
 
@@ -42,6 +47,9 @@ export type AuthProviderProps = {
 export function AuthProvider({
 	session = defaultAuthSession,
 	restoreOnMount = true,
+	authOrigin,
+	appOrigin,
+	loginPath = "/login",
 	children,
 }: AuthProviderProps) {
 	const snapshot = useSyncExternalStore(
@@ -68,17 +76,41 @@ export function AuthProvider({
 		await session.logout();
 	}, [session]);
 
+	const loginHref = useCallback(
+		(options: LoginHrefOptions): string =>
+			buildLoginHref({
+				authOrigin,
+				appOrigin,
+				loginPath,
+				redirectUri: options.redirectUri,
+			}),
+		[appOrigin, authOrigin, loginPath],
+	);
+
+	const wasLoggedIn = hasWasLoggedInCookie();
+
 	const value = useMemo<AuthContextValue>(
 		() => ({
 			session,
 			user: snapshot.user,
 			isAuthenticated: snapshot.isAuthenticated,
 			isReady: snapshot.status === "ready",
+			wasLoggedIn,
 			status: snapshot.status,
 			login,
 			logout,
+			loginHref,
 		}),
-		[session, snapshot.user, snapshot.isAuthenticated, snapshot.status, login, logout],
+		[
+			session,
+			snapshot.user,
+			snapshot.isAuthenticated,
+			snapshot.status,
+			wasLoggedIn,
+			login,
+			logout,
+			loginHref,
+		],
 	);
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

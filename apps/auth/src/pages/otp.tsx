@@ -1,9 +1,14 @@
+import { AuthReturnFields } from "./auth-return-fields";
+
 type OtpPageProps = Readonly<{
 	csrfToken: string;
 	error?: string;
 	info?: string;
 	email?: string;
 	step: "request" | "verify";
+	redirectUri?: string;
+	state?: string;
+	next?: string;
 }>;
 
 export function OtpPage(props: OtpPageProps) {
@@ -33,6 +38,7 @@ export function OtpPage(props: OtpPageProps) {
 				{props.info ? <p className="info">{props.info}</p> : null}
 				<form method="post" action={action}>
 					<input type="hidden" name="csrf" value={props.csrfToken} />
+					<AuthReturnFields redirectUri={props.redirectUri} state={props.state} next={props.next} />
 					<label>
 						Email
 						<br />

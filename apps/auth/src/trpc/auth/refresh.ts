@@ -1,12 +1,13 @@
 import type { TenantRole } from "@packages/auth/contract";
+import { cookies } from "@packages/utils/cookies";
 
 import { authConfig } from "../../config";
 import { prisma } from "../../db";
 import { humanAccessTokenForMembership } from "./access-token";
 import {
+	appendAuthCookie,
+	authCookieFlags,
 	hashRefreshToken,
-	parseCookies,
-	refreshCookieHeader,
 	resolveSessionFromCookies,
 	rotateSessionRefresh,
 } from "./session";
@@ -31,14 +32,48 @@ async function accessTokenFromActiveMembership(session: {
 	});
 }
 
-export async function handleRefreshRequest(req: Request): Promise<Response> {
-	const cookies = parseCookies(req.headers.get("cookie"));
-	const sessionId = cookies[authConfig.cookieSession];
-	const refreshToken = cookies[authConfig.cookieRefresh];
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== null;
+}
 
-	if (!sessionId || !refreshToken) {
+async function sessionCredentialsFromRequest(
+	req: Request,
+): Promise<{ sessionId: string; refreshToken: string } | null> {
+	const sessionId = cookies.get(authConfig.cookieSession, req.headers);
+	const refreshToken = cookies.get(authConfig.cookieRefresh, req.headers);
+	if (sessionId && refreshToken) {
+		return { sessionId, refreshToken };
+	}
+
+	const contentType = req.headers.get("content-type") ?? "";
+	if (!contentType.includes("application/json")) {
+		return null;
+	}
+
+	let body: unknown;
+	try {
+		body = await req.json();
+	} catch {
+		return null;
+	}
+	if (
+		!isRecord(body) ||
+		typeof body.session_id !== "string" ||
+		typeof body.refresh_token !== "string" ||
+		body.session_id.length === 0 ||
+		body.refresh_token.length === 0
+	) {
+		return null;
+	}
+	return { sessionId: body.session_id, refreshToken: body.refresh_token };
+}
+
+export async function handleRefreshRequest(req: Request): Promise<Response> {
+	const credentials = await sessionCredentialsFromRequest(req);
+	if (!credentials) {
 		return Response.json(GENERIC_ERROR, { status: 401 });
 	}
+	const { sessionId, refreshToken } = credentials;
 
 	const session = await prisma.session.findFirst({
 		where: {
@@ -71,17 +106,27 @@ export async function handleRefreshRequest(req: Request): Promise<Response> {
 	}
 
 	const maxAge = authConfig.refreshTtlDays * 24 * 60 * 60;
-	const headers = new Headers({ "content-type": "application/json" });
-	headers.append("set-cookie", refreshCookieHeader(rotated.refreshToken, maxAge));
-
-	return Response.json(
-		{
-			access_token: accessToken,
-			token_type: "Bearer",
-			expires_in: authConfig.accessTtlSeconds,
-		},
-		{ headers },
+	let headers = new Headers({ "content-type": "application/json" });
+	headers = appendAuthCookie(
+		headers,
+		authConfig.cookieRefresh,
+		rotated.refreshToken,
+		authCookieFlags(maxAge, true),
 	);
+	headers = appendAuthCookie(
+		headers,
+		authConfig.cookieAccess,
+		accessToken,
+		authCookieFlags(authConfig.accessTtlSeconds, true),
+	);
+	headers = appendAuthCookie(
+		headers,
+		authConfig.cookieLoggedIn,
+		"1",
+		authCookieFlags(maxAge, false),
+	);
+
+	return Response.json({ ok: true }, { headers });
 }
 
 export async function refreshFromSessionCookie(req: Request) {

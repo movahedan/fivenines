@@ -14,14 +14,12 @@ This file provides guidance to Agents when working with the utils package.
 
 ### Exports
 
-The package provides two main utilities:
+The package provides shared helpers:
 
 ```typescript
-// CSS class utility for Tailwind CSS
 import { cn } from '@packages/utils/cn';
-
-// Logging utility
-import { logger } from '@packages/utils/logger';
+import { log } from '@packages/utils/logger';
+import { cookies } from '@packages/utils/cookies';
 ```
 
 ## Available Utilities
@@ -60,6 +58,21 @@ logger.info('Application started');
 logger.error('An error occurred', error);
 logger.warn('Warning message');
 logger.debug('Debug information');
+```
+
+### `cookies` - Cookie get / set / delete
+
+`cookies.get(name)` reads `document.cookie`. Pass `req.headers` (or a raw `Cookie` header string) to parse the request instead.
+
+`cookies.set(name, value, flags, headers?)` serializes flags (`Path`, `Max-Age`, `Domain`, `SameSite`, `HttpOnly`, `Secure`). When `headers` is passed, it clones them, appends `Set-Cookie`, and returns the clone. When omitted, it writes `document.cookie`. `cookies.delete` is `set` with an empty value and `Max-Age=0`.
+
+```typescript
+import { cookies } from '@packages/utils/cookies';
+
+cookies.get("was_logged_in");
+cookies.get("auth_access", req.headers);
+cookies.set("auth_session", id, { path: "/", httpOnly: true, domain: ".fivenines.com" }, headers);
+cookies.delete("auth_session", { path: "/", domain: ".fivenines.com" }, headers);
 ```
 
 ## Usage in Components
@@ -152,7 +165,9 @@ packages/utils/
 │   ├── cn.ts          # CSS class utility
 │   ├── cn.test.ts     # Tests for cn utility
 │   ├── logger.ts      # Logging utility
-│   └── logger.test.ts # Tests for logger utility
+│   ├── logger.test.ts # Tests for logger utility
+│   ├── cookies.ts     # cookies.get / set / delete
+│   └── cookies.test.ts
 ├── package.json       # Package configuration with exports
 └── AGENTS.md         # This documentation
 ```

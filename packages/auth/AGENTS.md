@@ -8,7 +8,7 @@
 |--------|----------|
 | `@packages/auth` | `AuthSession`, `authSession`, `restore()`, `createAuthFetcherBindings`, login/refresh helpers, contract re-exports |
 | `@packages/auth/contract` | Scopes / JWT claim types only (server-safe; prefer this from Nest / auth service) |
-| `@packages/auth/react` | `AuthProvider` (calls `restore()` on mount), `useAuth` (`isReady` / `status`) |
+| `@packages/auth/react` | `AuthProvider` (`authOrigin` / `appOrigin` from env + `restoreOnMount`), `useAuth` (`loginHref`, `wasLoggedIn`) |
 
 **Not included:** `FetcherSettingsProvider` — compose that in the app with `@packages/http/react`.
 
@@ -20,9 +20,12 @@
 
 ## Session model
 
-- **Access JWT** — memory only (Bearer).
-- **Session / refresh** — cookies; SPA cold load runs **one** `restore()` → `POST /refresh` + `auth.me`.
-- Login-time storage strategy (cookie vs memory trade-offs) is a later config knob.
+- **Access JWT** — HttpOnly cookie (`auth_access`, `Domain=.fivenines.com` locally) for Play → Nest. Bearer still used for M2M and tests.
+- **`wasLoggedIn`** — public cookie hint on `useAuth()`; not proof of a valid session.
+- **Session / refresh** — HttpOnly cookies; `POST /api/refresh` with `credentials: "include"` rotates them. JSON may be `{ ok: true }` with no tokens.
+- Play home sets `AuthProvider` `restoreOnMount={false}`. Guarded `/hub` owns login/refresh.
+
+Play navigates to `/hub`. Hub sends the browser to `@apps/auth` `/login` when the hint cookie is missing (`loginHref({ redirectUri: "/hub" })`). Auth 302s to the allowlisted `redirect_uri`. Do not proxy `/auth` through Vite.
 
 ## App wiring
 
@@ -34,12 +37,18 @@ import { FetcherSettingsProvider } from "@packages/http/react";
 const authFetch = createAuthFetcherBindings(authSession);
 
 function Shell() {
-  const { isReady, isAuthenticated } = useAuth();
-  if (!isReady) return null; // or spinner
-  return isAuthenticated ? <App /> : <Login />;
+  const { wasLoggedIn, loginHref } = useAuth();
+  if (!wasLoggedIn) {
+    window.location.assign(loginHref({ redirectUri: "/hub" }));
+    return null;
+  }
+  return <App />;
 }
 
-<AuthProvider>
+<AuthProvider
+  authOrigin={import.meta.env.VITE_AUTH_URL}
+  appOrigin={import.meta.env.VITE_APP_ORIGIN}
+>
   <FetcherSettingsProvider
     initialSettings={{
       config: {
@@ -52,8 +61,6 @@ function Shell() {
   </FetcherSettingsProvider>
 </AuthProvider>
 ```
-
-Proxy `/auth` → `@apps/auth` (:3007) so cookies + tRPC stay same-origin.
 
 ## Commands
 

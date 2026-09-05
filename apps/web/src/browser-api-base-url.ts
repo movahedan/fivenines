@@ -3,5 +3,5 @@ export function getBrowserApiBaseUrl(): string {
 	if (raw && /^https?:\/\//i.test(raw)) {
 		return raw.replace(/\/$/, "");
 	}
-	return "http://localhost:3006";
+	return "http://api.fivenines.com:3006";
 }

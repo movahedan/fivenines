@@ -1,6 +1,9 @@
 import { type CanActivate, type ExecutionContext, Injectable } from "@nestjs/common";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
+import { cookies } from "@packages/utils/cookies";
+import { log } from "@packages/utils/logger";
+
 import { ApiException } from "../exceptions/api.exception";
 
 type AuthRequest = {
@@ -15,6 +18,10 @@ function bearerToken(authorization: string | undefined): string | undefined {
 		return undefined;
 	}
 	return authorization.slice("Bearer ".length).trim();
+}
+
+function accessCookieName(): string {
+	return process.env.AUTH_COOKIE_ACCESS?.trim() || "auth_access";
 }
 
 function jwksUrl(): string {
@@ -48,15 +55,18 @@ export class JwtAuthGuard implements CanActivate {
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest<AuthRequest>();
-		const token = bearerToken(
-			typeof request.headers.authorization === "string" ? request.headers.authorization : undefined,
-		);
+		const token =
+			bearerToken(
+				typeof request.headers.authorization === "string"
+					? request.headers.authorization
+					: undefined,
+			) ?? cookies.get(accessCookieName(), request.headers);
 
 		if (!token) {
 			if (this.allowHeaderTenant(request)) {
 				return true;
 			}
-			throw new ApiException(401, { message: "Missing Bearer token" });
+			throw new ApiException(401, { message: "Missing credentials" });
 		}
 
 		try {
@@ -78,7 +88,11 @@ export class JwtAuthGuard implements CanActivate {
 				request.tenantId = payload.tid;
 			}
 			return true;
-		} catch {
+		} catch (error: unknown) {
+			if (process.env.NODE_ENV === "development") {
+				const detail = error instanceof Error ? error.message : String(error);
+				log(`JWT verify failed (${jwksUrl()} iss=${issuer()}): ${detail}`);
+			}
 			throw new ApiException(401, { message: "Invalid or expired token" });
 		}
 	}

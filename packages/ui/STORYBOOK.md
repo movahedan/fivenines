@@ -41,4 +41,5 @@ Shared Vite config: `.storybook/rn-web-vite.ts`.
 | `Can't resolve nativewind/dist/module/plugin.js` | Do not `@plugin` that path; NativeWind v5 uses `react-native-css` |
 | Flow parse errors | Storybook must run under Node, not Bun |
 | LoginForm / lucide SVG CJS errors | SVG stubs + aliases in `rn-web-vite.ts` |
-| `react-native-svg` / `ReactNativeSVG.web.js` missing | Resolve the package via `installedPackageRoot` (Bun isolated installs are not at repo `node_modules/<pkg>`) |
+| `react-native-svg` / `ReactNativeSVG.web.js` missing | Keep `react-native-svg` in `@packages/ui` dependencies; Storybook resolves it via `package.json` |
+| Docker `InvalidLockfile` / ignored `bun.lock` | Overlay the repo `bun.lock` after `turbo prune` (pruned lock drops nested `signal-exit`) |

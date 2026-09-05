@@ -1,13 +1,17 @@
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { build as esbuildBuild, transform } from "esbuild";
 import type { Plugin, UserConfig } from "vite";
 
-import { installedPackageRoot, reactNativeSvgWebEntry } from "../src/installed-package-root";
-
 const storybookDir = path.dirname(fileURLToPath(import.meta.url));
 const uiRoot = path.resolve(storybookDir, "..");
+const requireFromUi = createRequire(path.join(uiRoot, "package.json"));
+
+function packageDir(specifier: string): string {
+	return path.dirname(requireFromUi.resolve(`${specifier}/package.json`));
+}
 
 const sharedReactPackages = [
 	"react",
@@ -164,8 +168,8 @@ ${extra}
 
 export function shareSingleReact(): Plugin {
 	const flavor = reactBuildFlavor();
-	const reactRoot = installedPackageRoot("react");
-	const reactDomRoot = installedPackageRoot("react-dom");
+	const reactRoot = packageDir("react");
+	const reactDomRoot = packageDir("react-dom");
 	const cache = new Map<string, string>();
 
 	const entries: Record<
@@ -491,17 +495,16 @@ export function resolveStyleqStubs(): Plugin {
 }
 
 export function rnWebAliases(): Record<string, string> {
-	const reactNativeSvgRoot = installedPackageRoot("react-native-svg");
-
+	const rnSvgDir = packageDir("react-native-svg");
 	return {
 		"@": path.join(uiRoot, "src"),
 		"react-native": "react-native-web",
-		"react-native-svg": reactNativeSvgWebEntry(),
-		[path.join(reactNativeSvgRoot, "lib/module/lib/extract/transform.js")]: path.join(
+		"react-native-svg": path.join(rnSvgDir, "lib/module/ReactNativeSVG.web.js"),
+		[path.join(rnSvgDir, "lib/module/lib/extract/transform.js")]: path.join(
 			storybookDir,
 			"stubs/svg-transform.js",
 		),
-		[path.join(reactNativeSvgRoot, "lib/module/lib/extract/transformToRn.js")]: path.join(
+		[path.join(rnSvgDir, "lib/module/lib/extract/transformToRn.js")]: path.join(
 			storybookDir,
 			"stubs/svg-transform.js",
 		),

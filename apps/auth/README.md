@@ -28,7 +28,7 @@ Machine tokens omit `tid`; `sub` = `clientId`.
 ### Refresh (browser)
 
 ```bash
-curl -sf -X POST http://localhost:3007/api/refresh \
+curl -sf -X POST http://localhost:3001/api/refresh \
   -H "Cookie: auth_session=...; auth_refresh=..."
 ```
 
@@ -38,7 +38,7 @@ Returns `{ ok: true }` and Set-Cookie for rotated refresh + access JWT (`auth_ac
 
 ```bash
 # client_assertion = JWT signed by machine private key; iss=sub=client_id
-curl -sf -X POST http://localhost:3007/api/token \
+curl -sf -X POST http://localhost:3001/api/token \
   -H "Content-Type: application/json" \
   -d '{
     "grant_type": "client_credentials",
@@ -73,8 +73,8 @@ Env (see `.env.sample`): `AUTH_ALLOW_REGISTRATION`, `AUTH_ALLOW_OTP`, `AUTH_OTP_
 
 Set on `@apps/nestjs`:
 
-- `AUTH_JWKS_URL=http://localhost:3007/.well-known/jwks.json`
-- `AUTH_ISSUER=http://auth.fivenines.com:3007`
+- `AUTH_JWKS_URL=http://auth.fivenines.com:3001/.well-known/jwks.json`
+- `AUTH_ISSUER=http://auth.fivenines.com:3001`
 - `AUTH_AUDIENCE=fivenines-api`
 - `AUTH_ALLOW_HEADER_TENANT=true` (development only) to allow `x-tenant-id` without JWT
 

@@ -7,7 +7,7 @@ import { log } from "@packages/utils/logger";
 
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
-import { type HealthStatus, HealthStatusSchema } from "./health/health.model";
+import { processStatusBody } from "./health/process-status";
 import { swaggerSetup } from "./swagger.setup";
 
 async function bootstrap(): Promise<void> {
@@ -17,19 +17,15 @@ async function bootstrap(): Promise<void> {
 
 	const server = app.getHttpAdapter().getInstance();
 	server.get("/status", (_req: Request, res: Response) => {
-		const body: HealthStatus = { ok: true, timestamp: new Date().toISOString() };
-		HealthStatusSchema.parse(body);
-		res.status(200).json(body);
+		res.status(200).json(processStatusBody());
 	});
 
 	app.enableCors({
 		origin: (
 			process.env.ALLOWED_ORIGINS?.split(",") ?? [
-				"http://play.fivenines.com:3001",
-				"http://localhost:3001",
-				"http://127.0.0.1:3001",
-				"http://localhost:3002",
-				"http://127.0.0.1:3002",
+				"http://play.fivenines.com:3000",
+				"http://localhost:3000",
+				"http://127.0.0.1:3000",
 			]
 		)
 			.map((origin) => origin.trim())
@@ -44,7 +40,7 @@ async function bootstrap(): Promise<void> {
 	await swaggerSetup(app);
 
 	const host = process.env.HOST ?? "0.0.0.0";
-	const port = Number(process.env.NESTJS_PORT ?? process.env.PORT ?? 3006);
+	const port = Number(process.env.NESTJS_PORT ?? process.env.PORT ?? 3002);
 
 	if (process.argv.includes("--emit-openapi")) {
 		log("OpenAPI emitted; exiting");

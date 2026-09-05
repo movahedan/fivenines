@@ -4,7 +4,7 @@
 
 ## Overview
 
-- **Port:** 3007 (`AUTH_PORT`)
+- **Port:** 3001 (`AUTH_PORT`)
 - **Stack:** Bun.serve, tRPC at `/api`, Prisma (Postgres `fivenines_auth`)
 - **Contract:** `@packages/auth/contract`
 
@@ -38,7 +38,7 @@ bun scripts/generate-dev-keys.ts   # dev PEM under dev-keys/
 bun run container compose -- --profile auth up -d postgres   # DB only (host-run auth)
 # or full stack:
 bun run container up -- --profile auth
-curl -sf http://localhost:3007/status
+curl -sf -H 'Accept: application/json' http://localhost:3001/status
 ```
 
 Login/register/OTP **302** to the allowlisted `redirect_uri` (or relative `next`) and set HttpOnly `auth_access` plus public `was_logged_in` on `AUTH_COOKIE_DOMAIN` (default `.fivenines.com`). Local HTTP: `AUTH_COOKIE_SECURE=false`. Names: `play.fivenines.com`, `auth.fivenines.com`, `api.fivenines.com` (see [CHEATSHEET](../../docs/CHEATSHEET.md)).

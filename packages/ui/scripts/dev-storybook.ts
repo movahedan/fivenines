@@ -2,7 +2,7 @@
 import path from "node:path";
 
 const packageRoot = path.resolve(import.meta.dir, "..");
-const port = String(process.env.UI_PORT ?? process.env.PORT ?? 3004);
+const port = String(process.env.UI_PORT ?? process.env.PORT ?? 9000);
 const host = process.env.HOST ?? "127.0.0.1";
 const storybookBin = path.join(packageRoot, "../../node_modules/.bin/storybook");
 

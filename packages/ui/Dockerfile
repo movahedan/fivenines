@@ -28,6 +28,8 @@ COPY --from=pruner /app/tools ./tools
 RUN bun run turbo run build:storybook --filter=@packages/ui
 
 FROM nginx:alpine AS runner
+USER root
+RUN apk add --no-cache curl
 ENV NGINX_ENVSUBST_TEMPLATE_DIR=/etc/nginx/templates
 ENV NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/conf.d
 COPY --from=build --chown=nginx:nginx --chmod=644 /app/packages/ui/nginx.conf /etc/nginx/templates/default.conf.template

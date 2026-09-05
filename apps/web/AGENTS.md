@@ -4,7 +4,7 @@
 
 ## Overview
 
-- **Port:** 3001 (`WEB_PORT`)
+- **Port:** 3000 (`WEB_PORT`)
 - **Stack:** Vite + `@tanstack/react-start` + `@tanstack/react-router` file routes
 - **Must not** import `@packages/simulation-engine` or run ticks in the browser.
 - Nest reads in loaders go through `createServerFn` + `@packages/nestjs-sdk/server` (loaders are isomorphic; keep private I/O in server functions).
@@ -18,6 +18,7 @@ Routes live under `src/routes/` (same convention as xpertell product apps):
 |------|--------|
 | `src/routes/__root.tsx` | Root document, Query + `FetcherSettingsProvider` + `AuthProvider` (`restoreOnMount={false}`) |
 | `src/routes/index.tsx` | `/` — SSR health check against Nest; Play links to `/hub` |
+| `src/routes/status.tsx` | `/status` — process-up HTML page |
 | `src/routes/hub.tsx` | `/hub` — `PlayButton`, `useAuth().wasLoggedIn` / `loginHref({ redirectUri: "/hub" })`; clock SSE with cookies |
 
 `src/router.tsx` exports `getRouter()` (required by Start). Use `trailingSlash: "never"`. `src/routeTree.gen.ts` is generated on Vite build/dev — do not hand-edit.
@@ -25,12 +26,14 @@ Routes live under `src/routes/` (same convention as xpertell product apps):
 ## Essential commands
 
 ```bash
-bun run turbo run dev --filter=@apps/web   # http://play.fivenines.com:3001 (hosts file; needs Nest :3006 + auth :3007)
+bun run turbo run dev --filter=@apps/web   # http://play.fivenines.com:3000 (hosts file; needs Nest :3002 + auth :3001)
 bun run typecheck --filter=@apps/web
 bun test apps/web
 ```
 
-Browser API origin: `VITE_NESTJS_API_URL` (default `http://api.fivenines.com:3006`). SSR fetch uses `NESTJS_API_URL`. Auth origin: `VITE_AUTH_URL`. Player origin: `VITE_APP_ORIGIN`. Vite `allowedHosts` includes `play.fivenines.com`. Home must not `restore()`.
+Browser API origin: `VITE_NESTJS_API_URL` (default `http://api.fivenines.com:3002`). SSR fetch uses `NESTJS_API_URL` (same URL). Auth origin: `VITE_AUTH_URL`. Player origin: `VITE_APP_ORIGIN`. Vite `allowedHosts` includes `play.fivenines.com`. Home must not `restore()`.
+
+Health: `GET /` or `GET /status` with `Accept: application/json` returns `{ ok, timestamp }` (process-up). The `/status` page is HTML for humans. Compose HEALTHCHECK probes `/`.
 
 ## Docker
 
@@ -38,4 +41,4 @@ Browser API origin: `VITE_NESTJS_API_URL` (default `http://api.fivenines.com:300
 bun run container up -- --profile web   # postgres + nestjs + web
 ```
 
-Compose `all` also starts web. Prod-shaped `docker-compose.yml` does not include this app yet.
+Compose `all` also starts web. Prod-shaped `docker-compose.yml` includes this app (`x-fivenines-package: "@apps/web"`).

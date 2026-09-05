@@ -28,14 +28,16 @@ Run from repo root. Filters use workspace `name` (`@apps/nestjs`, `@packages/ui`
 | `bun run build` | Turbo build |
 | `bun run precommit` | Branch / message / staged checks |
 
+GitHub Actions secrets/variables: [GITHUB_WORKFLOW_ENV.md](GITHUB_WORKFLOW_ENV.md).
+
 ## Dev (host)
 
 | Command | Description |
 |---------|-------------|
-| `bun run turbo run dev --filter=@apps/web` | Player UI (TanStack Start SSR) :3001 |
-| `bun run turbo run dev --filter=@apps/nestjs` | Control-plane API :3006 |
-| `bun run turbo run dev --filter=@apps/auth` | Auth service :3007 |
-| `bun run turbo run dev --filter=@packages/ui` | UI / Storybook :3004 (Node CLI; host vs Docker: one listener) |
+| `bun run turbo run dev --filter=@apps/web` | Player UI (TanStack Start SSR) :3000 |
+| `bun run turbo run dev --filter=@apps/nestjs` | Control-plane API :3002 |
+| `bun run turbo run dev --filter=@apps/auth` | Auth service :3001 |
+| `bun run turbo run dev --filter=@packages/ui` | UI / Storybook :9000 (Node CLI; host vs Docker: one listener) |
 | `cd apps/nestjs && bun test` | Nest API tests (use app `bunfig.toml`) |
 | `cd packages/nestjs-sdk && bun run generate` | Regenerate Orval SDK from `openapi.yaml` |
 | `cd apps/nestjs && bun run db:migrate` | Apply Prisma migrations (needs `DATABASE_URL`) |
@@ -61,24 +63,26 @@ Local player auth uses **HTTP hostnames** (no mkcert). One `/etc/hosts` line:
 127.0.0.1 play.fivenines.com auth.fivenines.com api.fivenines.com
 ```
 
-Then open `http://play.fivenines.com:3001` (Play), login at `http://auth.fivenines.com:3007`, API at `http://api.fivenines.com:3006`. Cookie `Domain=.fivenines.com`; `AUTH_COOKIE_SECURE=false` locally.
+Then open `http://play.fivenines.com:3000` (Play), login at `http://auth.fivenines.com:3001`, API at `http://api.fivenines.com:3002`. Cookie `Domain=.fivenines.com`; `AUTH_COOKIE_SECURE=false` locally.
 
 | Command | Description |
 |---------|-------------|
 | `bun run container setup` | Dev stack setup |
 | `bun run container up` | Start dev stack |
 | `bun run container down` | Stop dev stack |
-| `bun run container check` | Up + health |
+| `bun run container check` | Up + health (`GET /status` JSON, 3 retries) |
 | `bun run container health` | Health check |
 | `bun run container logs` | Logs |
 | `bun run container cleanup` | Stop + remove volumes |
 | `bun run container install` | `bun install` into the compose `node_modules` volume |
 | `bun run container --prod up` | Prod-shaped compose file |
 | `bun run container compose -- ps` | `docker compose ps` |
-| `bun run container up -- --profile web` | Postgres + Nest + `@apps/web` :3001 |
-| `bun run container up -- --profile nestjs` | Postgres + `@apps/nestjs` :3006 |
-| `bun run container up -- --profile auth` | Postgres + `@apps/auth` :3007 (migrate + seed) |
+| `bun run container up -- --profile web` | Postgres + Nest + `@apps/web` :3000 |
+| `bun run container up -- --profile nestjs` | Postgres + `@apps/nestjs` :3002 |
+| `bun run container up -- --profile auth` | Postgres + `@apps/auth` :3001 (migrate + seed) |
 | `bun run container up -- --profile auth --profile nestjs` | Both services + Postgres (host dev: set Nest `AUTH_*` in `.env`) |
+
+Process-up probe (JSON): `curl -sf -H 'Accept: application/json' http://localhost:3000/` (web), `:3001/status` (auth), `:3002/status` (nest), `:9000/status` (Storybook). Compose HEALTHCHECK and `bun run container check` use the same contract (`"ok":true`, 3 retries).
 
 ### Auth + NestJS smoke
 
@@ -94,14 +98,14 @@ Nest needs `AUTH_JWKS_URL`, `AUTH_ISSUER`, `AUTH_AUDIENCE` (see root `.env.sampl
 
 ```bash
 curl -sf -H "x-tenant-id: 00000000-0000-4000-8000-000000000001" \
-  http://localhost:3006/api/v1/tenants
+  http://localhost:3002/api/v1/tenants
 ```
 
 **Real JWT (browser):** hosts file + login form → 302 to the allowlisted `redirect_uri` (Play sends `/hub`); Nest reads `auth_access` cookie. **M2M/tests:** Bearer still works:
 
 ```bash
 curl -sf -H "Authorization: Bearer <access_token>" \
-  http://localhost:3006/api/v1/tenants
+  http://localhost:3002/api/v1/tenants
 ```
 
 ## Release & CI

@@ -11,21 +11,21 @@ COPY ./apps ./apps
 COPY ./packages ./packages
 COPY ./tools ./tools
 COPY ./package.json ./bun.lock ./
-RUN turbo prune --scope=@apps/nestjs --docker
+RUN turbo prune --scope=@apps/auth --docker
 
 FROM turbo AS installer
 WORKDIR /app
 COPY --from=pruner /app/out/json/ .
-COPY ./bun.lock ./bun.lock
-RUN --mount=type=cache,target=/root/.bun/install/cache,id=fivenines-bun-cache-nestjs \
-	bun install --ignore-scripts --frozen-lockfile
+RUN --mount=type=cache,target=/root/.bun/install/cache,id=fivenines-bun-cache-auth \
+	bun install --ignore-scripts
 
 FROM turbo AS build
 WORKDIR /app
 COPY --from=pruner /app/out/full/ .
 COPY --from=pruner /app/tools ./tools
 COPY --from=installer /app/ .
-RUN bun run build --filter=@apps/nestjs
+ENV AUTH_DATABASE_URL=postgresql://127.0.0.1:5432/fivenines_auth
+RUN bun run build --filter=@apps/auth
 
 FROM oven/bun:1.4.0-alpine AS runner
 WORKDIR /app
@@ -38,13 +38,12 @@ COPY --from=pruner /app/out/json/ .
 COPY --from=installer /app/node_modules ./node_modules
 COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build /app/packages/utils ./packages/utils
-COPY --from=build /app/apps/nestjs ./apps/nestjs
-
-RUN bun apps/nestjs/scripts/hoist-prisma-client-runtime-utils.ts
+COPY --from=build /app/packages/auth ./packages/auth
+COPY --from=build /app/apps/auth ./apps/auth
 
 RUN chmod -R a-w /app \
 	&& chown -R runner-user:runner-group /app
 
 USER runner-user
 ENV HOST=0.0.0.0
-CMD ["bun", "run", "./apps/nestjs/dist/index.js"]
+CMD ["bun", "run", "./apps/auth/dist/index.js"]

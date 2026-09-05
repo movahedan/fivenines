@@ -8,6 +8,7 @@ import supertest from "supertest";
 
 import { AppModule } from "../app.module";
 import { HttpExceptionFilter } from "../common/filters/http-exception.filter";
+import { processStatusBody } from "../health/process-status";
 
 describe("@apps/nestjs status", () => {
 	let app: INestApplication;
@@ -31,5 +32,12 @@ describe("@apps/nestjs status", () => {
 		expect(typeof response.body.timestamp).toBe("string");
 		expect(response.body.list).toBeUndefined();
 		expect(response.body.pageInfo).toBeUndefined();
+	});
+
+	it("returns process-up JSON from processStatusBody", () => {
+		const body = processStatusBody();
+
+		expect(body.ok).toBe(true);
+		expect(typeof body.timestamp).toBe("string");
 	});
 });

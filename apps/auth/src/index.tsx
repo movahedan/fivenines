@@ -7,6 +7,7 @@ import { LoginPage } from "./pages/login";
 import { LogoutPage } from "./pages/logout";
 import { OtpPage } from "./pages/otp";
 import { RegisterPage } from "./pages/register";
+import { handleStatus } from "./status";
 import { createCsrfToken, csrfCookieFlags, validateCsrf } from "./trpc/auth/csrf";
 import { getJwks } from "./trpc/auth/keys";
 import { handleTokenRequest } from "./trpc/auth/m2m";
@@ -293,7 +294,7 @@ const routes: Array<{ method: string; path: string; handle: RouteHandler }> = [
 	{
 		method: "GET",
 		path: "/status",
-		handle: () => Response.json({ ok: true, timestamp: new Date().toISOString() }),
+		handle: () => handleStatus(),
 	},
 	{
 		method: "GET",

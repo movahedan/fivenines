@@ -11,40 +11,40 @@ COPY ./apps ./apps
 COPY ./packages ./packages
 COPY ./tools ./tools
 COPY ./package.json ./bun.lock ./
-RUN turbo prune --scope=@apps/nestjs --docker
+RUN turbo prune --scope=@apps/web --docker
 
 FROM turbo AS installer
 WORKDIR /app
 COPY --from=pruner /app/out/json/ .
-COPY ./bun.lock ./bun.lock
-RUN --mount=type=cache,target=/root/.bun/install/cache,id=fivenines-bun-cache-nestjs \
-	bun install --ignore-scripts --frozen-lockfile
+RUN --mount=type=cache,target=/root/.bun/install/cache,id=fivenines-bun-cache-web \
+	bun install --ignore-scripts
 
 FROM turbo AS build
 WORKDIR /app
 COPY --from=pruner /app/out/full/ .
 COPY --from=pruner /app/tools ./tools
 COPY --from=installer /app/ .
-RUN bun run build --filter=@apps/nestjs
+RUN cp apps/web/.env.sample apps/web/.env && bun run build --filter=@apps/web
 
 FROM oven/bun:1.4.0-alpine AS runner
 WORKDIR /app
-RUN apk add --no-cache curl
-RUN addgroup --system --gid 1001 runner-group \
+RUN apk add --no-cache curl \
+	&& addgroup --system --gid 1001 runner-group \
 	&& adduser --system --uid 1001 runner-user \
 	&& chown runner-user:runner-group /app
 
 COPY --from=pruner /app/out/json/ .
 COPY --from=installer /app/node_modules ./node_modules
-COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=build /app/packages/utils ./packages/utils
-COPY --from=build /app/apps/nestjs ./apps/nestjs
+COPY --from=build /app/packages ./packages
+COPY --from=build /app/tools ./tools
+COPY --from=build /app/apps/web ./apps/web
 
-RUN bun apps/nestjs/scripts/hoist-prisma-client-runtime-utils.ts
-
-RUN chmod -R a-w /app \
+RUN mkdir -p /app/apps/web/node_modules/.vite-temp /app/node_modules/.vite-temp \
+	&& chmod -R a-w /app \
+	&& chmod -R u+wx /app/apps/web/node_modules/.vite-temp /app/node_modules/.vite-temp \
 	&& chown -R runner-user:runner-group /app
 
 USER runner-user
 ENV HOST=0.0.0.0
-CMD ["bun", "run", "./apps/nestjs/dist/index.js"]
+WORKDIR /app/apps/web
+CMD ["sh", "-c", "exec bun --bun vite preview --host 0.0.0.0 --port \"${WEB_PORT:-${PORT:-3000}}\""]

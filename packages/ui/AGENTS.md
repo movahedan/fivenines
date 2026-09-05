@@ -12,7 +12,7 @@ Do **not** run `rnr init` here (it scaffolds Expo). Do **not** add `apps/mobile`
 
 | Command | What |
 |---------|------|
-| `bun run turbo run dev --filter=@packages/ui` | Storybook on **:3004** (Node CLI; not Bun — RN Flow). Host vs Docker: only one listener. |
+| `bun run turbo run dev --filter=@packages/ui` | Storybook on **:9000** (Node CLI; not Bun — RN Flow). Host vs Docker: only one listener. |
 | `bun run turbo run build:storybook --filter=@packages/ui` | Static Storybook → `dist-storybook/` |
 | `bun run typecheck` | `tsc --noEmit` |
 | `bun test packages/ui` | Molecule tests (`test-rn-preload.ts` via root `bunfig.toml`) |

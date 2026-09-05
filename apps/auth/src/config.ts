@@ -21,8 +21,8 @@ function parseCsvOrigins(name: string, fallback: string): readonly string[] {
 
 export const authConfig = {
 	host: optionalEnv("HOST", "0.0.0.0"),
-	port: Number(optionalEnv("AUTH_PORT", optionalEnv("PORT", "3007"))),
-	issuer: optionalEnv("AUTH_ISSUER", "http://localhost:3007"),
+	port: Number(optionalEnv("AUTH_PORT", optionalEnv("PORT", "3001"))),
+	issuer: optionalEnv("AUTH_ISSUER", "http://localhost:3001"),
 	audience: optionalEnv("AUTH_AUDIENCE", "fivenines-api"),
 	audienceEval: optionalEnv("AUTH_AUDIENCE_EVAL", "fivenines-eval"),
 	accessTtlSeconds: Number(optionalEnv("AUTH_ACCESS_TTL_SECONDS", "900")),
@@ -51,5 +51,5 @@ export const authConfig = {
 		) === "true",
 	otpLogToConsole: optionalEnv("AUTH_OTP_LOG", "false") === "true",
 	otpTtlMinutes: Number(optionalEnv("AUTH_OTP_TTL_MINUTES", "10")),
-	redirectOrigins: parseCsvOrigins("AUTH_REDIRECT_ORIGINS", "http://play.fivenines.com:3001"),
+	redirectOrigins: parseCsvOrigins("AUTH_REDIRECT_ORIGINS", "http://play.fivenines.com:3000"),
 } as const;

@@ -1,14 +1,44 @@
+import type { IncomingMessage, ServerResponse } from "node:http";
+
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig, type PreviewServer, type ViteDevServer } from "vite";
 
-const webPort = Number(process.env.WEB_PORT ?? "3001");
+import { acceptIncludesJson, isLivenessPath, processStatusBody } from "./src/liveness";
+
+const webPort = Number(process.env.WEB_PORT ?? process.env.PORT ?? "3000");
+
+function requestPathname(req: IncomingMessage): string {
+	const path = req.url?.split("?")[0];
+	return path === undefined || path === "" ? "/" : path;
+}
+
+function sendStatusJson(res: ServerResponse): void {
+	res.statusCode = 200;
+	res.setHeader("Content-Type", "application/json");
+	res.end(JSON.stringify(processStatusBody()));
+}
+
+function attachJsonStatusWhenAccepted(server: ViteDevServer | PreviewServer): void {
+	server.middlewares.use((req, res, next) => {
+		if (
+			req.method === "GET" &&
+			isLivenessPath(requestPathname(req)) &&
+			acceptIncludesJson(req.headers.accept)
+		) {
+			sendStatusJson(res);
+			return;
+		}
+
+		next();
+	});
+}
 
 export default defineConfig({
 	server: {
 		port: webPort,
-		allowedHosts: ["localhost", "web", "play.fivenines.com"],
+		allowedHosts: ["localhost", "web", "play.fivenines.com", "auth.fivenines.com"],
 	},
 	preview: {
 		port: webPort,
@@ -16,5 +46,18 @@ export default defineConfig({
 	resolve: {
 		dedupe: ["react", "react-dom"],
 	},
-	plugins: [tanstackStart(), viteReact(), tailwindcss()],
+	plugins: [
+		{
+			name: "status-json",
+			configureServer: attachJsonStatusWhenAccepted,
+			configurePreviewServer: attachJsonStatusWhenAccepted,
+		},
+		tanstackStart({
+			router: {
+				routeFileIgnorePattern: String.raw`\.test\.tsx$`,
+			},
+		}),
+		viteReact(),
+		tailwindcss(),
+	],
 });

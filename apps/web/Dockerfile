@@ -39,7 +39,9 @@ COPY --from=build /app/packages ./packages
 COPY --from=build /app/tools ./tools
 COPY --from=build /app/apps/web ./apps/web
 
-RUN chmod -R a-w /app \
+RUN mkdir -p /app/apps/web/node_modules/.vite-temp /app/node_modules/.vite-temp \
+	&& chmod -R a-w /app \
+	&& chmod -R u+wx /app/apps/web/node_modules/.vite-temp /app/node_modules/.vite-temp \
 	&& chown -R runner-user:runner-group /app
 
 USER runner-user

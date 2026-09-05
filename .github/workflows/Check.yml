@@ -184,9 +184,13 @@ jobs:
             fi
 
             echo "Probing $service on port $port"
+            probe_path="/status"
+            if [ "$service" = "web" ]; then
+              probe_path="/"
+            fi
             healthy=0
             for attempt in 1 2 3; do
-              if curl -sf -H 'Accept: application/json' --max-time 5 "http://localhost:${port}/status" | grep -Eq '"ok"[[:space:]]*:[[:space:]]*true'; then
+              if curl -sf -H 'Accept: application/json' --max-time 5 "http://localhost:${port}${probe_path}" | grep -Eq '"ok"[[:space:]]*:[[:space:]]*true'; then
                 echo "✅ $service is healthy (attempt ${attempt})"
                 healthy=1
                 break

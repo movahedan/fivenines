@@ -28,6 +28,8 @@ Run from repo root. Filters use workspace `name` (`@apps/nestjs`, `@packages/ui`
 | `bun run build` | Turbo build |
 | `bun run precommit` | Branch / message / staged checks |
 
+GitHub Actions secrets/variables: [GITHUB_WORKFLOW_ENV.md](GITHUB_WORKFLOW_ENV.md).
+
 ## Dev (host)
 
 | Command | Description |
@@ -80,7 +82,7 @@ Then open `http://play.fivenines.com:3000` (Play), login at `http://auth.fivenin
 | `bun run container up -- --profile auth` | Postgres + `@apps/auth` :3001 (migrate + seed) |
 | `bun run container up -- --profile auth --profile nestjs` | Both services + Postgres (host dev: set Nest `AUTH_*` in `.env`) |
 
-Process-up probe (JSON): `curl -sf -H 'Accept: application/json' http://localhost:3000/status` (web), `:3001` (auth), `:3002` (nest), `:9000` (Storybook). Compose HEALTHCHECK and `bun run container check` use the same contract (`"ok":true`, 3 retries).
+Process-up probe (JSON): `curl -sf -H 'Accept: application/json' http://localhost:3000/` (web), `:3001/status` (auth), `:3002/status` (nest), `:9000/status` (Storybook). Compose HEALTHCHECK and `bun run container check` use the same contract (`"ok":true`, 3 retries).
 
 ### Auth + NestJS smoke
 

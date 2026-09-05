@@ -18,7 +18,7 @@ Routes live under `src/routes/` (same convention as xpertell product apps):
 |------|--------|
 | `src/routes/__root.tsx` | Root document, Query + `FetcherSettingsProvider` + `AuthProvider` (`restoreOnMount={false}`) |
 | `src/routes/index.tsx` | `/` — SSR health check against Nest; Play links to `/hub` |
-| `src/routes/status.tsx` | `/status` — process-up page; Vite also serves JSON when `Accept` includes `application/json` |
+| `src/routes/status.tsx` | `/status` — process-up HTML page |
 | `src/routes/hub.tsx` | `/hub` — `PlayButton`, `useAuth().wasLoggedIn` / `loginHref({ redirectUri: "/hub" })`; clock SSE with cookies |
 
 `src/router.tsx` exports `getRouter()` (required by Start). Use `trailingSlash: "never"`. `src/routeTree.gen.ts` is generated on Vite build/dev — do not hand-edit.
@@ -33,7 +33,7 @@ bun test apps/web
 
 Browser API origin: `VITE_NESTJS_API_URL` (default `http://api.fivenines.com:3002`). SSR fetch uses `NESTJS_API_URL` (same URL). Auth origin: `VITE_AUTH_URL`. Player origin: `VITE_APP_ORIGIN`. Vite `allowedHosts` includes `play.fivenines.com`. Home must not `restore()`.
 
-Health: `GET /status` (page) or `curl -sf -H 'Accept: application/json' http://localhost:3000/status`.
+Health: `GET /` or `GET /status` with `Accept: application/json` returns `{ ok, timestamp }` (process-up). The `/status` page is HTML for humans. Compose HEALTHCHECK probes `/`.
 
 ## Docker
 

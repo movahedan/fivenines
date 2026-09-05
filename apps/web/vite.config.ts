@@ -5,31 +5,28 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { defineConfig, type PreviewServer, type ViteDevServer } from "vite";
 
+import { acceptIncludesJson, isLivenessPath, processStatusBody } from "./src/liveness";
+
 const webPort = Number(process.env.WEB_PORT ?? process.env.PORT ?? "3000");
 
-function isStatusGet(req: IncomingMessage): boolean {
-	if (req.method !== "GET") {
-		return false;
-	}
-
+function requestPathname(req: IncomingMessage): string {
 	const path = req.url?.split("?")[0];
-	return path === "/status";
-}
-
-function acceptIncludesJson(req: IncomingMessage): boolean {
-	const accept = req.headers.accept;
-	return typeof accept === "string" && accept.includes("application/json");
+	return path === undefined || path === "" ? "/" : path;
 }
 
 function sendStatusJson(res: ServerResponse): void {
 	res.statusCode = 200;
 	res.setHeader("Content-Type", "application/json");
-	res.end(JSON.stringify({ ok: true, timestamp: new Date().toISOString() }));
+	res.end(JSON.stringify(processStatusBody()));
 }
 
 function attachJsonStatusWhenAccepted(server: ViteDevServer | PreviewServer): void {
 	server.middlewares.use((req, res, next) => {
-		if (isStatusGet(req) && acceptIncludesJson(req)) {
+		if (
+			req.method === "GET" &&
+			isLivenessPath(requestPathname(req)) &&
+			acceptIncludesJson(req.headers.accept)
+		) {
 			sendStatusJson(res);
 			return;
 		}
@@ -41,7 +38,7 @@ function attachJsonStatusWhenAccepted(server: ViteDevServer | PreviewServer): vo
 export default defineConfig({
 	server: {
 		port: webPort,
-		allowedHosts: ["localhost", "web", "play.fivenines.com"],
+		allowedHosts: ["localhost", "web", "play.fivenines.com", "auth.fivenines.com"],
 	},
 	preview: {
 		port: webPort,
@@ -57,7 +54,7 @@ export default defineConfig({
 		},
 		tanstackStart({
 			router: {
-				routeFileIgnorePattern: "\\.test\\.tsx$",
+				routeFileIgnorePattern: String.raw`\.test\.tsx$`,
 			},
 		}),
 		viteReact(),

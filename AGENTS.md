@@ -59,7 +59,7 @@ Use each workspace’s `package.json#name` in Turbo `--filter`, compose, and com
 |------|------|
 | `apps/`, `packages/` | Applications and shared libraries |
 | `tools/` | TS presets (`typescript/`), test preset (`tests-preset/`), Bun CLIs (`scripts/`) |
-| `docs/` | Guides — [CHEATSHEET](docs/CHEATSHEET.md), [SCRIPTING](docs/SCRIPTING.md), [AUTO_VERSIONING](docs/AUTO_VERSIONING.md) |
+| `docs/` | Guides — [CHEATSHEET](docs/CHEATSHEET.md), [SCRIPTING](docs/SCRIPTING.md), [AUTO_VERSIONING](docs/AUTO_VERSIONING.md), [GITHUB_WORKFLOW_ENV](docs/GITHUB_WORKFLOW_ENV.md) |
 | `turbo.json`, `biome.json`, `bunfig.toml` | Build, lint, test preload |
 
 Nested `AGENTS.md` under each app, package, and tool workspace.

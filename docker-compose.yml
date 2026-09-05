@@ -153,7 +153,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -sf -H 'Accept: application/json' http://127.0.0.1:${WEB_PORT:-3000}/status | grep -Eq '\"ok\"[[:space:]]*:[[:space:]]*true'",
+          "curl -sf -H 'Accept: application/json' http://127.0.0.1:${WEB_PORT:-3000}/ | grep -Eq '\"ok\"[[:space:]]*:[[:space:]]*true'",
         ]
       interval: 30s
       timeout: 10s

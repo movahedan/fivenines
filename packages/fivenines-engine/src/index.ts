@@ -7,7 +7,13 @@ export { TINY } from "./catalog/kernel";
 export type { CustomerInitial } from "./customer";
 export { Customer } from "./customer";
 export { oneTinyInitial, twoTinyInitial } from "./fixtures";
-export type { AssetInitial, GameAsset, GameInitial, GameTickMetrics } from "./game";
+export type {
+	AssetInitial,
+	EngineCommand,
+	GameAsset,
+	GameInitial,
+	GameTickMetrics,
+} from "./game";
 export { Game } from "./game";
 export type { LoadBalancerInitial } from "./load-balancer";
 export { LoadBalancer } from "./load-balancer";

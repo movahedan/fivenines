@@ -8,14 +8,17 @@ import {
 	type ProjectRouteInitial,
 } from "./attachments";
 import { Customer, type CustomerInitial } from "./customer";
-import { assignDemandByCpuCap, LoadBalancer } from "./load-balancer";
-import { Server } from "./server";
+import {
+	type AssetInitial,
+	applyCommand,
+	createAsset,
+	type EngineCommand,
+	type GameAsset,
+} from "./game.utils";
+import { assignDemandByCpuCap, type LoadBalancer } from "./load-balancer";
+import type { Server } from "./server";
 
-export type AssetInitial =
-	| { kind: "server"; id: string; catalogId: "tiny" }
-	| { kind: "loadBalancer"; id: string };
-
-export type GameAsset = Server | LoadBalancer;
+export type { AssetInitial, EngineCommand, GameAsset } from "./game.utils";
 
 export interface GameInitial {
 	customers: readonly CustomerInitial[];
@@ -41,17 +44,17 @@ const EMPTY_METRICS: GameTickMetrics = {
 };
 
 export class Game {
-	readonly customers: readonly Customer[];
-	readonly assets: readonly GameAsset[];
-	readonly projectRoutes: readonly ProjectRouteInitial[];
-	readonly balancerPools: readonly BalancerPoolInitial[];
+	#customers: Customer[];
+	#assets: GameAsset[];
+	#projectRoutes: ProjectRouteInitial[];
+	#balancerPools: BalancerPoolInitial[];
 
 	#metrics: GameTickMetrics = EMPTY_METRICS;
-	#loadBalancersById: ReadonlyMap<string, LoadBalancer>;
-	#serversById: ReadonlyMap<string, Server>;
-	#poolServerIdsByLoadBalancer: ReadonlyMap<string, readonly string[]>;
-	#defaultPoolServers: readonly Server[];
-	#routeByProjectId: ReadonlyMap<string, string>;
+	#loadBalancersById: ReadonlyMap<string, LoadBalancer> = new Map();
+	#serversById: ReadonlyMap<string, Server> = new Map();
+	#poolServerIdsByLoadBalancer: ReadonlyMap<string, readonly string[]> = new Map();
+	#defaultPoolServers: readonly Server[] = [];
+	#routeByProjectId: ReadonlyMap<string, string> = new Map();
 
 	constructor(initial: GameInitial) {
 		const customerIds = initial.customers.map((customer) => customer.id);
@@ -71,39 +74,32 @@ export class Game {
 			initial.assets.filter((asset) => asset.kind === "server").map((asset) => asset.id),
 		);
 
-		this.projectRoutes = collectProjectRoutes(
-			initial.projectRoutes,
-			new Set(projectIds),
-			loadBalancerIds,
-		);
-		this.balancerPools = collectBalancerPools(initial.balancerPools, loadBalancerIds, serverIds);
+		this.#projectRoutes = [
+			...collectProjectRoutes(initial.projectRoutes, new Set(projectIds), loadBalancerIds),
+		];
+		this.#balancerPools = [
+			...collectBalancerPools(initial.balancerPools, loadBalancerIds, serverIds),
+		];
 
-		this.customers = initial.customers.map((customer) => new Customer(customer));
-		this.assets = initial.assets.map((asset) => createAsset(asset));
+		this.#customers = initial.customers.map((customer) => new Customer(customer));
+		this.#assets = initial.assets.map((asset) => createAsset(asset));
+		this.#syncDerivedState();
+	}
 
-		const serversById = new Map<string, Server>();
-		const loadBalancersById = new Map<string, LoadBalancer>();
+	get customers(): readonly Customer[] {
+		return this.#customers;
+	}
 
-		for (const asset of this.assets) {
-			if (asset.kind === "server") {
-				serversById.set(asset.id, asset);
-			} else {
-				loadBalancersById.set(asset.id, asset);
-			}
-		}
+	get assets(): readonly GameAsset[] {
+		return this.#assets;
+	}
 
-		this.#serversById = serversById;
-		this.#loadBalancersById = loadBalancersById;
-		this.#poolServerIdsByLoadBalancer = groupPoolServerIds(this.balancerPools);
-		this.#routeByProjectId = new Map(
-			this.projectRoutes.map((route) => [route.projectId, route.loadBalancerId]),
-		);
+	get projectRoutes(): readonly ProjectRouteInitial[] {
+		return this.#projectRoutes;
+	}
 
-		const pooledServerIds = new Set(this.balancerPools.map((pool) => pool.serverId));
-
-		this.#defaultPoolServers = [...serversById.values()].filter(
-			(server) => !pooledServerIds.has(server.id),
-		);
+	get balancerPools(): readonly BalancerPoolInitial[] {
+		return this.#balancerPools;
 	}
 
 	get servers(): readonly Server[] {
@@ -112,6 +108,26 @@ export class Game {
 
 	get metrics(): GameTickMetrics {
 		return this.#metrics;
+	}
+
+	dispatch(command: EngineCommand): Game {
+		const next = applyCommand(
+			{
+				customers: this.#customers,
+				assets: this.#assets,
+				projectRoutes: this.#projectRoutes,
+				balancerPools: this.#balancerPools,
+			},
+			command,
+		);
+
+		this.#customers = [...next.customers];
+		this.#assets = [...next.assets];
+		this.#projectRoutes = [...next.projectRoutes];
+		this.#balancerPools = [...next.balancerPools];
+		this.#syncDerivedState();
+
+		return this;
 	}
 
 	tick(): Game {
@@ -178,6 +194,32 @@ export class Game {
 		return this;
 	}
 
+	#syncDerivedState(): void {
+		const serversById = new Map<string, Server>();
+		const loadBalancersById = new Map<string, LoadBalancer>();
+
+		for (const asset of this.#assets) {
+			if (asset.kind === "server") {
+				serversById.set(asset.id, asset);
+			} else {
+				loadBalancersById.set(asset.id, asset);
+			}
+		}
+
+		this.#serversById = serversById;
+		this.#loadBalancersById = loadBalancersById;
+		this.#poolServerIdsByLoadBalancer = groupPoolServerIds(this.#balancerPools);
+		this.#routeByProjectId = new Map(
+			this.#projectRoutes.map((route) => [route.projectId, route.loadBalancerId]),
+		);
+
+		const pooledServerIds = new Set(this.#balancerPools.map((pool) => pool.serverId));
+
+		this.#defaultPoolServers = [...serversById.values()].filter(
+			(server) => !pooledServerIds.has(server.id),
+		);
+	}
+
 	#poolServers(loadBalancerId: string): readonly Server[] {
 		const serverIds = this.#poolServerIdsByLoadBalancer.get(loadBalancerId) ?? [];
 		const servers: Server[] = [];
@@ -192,14 +234,6 @@ export class Game {
 
 		return servers;
 	}
-}
-
-function createAsset(initial: AssetInitial): GameAsset {
-	if (initial.kind === "server") {
-		return new Server({ id: initial.id, catalogId: initial.catalogId });
-	}
-
-	return new LoadBalancer({ id: initial.id });
 }
 
 function groupPoolServerIds(

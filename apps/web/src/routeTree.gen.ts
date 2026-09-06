@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as HubRouteImport } from './routes/hub'
+import { Route as LabRouteImport } from './routes/lab'
 import { Route as StatusRouteImport } from './routes/status'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const HubRoute = HubRouteImport.update({
   path: '/hub',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LabRoute = LabRouteImport.update({
+  id: '/lab',
+  path: '/lab',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StatusRoute = StatusRouteImport.update({
   id: '/status',
   path: '/status',
@@ -32,30 +38,34 @@ const StatusRoute = StatusRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/hub': typeof HubRoute
+  '/lab': typeof LabRoute
   '/status': typeof StatusRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/hub': typeof HubRoute
+  '/lab': typeof LabRoute
   '/status': typeof StatusRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/hub': typeof HubRoute
+  '/lab': typeof LabRoute
   '/status': typeof StatusRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/hub' | '/status'
+  fullPaths: '/' | '/hub' | '/lab' | '/status'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/hub' | '/status'
-  id: '__root__' | '/' | '/hub' | '/status'
+  to: '/' | '/hub' | '/lab' | '/status'
+  id: '__root__' | '/' | '/hub' | '/lab' | '/status'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   HubRoute: typeof HubRoute
+  LabRoute: typeof LabRoute
   StatusRoute: typeof StatusRoute
 }
 
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HubRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lab': {
+      id: '/lab'
+      path: '/lab'
+      fullPath: '/lab'
+      preLoaderRoute: typeof LabRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/status': {
       id: '/status'
       path: '/status'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HubRoute: HubRoute,
+  LabRoute: LabRoute,
   StatusRoute: StatusRoute,
 }
 export const routeTree = rootRouteImport

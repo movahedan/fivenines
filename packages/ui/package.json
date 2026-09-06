@@ -21,6 +21,10 @@
 			"types": "./src/molecules/index.ts",
 			"default": "./src/molecules/index.ts"
 		},
+		"./molecules/button": {
+			"types": "./src/molecules/button/button.tsx",
+			"default": "./src/molecules/button/button.tsx"
+		},
 		"./atoms": {
 			"types": "./src/atoms/index.ts",
 			"default": "./src/atoms/index.ts"
@@ -40,6 +44,10 @@
 		"./theme.ts": {
 			"types": "./src/theme.ts",
 			"default": "./src/theme.ts"
+		},
+		"./installed-package-root.ts": {
+			"types": "./src/installed-package-root.ts",
+			"default": "./src/installed-package-root.ts"
 		},
 		"./style.css": "./src/style.css"
 	},
@@ -124,6 +132,7 @@
 		"react-native-safe-area-context": "5.9.1",
 		"react-native-screens": "4.27.0",
 		"react-native-svg": "15.15.5",
+		"react-native-web": "0.21.2",
 		"react-resizable-panels": "3.0.6",
 		"recharts": "2.15.4",
 		"sonner": "2.0.8",
@@ -147,7 +156,6 @@
 		"lightningcss": "1.33.0",
 		"postcss": "8.5.28",
 		"react-native": "0.87.1",
-		"react-native-web": "0.21.2",
 		"react-native-worklets": "0.12.1",
 		"serve": "14.2.6",
 		"storybook": "10.4.6",

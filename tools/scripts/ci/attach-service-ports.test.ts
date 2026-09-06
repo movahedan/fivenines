@@ -62,8 +62,8 @@ describe("attach-service-ports - compose host port map", () => {
 
 		const ports = await resolveServiceHostPorts(PROD_COMPOSE);
 
-		expect(ports.nestjs).toBe(3002);
-		expect(ports.ui).toBe(9000);
+		expect(ports.nestjs).toBe(13002);
+		expect(ports.ui).toBe(19000);
 	});
 
 	it("emits web and auth host ports from docker-compose.yml when env defaults apply", async () => {
@@ -73,8 +73,8 @@ describe("attach-service-ports - compose host port map", () => {
 
 		const ports = await resolveServiceHostPorts(PROD_COMPOSE);
 
-		expect(ports.web).toBe(3000);
-		expect(ports.auth).toBe(3001);
+		expect(ports.web).toBe(13000);
+		expect(ports.auth).toBe(13001);
 	});
 
 	it("writes a JSON object keyed by compose service name when GITHUB_OUTPUT is set", async () => {
@@ -96,7 +96,13 @@ describe("attach-service-ports - compose host port map", () => {
 		expect(body).toBeDefined();
 		const parsed: unknown = JSON.parse(body ?? "");
 		expect(parsed).toEqual(
-			expect.objectContaining({ nestjs: 3002, ui: 9000, web: 3000, auth: 3001 }),
+			expect.objectContaining({
+				nestjs: 13002,
+				ui: 19000,
+				web: 13000,
+				auth: 13001,
+				postgres: 15432,
+			}),
 		);
 	});
 

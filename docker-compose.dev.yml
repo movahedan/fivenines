@@ -101,7 +101,7 @@ services:
       NODE_ENV: development
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://play.fivenines.com:3000,http://localhost:3000,http://127.0.0.1:3000}
       DATABASE_URL: postgresql://${POSTGRES_USER:-fivenines}:${POSTGRES_PASSWORD:-fivenines}@postgres:5432/${POSTGRES_DB:-fivenines}
-      AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://auth.fivenines.com:3001/.well-known/jwks.json}
+      AUTH_JWKS_URL: http://auth:${AUTH_PORT:-3001}/.well-known/jwks.json
       AUTH_ISSUER: ${AUTH_ISSUER:-http://auth.fivenines.com:3001}
       AUTH_AUDIENCE: ${AUTH_AUDIENCE:-fivenines-api}
       AUTH_ALLOW_HEADER_TENANT: ${AUTH_ALLOW_HEADER_TENANT:-false}

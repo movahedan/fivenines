@@ -1,6 +1,6 @@
 # Command cheatsheet
 
-Run from repo root. Filters use workspace `name` (`@apps/nestjs`, `@packages/ui`, …). CLIs live under `tools/scripts/`. Setup: [README § Quick start](../README.md#quick-start) · Map: [AGENTS.md](../AGENTS.md).
+Run from repo root. Filters use workspace `name` (`@apps/nestjs`, `@packages/ui`, `@packages/fivenines-engine`, …). CLIs live under `tools/scripts/`. Setup: [README § Quick start](../README.md#quick-start) · Map: [AGENTS.md](../AGENTS.md).
 
 ## Bootstrap
 
@@ -49,6 +49,9 @@ GitHub Actions secrets/variables: [GITHUB_WORKFLOW_ENV.md](GITHUB_WORKFLOW_ENV.m
 | `cd apps/auth && bun run db:seed` | Seed admin user + `nestjs-control-plane` M2M client |
 | `bun run turbo run build:storybook --filter=@packages/ui` | Build Storybook |
 | `bun run build --filter=@packages/ui` | Build one workspace |
+| `bun test packages/fivenines-engine` | Engine kernel tests |
+| `bun run turbo run typecheck --filter=@packages/fivenines-engine` | Typecheck engine (`@package`, singular) |
+| `bun run turbo run test --filter=@packages/fivenines-engine` | Turbo test engine |
 | `bun run test --filter=@packages/shared` | Test one workspace |
 | `bun run typecheck --filter=@packages/shared-react` | Typecheck shared React hooks |
 | `bun run typecheck --filter=@packages/shared-tanstack` | Typecheck TanStack list helpers |

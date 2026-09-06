@@ -51,6 +51,7 @@ Use each workspace’s `package.json#name` in Turbo `--filter`, compose, and com
 |------|----------|
 | `apps/*` | `@apps/web`, `@apps/nestjs`, `@apps/auth` |
 | `packages/*` | `@packages/ui`, `@packages/shared`, `@packages/shared-react`, `@packages/shared-tanstack` |
+| `packages/*` | `@packages/fivenines-engine` | Simulation kernel |
 | `tools/*` | `@tools/scripts`, `@tools/typescript`, `@tools/tests-preset` |
 
 ### Repo layout
@@ -72,6 +73,7 @@ Nested `AGENTS.md` under each app, package, and tool workspace.
 | `apps/nestjs` | `@apps/nestjs` | 3002 | Feature flags control plane (OpenAPI) | [AGENTS.md](apps/nestjs/AGENTS.md) |
 | `apps/auth` | `@apps/auth` | 3001 | Auth (JWT, refresh, M2M) | [AGENTS.md](apps/auth/AGENTS.md) |
 | `packages/ui` | `@packages/ui` | 9000 | React + Storybook | [AGENTS.md](packages/ui/AGENTS.md) |
+| `packages/fivenines-engine` | `@packages/fivenines-engine` | — | Simulation kernel (`Game.tick` / `dispatch`) | [AGENTS.md](packages/fivenines-engine/AGENTS.md) |
 | `packages/shared` | `@packages/shared` | — | Shared utilities | [AGENTS.md](packages/shared/AGENTS.md) |
 | `packages/auth` | `@packages/auth` | — | Auth session, React provider, scopes/JWT contract | [AGENTS.md](packages/auth/AGENTS.md) |
 | `packages/http` | `@packages/http` | — | HTTP fetcher (client / server / static; Orval mutator shape) | [AGENTS.md](packages/http/AGENTS.md) |

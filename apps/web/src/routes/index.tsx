@@ -30,6 +30,9 @@ function HomePage() {
 			<p>
 				<PlayButton />
 			</p>
+			<p>
+				<a href="/lab">Lab</a>
+			</p>
 		</main>
 	);
 }

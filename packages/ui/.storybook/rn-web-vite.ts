@@ -13,6 +13,10 @@ function packageDir(specifier: string): string {
 	return path.dirname(requireFromUi.resolve(`${specifier}/package.json`));
 }
 
+export function installedUiPackageDir(specifier: string): string {
+	return packageDir(specifier);
+}
+
 const sharedReactPackages = [
 	"react",
 	"react-dom",

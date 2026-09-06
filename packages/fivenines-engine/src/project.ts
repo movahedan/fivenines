@@ -1,5 +1,6 @@
 import { units } from "@packages/shared/units";
 
+import { parseRegionId, type RegionId } from "./catalog/regions";
 import { TRAFFIC_POLICY } from "./catalog/traffic-policy";
 import { ConstantDemand, type DemandModel, ProjectDemand } from "./traffic/project-demand";
 import type { RandomSource } from "./traffic/random-source";
@@ -19,7 +20,7 @@ export interface ProjectInitial {
 	status: ProjectStatus;
 	demand: DemandKind;
 	category: ProjectCategory;
-	timezoneHours: number;
+	region: RegionId;
 	campaignProne: boolean;
 	campaign?: CampaignWindow;
 }
@@ -44,7 +45,7 @@ export class Project {
 	readonly estimatedRequestsPerHour: number;
 	readonly demand: DemandKind;
 	readonly category: ProjectCategory;
-	readonly timezoneHours: number;
+	readonly region: RegionId;
 	readonly campaignProne: boolean;
 	readonly campaign: CampaignWindow | undefined;
 	readonly #status: ProjectStatus;
@@ -64,19 +65,7 @@ export class Project {
 		}
 
 		this.category = initial.category;
-
-		const timezoneHours = units.asFiniteInteger(initial.timezoneHours, "timezoneHours");
-
-		if (
-			timezoneHours < TRAFFIC_POLICY.timezoneHours.min ||
-			timezoneHours > TRAFFIC_POLICY.timezoneHours.max
-		) {
-			throw new Error(
-				`timezoneHours must be between ${String(TRAFFIC_POLICY.timezoneHours.min)} and ${String(TRAFFIC_POLICY.timezoneHours.max)}`,
-			);
-		}
-
-		this.timezoneHours = timezoneHours;
+		this.region = parseRegionId(initial.region);
 		this.campaignProne = initial.campaignProne;
 		this.campaign = initial.campaign === undefined ? undefined : parseCampaign(initial.campaign);
 		this.#demandModel =
@@ -85,7 +74,7 @@ export class Project {
 				: new ProjectDemand({
 						baseline: this.estimatedRequestsPerHour,
 						category: this.category,
-						timezoneHours: this.timezoneHours,
+						region: this.region,
 						campaignProne: this.campaignProne,
 						campaign: this.campaign,
 					});

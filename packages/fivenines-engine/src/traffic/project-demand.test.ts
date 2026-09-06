@@ -9,7 +9,7 @@ function shoppingTraits(overrides: Partial<ProjectDemandTraits> = {}): ProjectDe
 	return {
 		baseline: 1000,
 		category: "shopping",
-		timezoneHours: 0,
+		region: "utc+0",
 		campaignProne: false,
 		...overrides,
 	};
@@ -32,7 +32,7 @@ describe("ProjectDemand - category rhythm", () => {
 		const demand = new ProjectDemand({
 			baseline: 1000,
 			category: "saas",
-			timezoneHours: 0,
+			region: "utc+0",
 			campaignProne: false,
 		});
 
@@ -72,11 +72,11 @@ describe("ProjectDemand - fat spike", () => {
 	});
 });
 
-describe("ProjectDemand - timezone", () => {
-	it("emits higher shopping demand at evening hourIndex for timezoneHours 0 than -3", () => {
-		const utc = new ProjectDemand(shoppingTraits({ timezoneHours: 0 }));
-		const shifted = new ProjectDemand(shoppingTraits({ timezoneHours: -3 }));
+describe("ProjectDemand - region", () => {
+	it("emits higher shopping demand at evening hourIndex for utc+0 than utc-5", () => {
+		const utc = new ProjectDemand(shoppingTraits({ region: "utc+0" }));
+		const shifted = new ProjectDemand(shoppingTraits({ region: "utc-5" }));
 
-		expect(utc.demandFor(19, idleRandom)).toBeGreaterThan(shifted.demandFor(19, idleRandom));
+		expect(utc.demandFor(20, idleRandom)).toBeGreaterThan(shifted.demandFor(20, idleRandom));
 	});
 });

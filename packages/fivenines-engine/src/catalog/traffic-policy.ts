@@ -1,5 +1,4 @@
 export const TRAFFIC_POLICY = {
-	timezoneHours: { min: -12, max: 14 },
 	campaignWindowPermille: 1500,
 	idlePermille: 1000,
 	fatSpike: {

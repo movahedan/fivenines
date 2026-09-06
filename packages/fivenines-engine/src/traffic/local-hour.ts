@@ -1,3 +1,3 @@
-export function localHour(hourIndex: number, timezoneHours: number): number {
-	return (((hourIndex + timezoneHours) % 24) + 24) % 24;
+export function localHour(hourIndex: number, offsetHours: number): number {
+	return (((hourIndex + offsetHours) % 24) + 24) % 24;
 }

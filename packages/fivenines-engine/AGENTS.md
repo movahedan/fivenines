@@ -22,7 +22,7 @@ Package scripts: `typecheck` (`tsc --noEmit`), `test` (re-roots to repo `bun tes
 |------|------|
 | `Customer` | Org with `projects[]`. Does not emit load. |
 | `Project` | `offered` \| `declined` \| `served`. Served demand is integer RPS from a `DemandModel`. |
-| `Server` | Inventory. Empty fleet: served demand is unroutable drops. |
+| `Server` | Inventory. Empty fleet: served demand is unroutable drops. Each box has a `region` (same enum as projects); assignment is still fleet-wide. |
 
 Ids are unique per game (`customer.id`, `project.id` global, `asset.id`) via `@packages/shared/ids`. Construct throws on duplicates. `src/demand.ts` `assignDemandByCpuCap` is fleet CPU split, not traffic.
 
@@ -40,7 +40,7 @@ Runtime: `@packages/shared/units`, `@packages/shared/ids`. Integers only at the 
 
 `estimatedRequestsPerHour` is the **baseline**. `demand: "constant"` returns that baseline when served (overload proofs). `demand: "shaped"` uses category rhythm + timezone + optional campaign window + spikes + jitter from `src/catalog/traffic-policy.ts`. Offered / declined return `0` and must not consume RNG.
 
-`ProjectInitial` also requires `category` (`shopping` \| `saas` \| `portfolio`), `timezoneHours` (integer in policy min/max), `campaignProne`, optional `campaign: { startHour, durationHours }` (`durationHours >= 1`).
+`ProjectInitial` also requires `category` (`shopping` \| `saas` \| `portfolio`), `region` (`utc-8` \| `utc-5` \| `utc+0` \| `utc+1` \| `utc+9`; unknown id throws), `campaignProne`, optional `campaign: { startHour, durationHours }` (`durationHours >= 1`). Shaped demand uses `offsetHoursFor(region)` for `localHour` (`src/catalog/regions.ts`).
 
 ## Constructor
 
@@ -62,7 +62,7 @@ After `tick()`, `game.metrics`: `handledRequests`, `droppedRequests`, `p95Latenc
 ```ts
 type EngineCommand =
   | { type: "acceptProject"; payload: { projectId: string } }
-  | { type: "buyServer"; payload: { serverType: ServerCatalogId } }
+  | { type: "buyServer"; payload: { serverType: ServerCatalogId; region: RegionId } }
   | { type: "sellServer"; payload: { serverId: string } };
 ```
 
@@ -70,6 +70,6 @@ type EngineCommand =
 
 ## Related
 
-- Plan: `.cursor/plans/fivenines-engine-traffic.plan.md`
-- Spec: `.cursor/plans/fivenines-engine-traffic.design.md`
+- Plan: `.cursor/plans/fivenines-engine-capacity.plan.md` (region / placement; traffic: `.cursor/plans/fivenines-engine-traffic.plan.md`)
+- Spec: `.cursor/plans/fivenines-engine-capacity.design.md`
 - Domain (kernel graph): `.cursor/plans/fivenines-engine-domain.design.md`

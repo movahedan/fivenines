@@ -6,10 +6,12 @@ import {
 	SERVER_CATALOG,
 	type ServerCatalogId,
 } from "./catalog/kernel";
+import { parseRegionId, type RegionId } from "./catalog/regions";
 
 export interface ServerInitial {
 	id: string;
 	catalogId: ServerCatalogId;
+	region: RegionId;
 }
 
 export interface ServerTickMetrics {
@@ -34,6 +36,7 @@ export class Server {
 	readonly id: string;
 	readonly kind = "server" as const;
 	readonly catalogId: ServerCatalogId;
+	readonly region: RegionId;
 	readonly cpuMillicores: number;
 	readonly memoryMiB: number;
 	readonly millicoresPerRequest: number;
@@ -47,6 +50,7 @@ export class Server {
 
 		this.id = initial.id;
 		this.catalogId = initial.catalogId;
+		this.region = parseRegionId(initial.region);
 		this.cpuMillicores = units.asNonNegativeInteger(spec.cpuMillicores, "cpuMillicores");
 		this.memoryMiB = units.asNonNegativeInteger(spec.memoryMiB, "memoryMiB");
 		this.millicoresPerRequest = units.asNonNegativeInteger(

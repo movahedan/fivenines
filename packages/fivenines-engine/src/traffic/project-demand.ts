@@ -1,3 +1,4 @@
+import { offsetHoursFor, type RegionId } from "../catalog/regions";
 import { TRAFFIC_POLICY } from "../catalog/traffic-policy";
 import { type CategoryRhythm, rhythmFor } from "./category-rhythm";
 import { localHour } from "./local-hour";
@@ -20,7 +21,7 @@ export class ConstantDemand implements DemandModel {
 export interface ProjectDemandTraits {
 	baseline: number;
 	category: "shopping" | "saas" | "portfolio";
-	timezoneHours: number;
+	region: RegionId;
 	campaignProne: boolean;
 	campaign?: { startHour: number; durationHours: number };
 }
@@ -39,7 +40,7 @@ export class ProjectDemand implements DemandModel {
 
 	demandFor(hourIndex: number, random: RandomSource): number {
 		const rhythmPermille = this.#rhythm.permilleForLocalHour(
-			localHour(hourIndex, this.#traits.timezoneHours),
+			localHour(hourIndex, offsetHoursFor(this.#traits.region)),
 		);
 		const campaignPermille = this.#campaignPermille(hourIndex);
 		const spikePermille = this.#spikePermilleForHour(random);

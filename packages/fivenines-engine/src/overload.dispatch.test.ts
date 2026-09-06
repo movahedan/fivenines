@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 
 import type { EngineCommand, GameInitial } from "./index";
-import { Game, oneTinyInitial } from "./index";
+import { Game, oneBronzeInitial } from "./index";
 
 function offeredInitial(serverCount: 0 | 1): GameInitial {
 	return {
@@ -14,9 +14,7 @@ function offeredInitial(serverCount: 0 | 1): GameInitial {
 				],
 			},
 		],
-		assets: serverCount === 1 ? [{ kind: "server", id: "server-1", catalogId: "tiny" }] : [],
-		projectRoutes: [],
-		balancerPools: [],
+		assets: serverCount === 1 ? [{ kind: "server", id: "server-1", catalogId: "bronze" }] : [],
 	};
 }
 
@@ -27,12 +25,12 @@ function acceptBothProjects(game: Game): Game {
 }
 
 describe("Game - dispatch", () => {
-	it("drops requests on one Tiny and clears drops with lower p95 when offered projects are accepted and Tiny servers are bought", () => {
+	it("drops requests on one Bronze and clears drops with lower p95 when offered projects are accepted and Bronze servers are bought", () => {
 		const overloaded = acceptBothProjects(new Game(offeredInitial(1))).tick();
 
 		const healthy = acceptBothProjects(new Game(offeredInitial(0)))
-			.dispatch({ type: "buyServer", payload: { serverType: "tiny" } })
-			.dispatch({ type: "buyServer", payload: { serverType: "tiny" } })
+			.dispatch({ type: "buyServer", payload: { serverType: "bronze" } })
+			.dispatch({ type: "buyServer", payload: { serverType: "bronze" } })
 			.tick();
 
 		expect(overloaded.metrics.droppedRequests).toBeGreaterThan(0);
@@ -49,7 +47,7 @@ describe("Game - dispatch", () => {
 	it("leaves metrics empty until tick after accept and buy", () => {
 		const game = acceptBothProjects(new Game(offeredInitial(1))).dispatch({
 			type: "buyServer",
-			payload: { serverType: "tiny" },
+			payload: { serverType: "bronze" },
 		});
 
 		expect(game.metrics).toEqual({
@@ -74,70 +72,31 @@ describe("Game - dispatch", () => {
 	});
 
 	it("throws when accepting a project that is not offered", () => {
-		const game = new Game(oneTinyInitial);
+		const game = new Game(oneBronzeInitial);
 
 		expect(() =>
 			game.dispatch({ type: "acceptProject", payload: { projectId: "project-1" } }),
 		).toThrow();
 	});
 
-	it("routes demand through a load balancer when projects and servers are attached", () => {
-		const game = acceptBothProjects(new Game(offeredInitial(0)))
-			.dispatch({ type: "buyServer", payload: { serverType: "tiny" } })
-			.dispatch({ type: "buyServer", payload: { serverType: "tiny" } })
-			.dispatch({ type: "buyLoadBalancer" })
-			.dispatch({
-				type: "attachProject",
-				payload: { projectId: "project-1", loadBalancerId: "lb-1" },
-			})
-			.dispatch({
-				type: "attachProject",
-				payload: { projectId: "project-2", loadBalancerId: "lb-1" },
-			})
-			.dispatch({
-				type: "attachServer",
-				payload: { loadBalancerId: "lb-1", serverId: "server-1" },
-			})
-			.dispatch({
-				type: "attachServer",
-				payload: { loadBalancerId: "lb-1", serverId: "server-2" },
-			})
-			.tick();
+	it("removes a bought server when sellServer is dispatched", () => {
+		const game = new Game(offeredInitial(0)).dispatch({
+			type: "buyServer",
+			payload: { serverType: "gold" },
+		});
 
-		expect(game.metrics.droppedRequests).toBe(0);
-		expect(game.metrics.handledRequests).toBe(1400);
+		expect(game.assets).toHaveLength(1);
+
+		game.dispatch({ type: "sellServer", payload: { serverId: "server-1" } });
+
+		expect(game.assets).toHaveLength(0);
 	});
 
-	it("throws when attaching a project that is already routed", () => {
-		const game = acceptBothProjects(new Game(offeredInitial(0)))
-			.dispatch({ type: "buyLoadBalancer" })
-			.dispatch({
-				type: "attachProject",
-				payload: { projectId: "project-1", loadBalancerId: "lb-1" },
-			});
+	it("throws when selling an unknown server", () => {
+		const game = new Game(offeredInitial(0));
 
 		expect(() =>
-			game.dispatch({
-				type: "attachProject",
-				payload: { projectId: "project-1", loadBalancerId: "lb-1" },
-			}),
-		).toThrow();
-	});
-
-	it("throws when attaching a server that already belongs to a load balancer", () => {
-		const game = new Game(offeredInitial(1))
-			.dispatch({ type: "buyLoadBalancer" })
-			.dispatch({ type: "buyLoadBalancer" })
-			.dispatch({
-				type: "attachServer",
-				payload: { loadBalancerId: "lb-1", serverId: "server-1" },
-			});
-
-		expect(() =>
-			game.dispatch({
-				type: "attachServer",
-				payload: { loadBalancerId: "lb-2", serverId: "server-1" },
-			}),
+			game.dispatch({ type: "sellServer", payload: { serverId: "server-1" } }),
 		).toThrow();
 	});
 });

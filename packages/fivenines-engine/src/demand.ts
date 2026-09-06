@@ -2,23 +2,6 @@ import { units } from "@packages/utils/units";
 
 import type { Server } from "./server";
 
-export interface LoadBalancerInitial {
-	id: string;
-}
-
-export class LoadBalancer {
-	readonly id: string;
-	readonly kind = "loadBalancer" as const;
-
-	constructor(initial: LoadBalancerInitial) {
-		this.id = initial.id;
-	}
-
-	tick(servers: readonly Server[], demandRequests: number): void {
-		assignDemandByCpuCap(servers, demandRequests);
-	}
-}
-
 export function assignDemandByCpuCap(servers: readonly Server[], demandRequests: number): void {
 	const demand = units.asNonNegativeInteger(demandRequests, "demandRequests");
 	const shares = splitByCpuCap(demand, servers);

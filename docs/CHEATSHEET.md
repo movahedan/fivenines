@@ -1,6 +1,6 @@
 # Command cheatsheet
 
-Run from repo root. Filters use workspace `name` (`@apps/nestjs`, `@packages/ui`, `@package/fivenines-engine`, …). CLIs live under `tools/scripts/`. Setup: [README § Quick start](../README.md#quick-start) · Map: [AGENTS.md](../AGENTS.md).
+Run from repo root. Filters use workspace `name` (`@apps/nestjs`, `@packages/ui`, `@packages/fivenines-engine`, …). CLIs live under `tools/scripts/`. Setup: [README § Quick start](../README.md#quick-start) · Map: [AGENTS.md](../AGENTS.md).
 
 ## Bootstrap
 
@@ -50,8 +50,8 @@ GitHub Actions secrets/variables: [GITHUB_WORKFLOW_ENV.md](GITHUB_WORKFLOW_ENV.m
 | `bun run build --filter=@packages/ui` | Build one workspace |
 | `bun run test --filter=@packages/utils` | Test one workspace |
 | `bun test packages/fivenines-engine` | Engine kernel tests |
-| `bun run turbo run typecheck --filter=@package/fivenines-engine` | Typecheck engine (`@package`, singular) |
-| `bun run turbo run test --filter=@package/fivenines-engine` | Turbo test engine |
+| `bun run turbo run typecheck --filter=@packages/fivenines-engine` | Typecheck engine (`@package`, singular) |
+| `bun run turbo run test --filter=@packages/fivenines-engine` | Turbo test engine |
 | `bun run typecheck --filter=@packages/shared-react` | Typecheck shared React hooks |
 | `bun run typecheck --filter=@packages/shared-tanstack` | Typecheck TanStack list helpers |
 | `bun test packages/shared-react packages/shared-tanstack` | Unit tests for list hooks packages |

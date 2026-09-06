@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**@package/fivenines-engine** — pure simulation kernel (OO `Game` graph). Workspace `name` is **`@package/fivenines-engine`** (singular `@package`). Path: `packages/fivenines-engine`.
+**@packages/fivenines-engine** — pure simulation kernel (OO `Game` graph). Workspace `name` is **`@packages/fivenines-engine`** (singular `@package`). Path: `packages/fivenines-engine`.
 
 Do **not** import this package from `@apps/web`. Nest is the future production caller; nothing in `apps/` depends on it yet.
 
@@ -8,8 +8,8 @@ Do **not** import this package from `@apps/web`. Nest is the future production c
 
 ```bash
 bun test packages/fivenines-engine
-bun run turbo run typecheck --filter=@package/fivenines-engine
-bun run turbo run test --filter=@package/fivenines-engine
+bun run turbo run typecheck --filter=@packages/fivenines-engine
+bun run turbo run test --filter=@packages/fivenines-engine
 ```
 
 Package scripts: `typecheck` (`tsc --noEmit`), `test` (re-roots to repo `bun test`).
@@ -34,7 +34,7 @@ Runtime dep: `@packages/utils/units` only. Integers only. 1 `tick()` = 1 simulat
 ## Constructor
 
 ```ts
-import { Game, oneTinyInitial, twoTinyInitial } from "@package/fivenines-engine";
+import { Game, oneTinyInitial, twoTinyInitial } from "@packages/fivenines-engine";
 
 const overloaded = new Game(oneTinyInitial).tick();
 const healthy = new Game(twoTinyInitial).tick();

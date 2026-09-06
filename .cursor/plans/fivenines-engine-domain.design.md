@@ -2,7 +2,7 @@
 
 Approved chat model (2026-09-05). This spec replaces the Phase 1 kernel graph (`Game.customer`, `Game.loadBalancer`, `ProductFeature`). It does **not** implement RNG, cash, SLA, Nest, or UI.
 
-Package stays `@package/fivenines-engine`. `Game.tick()` remains the only hour hand. Integers only. 1 tick = 1 simulated hour.
+Package stays `@packages/fivenines-engine`. `Game.tick()` remains the only hour hand. Integers only. 1 tick = 1 simulated hour.
 
 ---
 

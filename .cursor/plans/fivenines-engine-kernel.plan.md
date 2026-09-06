@@ -1,12 +1,12 @@
 ---
 name: fivenines-engine-kernel
-overview: "Reshape @package/fivenines-engine to customers/projects/assets/attachments (no Game.loadBalancer singleton), then typed dispatch. Spec: fivenines-engine-domain.design.md. No PR until asked."
+overview: "Reshape @packages/fivenines-engine to customers/projects/assets/attachments (no Game.loadBalancer singleton), then typed dispatch. Spec: fivenines-engine-domain.design.md. No PR until asked."
 todos:
   - id: phase-1-graph-tick
     content: "Phase 1: reshape graph to customers[], assets[], attachments; Project status+traffic; default pool; overload vs two-Tiny test"
     status: pending
   - id: phase-1-verify
-    content: "Phase 1 gate: bun test packages/fivenines-engine && bun run turbo run typecheck --filter=@package/fivenines-engine && bun run turbo run test --filter=@package/fivenines-engine"
+    content: "Phase 1 gate: bun test packages/fivenines-engine && bun run turbo run typecheck --filter=@packages/fivenines-engine && bun run turbo run test --filter=@packages/fivenines-engine"
     status: pending
   - id: phase-1-docs
     content: "Phase 1: documentation-sync only if/when shipping; do not open a PR from this plan"
@@ -15,7 +15,7 @@ todos:
     content: "Phase 2: Game.dispatch (acceptProject, buyServer, buyLoadBalancer, attach); same overload proof via commands"
     status: pending
   - id: phase-2-verify
-    content: "Phase 2 gate: bun test packages/fivenines-engine && bun run turbo run typecheck --filter=@package/fivenines-engine && bun run turbo run test --filter=@package/fivenines-engine"
+    content: "Phase 2 gate: bun test packages/fivenines-engine && bun run turbo run typecheck --filter=@packages/fivenines-engine && bun run turbo run test --filter=@packages/fivenines-engine"
     status: pending
   - id: phase-2-docs
     content: "Phase 2: documentation-sync only if/when shipping; do not open a PR from this plan"
@@ -23,7 +23,7 @@ todos:
 isProject: false
 ---
 
-# Five Nines engine kernel (`@package/fivenines-engine`)
+# Five Nines engine kernel (`@packages/fivenines-engine`)
 
 Domain spec (approved): [fivenines-engine-domain.design.md](fivenines-engine-domain.design.md). Parent initiative: [five-nines-cloud-tycoon](five-nines-cloud-tycoon_79041648.plan.md).
 
@@ -56,7 +56,7 @@ flowchart TB
 
 | Current | After | Notes |
 |---------|-------|-------|
-| `packages/fivenines-engine` | same | `name`: `@package/fivenines-engine` |
+| `packages/fivenines-engine` | same | `name`: `@packages/fivenines-engine` |
 | Scaffold (package.json, tsconfig, units) | keep | Do not recreate the workspace |
 
 **Naming / invariants**
@@ -87,7 +87,7 @@ flowchart TB
 
 **Hard constraints (phase 1 only):**
 
-- Must: keep `@package/fivenines-engine`; `bun test` + turbo `typecheck` + turbo `test`.
+- Must: keep `@packages/fivenines-engine`; `bun test` + turbo `typecheck` + turbo `test`.
 - Must: classes `Game`, `Customer`, `Project`, `Server`, `LoadBalancer`. Attachments as data on `Game` (dedicated types/module OK).
 - Must: `Game` constructor accepts `GameInitial` from the domain spec (`customers`, `assets`, `projectRoutes`, `balancerPools`).
 - Must: delete `ProductFeature`. Delete `Game.customer` (singular) and `Game.loadBalancer` (always-on field).
@@ -122,7 +122,7 @@ flowchart TB
 | Scout | Task | Patterns / paths | Row budget |
 |-------|------|------------------|------------|
 | 1 | Current public API and constructors | `packages/fivenines-engine/src/**/*.ts` | ≤40 |
-| 2 | Confirm no Nest/web import of engine | `rg '@package/fivenines-engine' apps packages --glob '!packages/fivenines-engine/**'` | ≤40 |
+| 2 | Confirm no Nest/web import of engine | `rg '@packages/fivenines-engine' apps packages --glob '!packages/fivenines-engine/**'` | ≤40 |
 | 3 | Tests and catalog constants to replace | `*.test.ts`, `catalog/kernel.ts`, `fixtures.ts` | ≤40 |
 
 ### Verification (phase 1 gate)
@@ -130,8 +130,8 @@ flowchart TB
 ```bash
 cd /Users/soheil/Workspace/fivenines
 bun test packages/fivenines-engine
-bun run turbo run typecheck --filter=@package/fivenines-engine
-bun run turbo run test --filter=@package/fivenines-engine
+bun run turbo run typecheck --filter=@packages/fivenines-engine
+bun run turbo run test --filter=@packages/fivenines-engine
 ```
 
 Do **not** require `bun run overall` for this reshape. Last run failed on local `apps/web` / `apps/auth` `.env` (ports 3006 / 3001), not the engine.
@@ -142,7 +142,7 @@ Do **not** require `bun run overall` for this reshape. Last run failed on local 
 
 - `packages/fivenines-engine/AGENTS.md` — Game constructor, customers/projects/assets, attachments, tick, catalog
 - Root `AGENTS.md` — workspace row if still missing
-- `docs/CHEATSHEET.md` — filter `@package/fivenines-engine`
+- `docs/CHEATSHEET.md` — filter `@packages/fivenines-engine`
 - Do **not** write Opening Shift product essay
 
 ---
@@ -168,15 +168,15 @@ Do **not** require `bun run overall` for this reshape. Last run failed on local 
 | Scout | Task | Patterns / paths | Row budget |
 |-------|------|------------------|------------|
 | 1 | Phase 1 API as-built | `packages/fivenines-engine/src/**/*.ts` | ≤40 |
-| 2 | No Nest/web import | `rg '@package/fivenines-engine' apps packages --glob '!packages/fivenines-engine/**'` | ≤40 |
+| 2 | No Nest/web import | `rg '@packages/fivenines-engine' apps packages --glob '!packages/fivenines-engine/**'` | ≤40 |
 
 ### Verification (phase 2 gate)
 
 ```bash
 cd /Users/soheil/Workspace/fivenines
 bun test packages/fivenines-engine
-bun run turbo run typecheck --filter=@package/fivenines-engine
-bun run turbo run test --filter=@package/fivenines-engine
+bun run turbo run typecheck --filter=@packages/fivenines-engine
+bun run turbo run test --filter=@packages/fivenines-engine
 ```
 
 ### Documentation before PR (documentation-sync)
@@ -223,7 +223,7 @@ bun run turbo run test --filter=@package/fivenines-engine
 - **Plan:** `.cursor/plans/fivenines-engine-kernel.plan.md`
 - **Spec:** `.cursor/plans/fivenines-engine-domain.design.md`
 - **Phases:** 2 local. **PRs:** 0 until asked
-- **Phase 1 gate:** `bun test packages/fivenines-engine && bun run turbo run typecheck --filter=@package/fivenines-engine && bun run turbo run test --filter=@package/fivenines-engine`
+- **Phase 1 gate:** `bun test packages/fivenines-engine && bun run turbo run typecheck --filter=@packages/fivenines-engine && bun run turbo run test --filter=@packages/fivenines-engine`
 - **Assumptions:** rebuild in place on `feat/fivenines-engine-phase-1`; no `overall` this phase
 - **Open questions:** none
 - **Proceed:** user said execute after spec approval

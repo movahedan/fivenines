@@ -1,6 +1,6 @@
 {
 	"private": true,
-	"name": "@package/fivenines-engine",
+	"name": "@packages/fivenines-engine",
 	"type": "module",
 	"imports": {
 		"#*": "./src/*"

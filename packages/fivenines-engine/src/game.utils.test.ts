@@ -14,8 +14,6 @@ describe("applyCommand - acceptProject", () => {
 		const graph = {
 			customers,
 			assets: [],
-			projectRoutes: [],
-			balancerPools: [],
 		};
 
 		const next = applyCommand(graph, {

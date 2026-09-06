@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { createRequire } from "node:module";
 import path from "node:path";
 
 import tailwindcss from "@tailwindcss/vite";
@@ -8,7 +9,6 @@ import { defineConfig, type PreviewServer, type ViteDevServer } from "vite";
 
 import {
 	esmifyReactNativeSvgTransform,
-	installedUiPackageDir,
 	resolveStyleqStubs,
 	rewriteReactNativeCssImports,
 	rewriteRnWebStyleqImports,
@@ -49,8 +49,14 @@ function attachJsonStatusWhenAccepted(server: ViteDevServer | PreviewServer): vo
 	});
 }
 
-const reactNativeWebEntry = path.join(installedUiPackageDir("react-native-web"), "dist/index.js");
-const useSyncExternalStoreRoot = installedUiPackageDir("use-sync-external-store");
+const requireFromWeb = createRequire(import.meta.url);
+
+function installedWebPackageDir(specifier: string): string {
+	return path.dirname(requireFromWeb.resolve(`${specifier}/package.json`));
+}
+
+const reactNativeWebEntry = path.join(installedWebPackageDir("react-native-web"), "dist/index.js");
+const useSyncExternalStoreRoot = installedWebPackageDir("use-sync-external-store");
 const reactPrebundleIds = [
 	"react",
 	"react-dom",

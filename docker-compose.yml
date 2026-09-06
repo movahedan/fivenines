@@ -18,7 +18,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fivenines}
       POSTGRES_DB: ${POSTGRES_DB:-fivenines}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "15432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -34,7 +34,7 @@ services:
       context: .
       dockerfile: packages/ui/Dockerfile
     ports:
-      - "${UI_PORT:-9000}:${UI_PORT:-9000}"
+      - "19000:${UI_PORT:-9000}"
     networks:
       - prod-network
     environment:
@@ -62,7 +62,7 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "${NESTJS_PORT:-3002}:${NESTJS_PORT:-3002}"
+      - "13002:${NESTJS_PORT:-3002}"
     networks:
       - prod-network
     environment:
@@ -97,7 +97,7 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "${AUTH_PORT:-3001}:${AUTH_PORT:-3001}"
+      - "13001:${AUTH_PORT:-3001}"
     networks:
       - prod-network
     environment:
@@ -137,7 +137,7 @@ services:
       nestjs:
         condition: service_healthy
     ports:
-      - "${WEB_PORT:-3000}:${WEB_PORT:-3000}"
+      - "13000:${WEB_PORT:-3000}"
     networks:
       - prod-network
     environment:

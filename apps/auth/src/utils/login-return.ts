@@ -12,10 +12,14 @@ export type LoginReturnForm = {
 	readonly next?: string;
 };
 
-export function loginReturnFromRequest(req: Request, form?: LoginReturnForm): LoginReturn {
+export function loginReturnFromRequest(
+	req: Request,
+	form?: LoginReturnForm,
+	allowedOrigins: readonly string[] = authConfig.redirectOrigins,
+): LoginReturn {
 	const url = new URL(req.url);
 	const redirectRaw = nonempty(form?.redirectUri) ?? url.searchParams.get("redirect_uri");
-	const external = safeRedirectUri(redirectRaw, authConfig.redirectOrigins);
+	const external = safeRedirectUri(redirectRaw, allowedOrigins);
 	if (external) {
 		const state = safeNextPath(nonempty(form?.state) ?? url.searchParams.get("state"), "/");
 		return { kind: "external", redirectUri: external, state };

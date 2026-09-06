@@ -17,7 +17,7 @@
 		"@apps/auth",
 		"@apps/web",
 		"@packages/ui",
-		"@packages/utils",
+		"@packages/shared",
 		"@tools/typescript",
 		"@tools/tests-preset"
 	],

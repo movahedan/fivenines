@@ -50,6 +50,18 @@ function getOverallSteps(): readonly StepProgressStep[] {
 			},
 		},
 		{
+			label: "Test (packages and tools)",
+			run: async () => {
+				assertShellOk("Test packages/tools", await $`bun test packages tools`.nothrow().quiet());
+			},
+		},
+		{
+			label: "Test (nestjs)",
+			run: async () => {
+				assertShellOk("Test nestjs", await $`bun --cwd apps/nestjs run test`.nothrow().quiet());
+			},
+		},
+		{
 			label: "Test (affected)",
 			run: async () => {
 				assertShellOk("Test", await $`bun run turbo run test --affected`.nothrow().quiet());

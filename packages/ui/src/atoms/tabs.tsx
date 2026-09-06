@@ -2,7 +2,7 @@ import * as TabsPrimitive from "@rn-primitives/tabs";
 import { Platform } from "react-native";
 
 import { TextClassContext } from "@/atoms/text";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 function Tabs({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Root>) {
 	return <TabsPrimitive.Root className={cn("flex flex-col gap-2", className)} {...props} />;

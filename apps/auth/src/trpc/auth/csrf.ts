@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 
-import type { CookieFlags } from "@packages/utils/cookies";
+import type { CookieFlags } from "@packages/shared/cookies";
 
 import { authConfig } from "../../config";
 

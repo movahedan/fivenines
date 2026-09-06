@@ -13,7 +13,7 @@ import Animated, {
 
 import { Icon } from "@/atoms/icon";
 import { TextClassContext } from "@/atoms/text";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 function Accordion({
 	children,

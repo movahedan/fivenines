@@ -1,6 +1,6 @@
 import * as AvatarPrimitive from "@rn-primitives/avatar";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 function Avatar({ className, ...props }: React.ComponentProps<typeof AvatarPrimitive.Root>) {
 	return (

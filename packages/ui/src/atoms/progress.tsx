@@ -8,7 +8,7 @@ import Animated, {
 	withSpring,
 } from "react-native-reanimated";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 function Progress({
 	className,

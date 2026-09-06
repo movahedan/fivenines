@@ -2,7 +2,7 @@ import { Injectable, type OnModuleDestroy, type OnModuleInit } from "@nestjs/com
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 
-import { log } from "@packages/utils/logger";
+import { log } from "@packages/shared/logger";
 
 function getDatabaseUrl(): string | undefined {
 	const url = process.env.DATABASE_URL?.trim();

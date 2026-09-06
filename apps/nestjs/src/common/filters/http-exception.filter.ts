@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import type { Request, Response } from "express";
 
-import { log } from "@packages/utils/logger";
+import { log } from "@packages/shared/logger";
 
 import type { ApiError } from "../api/api-error.model";
 import { isApiError } from "../api/api-error.model";

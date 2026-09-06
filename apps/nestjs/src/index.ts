@@ -3,7 +3,7 @@ import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
 import type { Request, Response } from "express";
 
-import { log } from "@packages/utils/logger";
+import { log } from "@packages/shared/logger";
 
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter";

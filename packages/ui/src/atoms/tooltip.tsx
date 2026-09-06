@@ -6,7 +6,7 @@ import { FullWindowOverlay as RNFullWindowOverlay } from "react-native-screens";
 
 import { NativeOnlyAnimatedView } from "@/atoms/native-only-animated-view";
 import { TextClassContext } from "@/atoms/text";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 const Tooltip = TooltipPrimitive.Root;
 

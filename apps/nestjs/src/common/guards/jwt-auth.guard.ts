@@ -1,8 +1,8 @@
 import { type CanActivate, type ExecutionContext, Injectable } from "@nestjs/common";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
-import { cookies } from "@packages/utils/cookies";
-import { log } from "@packages/utils/logger";
+import { cookies } from "@packages/shared/cookies";
+import { log } from "@packages/shared/logger";
 
 import { ApiException } from "../exceptions/api.exception";
 

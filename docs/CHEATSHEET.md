@@ -17,8 +17,8 @@ Run from repo root. Filters use workspace `name` (`@apps/nestjs`, `@packages/ui`
 
 | Command | Description |
 |---------|-------------|
-| `bun run overall` | Lint (write) + affected typecheck, test, build |
-| `bun run overall -- --quiet` | Same, minimal Ink output |
+| `bun run overall` | Lint (write), affected typecheck/test/build, `bun test packages tools`, NestJS tests |
+| `bun run overall -- --quiet` | Same, no Ink (lefthook pre-push uses this) |
 | `bun run lint` | Biome check |
 | `bun run lint -- --write` | Biome fix |
 | `bun run typecheck` | Turbo typecheck |
@@ -27,6 +27,7 @@ Run from repo root. Filters use workspace `name` (`@apps/nestjs`, `@packages/ui`
 | `bun test --coverage` | Tests + coverage |
 | `bun run build` | Turbo build |
 | `bun run precommit` | Branch / message / staged checks |
+| Lefthook pre-push | Branch + staged + `bun run overall -- --quiet` |
 
 GitHub Actions secrets/variables: [GITHUB_WORKFLOW_ENV.md](GITHUB_WORKFLOW_ENV.md).
 
@@ -48,7 +49,7 @@ GitHub Actions secrets/variables: [GITHUB_WORKFLOW_ENV.md](GITHUB_WORKFLOW_ENV.m
 | `cd apps/auth && bun run db:seed` | Seed admin user + `nestjs-control-plane` M2M client |
 | `bun run turbo run build:storybook --filter=@packages/ui` | Build Storybook |
 | `bun run build --filter=@packages/ui` | Build one workspace |
-| `bun run test --filter=@packages/utils` | Test one workspace |
+| `bun run test --filter=@packages/shared` | Test one workspace |
 | `bun run typecheck --filter=@packages/shared-react` | Typecheck shared React hooks |
 | `bun run typecheck --filter=@packages/shared-tanstack` | Typecheck TanStack list helpers |
 | `bun test packages/shared-react packages/shared-tanstack` | Unit tests for list hooks packages |

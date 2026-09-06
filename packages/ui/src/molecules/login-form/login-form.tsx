@@ -2,8 +2,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react-native";
 import * as React from "react";
 import { useId } from "react";
 
-import { cn } from "@packages/utils/cn";
-
+import { cn } from "@/utils";
 import { Button } from "../button/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../card/card";
 import { Input } from "../input/input";

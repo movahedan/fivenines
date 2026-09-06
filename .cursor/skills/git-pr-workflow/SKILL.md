@@ -13,6 +13,8 @@ description: Fivenines ship path — bun overall, working tree, branch gate, sta
 bun overall
 ```
 
+Lefthook **pre-push** runs `bun run overall -- --quiet`. Do not skip hooks (`--no-verify`) to bypass that gate.
+
 ## 2. Working tree
 
 ```bash
@@ -119,7 +121,7 @@ Format: `type(scope1,scope2): description` (multiple scopes comma-separated, no 
 | `revert` | ⏪ Revert commits |
 | `merge` | Merge commits |
 
-**Scopes:** every scope token must equal the **`name`** field of a workspace `package.json` you touched (e.g. `root`, `nestjs`, `auth`, `@packages/ui`, `@packages/utils`). Omit scope only when it truly spans names awkwardly—then validate with precommit anyway. Intershell’s validator only knows names under `apps/`, `packages/`, and `root` today—if `precommit` rejects a scope, align with that list or adjust `intershell` config.
+**Scopes:** every scope token must equal the **`name`** field of a workspace `package.json` you touched (e.g. `root`, `nestjs`, `auth`, `@packages/ui`, `@packages/shared`). Omit scope only when it truly spans names awkwardly—then validate with precommit anyway. Intershell’s validator only knows names under `apps/`, `packages/`, and `root` today—if `precommit` rejects a scope, align with that list or adjust `intershell` config.
 
 **Practices:** imperative description; lowercase type; subject ≤ 72 chars; no trailing `.`; do not repeat the type as the first word of the description; `BREAKING CHANGE:` in body when needed.
 

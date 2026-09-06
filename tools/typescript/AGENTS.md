@@ -101,7 +101,7 @@ Designed for React library packages:
 }
 ```
 
-### Utility Package (packages/utils)
+### Utility Package (packages/shared)
 ```json
 {
   "extends": "@tools/typescript/base.json",

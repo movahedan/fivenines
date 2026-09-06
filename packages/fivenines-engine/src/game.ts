@@ -1,3 +1,4 @@
+import { ids } from "@packages/shared/ids";
 import { units } from "@packages/shared/units";
 
 import { Customer, type CustomerInitial } from "./customer";
@@ -9,10 +10,14 @@ import {
 	type EngineCommand,
 	type GameAsset,
 } from "./game.utils";
-import { assertUniqueIds } from "./ids";
 import type { Server } from "./server";
+import { MathRandomSource, type RandomSource } from "./traffic/random-source";
 
 export type { AssetInitial, EngineCommand, GameAsset } from "./game.utils";
+
+export interface GameOptions {
+	random?: RandomSource;
+}
 
 export interface GameInitial {
 	customers: readonly CustomerInitial[];
@@ -38,23 +43,26 @@ const EMPTY_METRICS: GameTickMetrics = {
 export class Game {
 	#customers: Customer[];
 	#assets: GameAsset[];
+	#hourIndex = 0;
+	#random: RandomSource;
 
 	#metrics: GameTickMetrics = EMPTY_METRICS;
 	#serversById: ReadonlyMap<string, Server> = new Map();
 
-	constructor(initial: GameInitial) {
+	constructor(initial: GameInitial, options?: GameOptions) {
 		const customerIds = initial.customers.map((customer) => customer.id);
 		const projectIds = initial.customers.flatMap((customer) =>
 			customer.projects.map((project) => project.id),
 		);
 		const assetIds = initial.assets.map((asset) => asset.id);
 
-		assertUniqueIds(customerIds, "customer");
-		assertUniqueIds(projectIds, "project");
-		assertUniqueIds(assetIds, "asset");
+		ids.assertUnique(customerIds, "customer");
+		ids.assertUnique(projectIds, "project");
+		ids.assertUnique(assetIds, "asset");
 
 		this.#customers = initial.customers.map((customer) => new Customer(customer));
 		this.#assets = initial.assets.map((asset) => createAsset(asset));
+		this.#random = options?.random ?? new MathRandomSource();
 		this.#syncDerivedState();
 	}
 
@@ -72,6 +80,18 @@ export class Game {
 
 	get metrics(): GameTickMetrics {
 		return this.#metrics;
+	}
+
+	get hourIndex(): number {
+		return this.#hourIndex;
+	}
+
+	get hourOfDay(): number {
+		return this.#hourIndex % 24;
+	}
+
+	get dayIndex(): number {
+		return Math.floor(this.#hourIndex / 24);
 	}
 
 	dispatch(command: EngineCommand): Game {
@@ -99,7 +119,7 @@ export class Game {
 
 		for (const customer of this.customers) {
 			for (const project of customer.projects) {
-				totalDemand += project.tick();
+				totalDemand += project.tick(this.#hourIndex, this.#random);
 			}
 		}
 
@@ -119,6 +139,7 @@ export class Game {
 		}
 
 		this.#metrics = rollUp(servers, totalDemand, unroutableDemand);
+		this.#hourIndex += 1;
 
 		return this;
 	}

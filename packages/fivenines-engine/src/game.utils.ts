@@ -99,6 +99,11 @@ function projectSnapshot(project: Project): ProjectInitial {
 		id: project.id,
 		estimatedRequestsPerHour: project.estimatedRequestsPerHour,
 		status: project.status,
+		demand: project.demand,
+		category: project.category,
+		timezoneHours: project.timezoneHours,
+		campaignProne: project.campaignProne,
+		...(project.campaign === undefined ? {} : { campaign: project.campaign }),
 	};
 }
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 
 import { Customer } from "./customer";
+import { constantProject } from "./fixtures";
 import { applyCommand } from "./game.utils";
 
 describe("applyCommand - acceptProject", () => {
@@ -8,7 +9,7 @@ describe("applyCommand - acceptProject", () => {
 		const customers = [
 			new Customer({
 				id: "customer-1",
-				projects: [{ id: "project-1", estimatedRequestsPerHour: 700, status: "offered" }],
+				projects: [constantProject("project-1", 700, "offered")],
 			}),
 		];
 		const graph = {

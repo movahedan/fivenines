@@ -1,8 +1,45 @@
 import type { GameInitial } from "./game";
+import type { CampaignWindow, ProjectCategory, ProjectInitial, ProjectStatus } from "./project";
+
+export function constantProject(
+	id: string,
+	estimatedRequestsPerHour: number,
+	status: ProjectStatus,
+): ProjectInitial {
+	return {
+		id,
+		estimatedRequestsPerHour,
+		status,
+		demand: "constant",
+		category: "saas",
+		timezoneHours: 0,
+		campaignProne: false,
+	};
+}
+
+function shapedProject(
+	id: string,
+	estimatedRequestsPerHour: number,
+	category: ProjectCategory,
+	timezoneHours: number,
+	campaignProne: boolean,
+	campaign?: CampaignWindow,
+): ProjectInitial {
+	return {
+		id,
+		estimatedRequestsPerHour,
+		status: "offered",
+		demand: "shaped",
+		category,
+		timezoneHours,
+		campaignProne,
+		...(campaign === undefined ? {} : { campaign }),
+	};
+}
 
 const twoServedProjects = [
-	{ id: "project-1", estimatedRequestsPerHour: 700, status: "served" as const },
-	{ id: "project-2", estimatedRequestsPerHour: 700, status: "served" as const },
+	constantProject("project-1", 700, "served"),
+	constantProject("project-2", 700, "served"),
 ];
 
 export const oneBronzeInitial: GameInitial = {
@@ -28,31 +65,37 @@ export const openingInitial: GameInitial = {
 		{
 			id: "acme",
 			projects: [
-				{ id: "acme-web", estimatedRequestsPerHour: 400, status: "offered" },
-				{ id: "acme-api", estimatedRequestsPerHour: 500, status: "offered" },
-				{ id: "acme-jobs", estimatedRequestsPerHour: 300, status: "offered" },
+				shapedProject("acme-web", 400, "shopping", 0, true, {
+					startHour: 24,
+					durationHours: 48,
+				}),
+				shapedProject("acme-api", 500, "saas", 1, false),
+				shapedProject("acme-jobs", 300, "portfolio", -5, false),
 			],
 		},
 		{
 			id: "northwind",
 			projects: [
-				{ id: "northwind-shop", estimatedRequestsPerHour: 600, status: "offered" },
-				{ id: "northwind-search", estimatedRequestsPerHour: 450, status: "offered" },
-				{ id: "northwind-reports", estimatedRequestsPerHour: 350, status: "offered" },
+				shapedProject("northwind-shop", 600, "shopping", 3, true),
+				shapedProject("northwind-search", 450, "saas", 0, false),
+				shapedProject("northwind-reports", 350, "portfolio", 8, false),
 			],
 		},
 		{
 			id: "globex",
 			projects: [
-				{ id: "globex-portal", estimatedRequestsPerHour: 700, status: "offered" },
-				{ id: "globex-billing", estimatedRequestsPerHour: 250, status: "offered" },
+				shapedProject("globex-portal", 700, "saas", -2, true, {
+					startHour: 0,
+					durationHours: 12,
+				}),
+				shapedProject("globex-billing", 250, "shopping", 0, false),
 			],
 		},
 		{
 			id: "initech",
 			projects: [
-				{ id: "initech-tps", estimatedRequestsPerHour: 200, status: "offered" },
-				{ id: "initech-cover", estimatedRequestsPerHour: 150, status: "offered" },
+				shapedProject("initech-tps", 200, "portfolio", 0, false),
+				shapedProject("initech-cover", 150, "saas", 6, false),
 			],
 		},
 	],

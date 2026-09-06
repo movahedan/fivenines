@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
+import { constantProject } from "./fixtures";
 import type { EngineCommand, GameInitial } from "./index";
 import { Game, oneBronzeInitial } from "./index";
 
@@ -9,8 +10,8 @@ function offeredInitial(serverCount: 0 | 1): GameInitial {
 			{
 				id: "customer-1",
 				projects: [
-					{ id: "project-1", estimatedRequestsPerHour: 700, status: "offered" },
-					{ id: "project-2", estimatedRequestsPerHour: 700, status: "offered" },
+					constantProject("project-1", 700, "offered"),
+					constantProject("project-2", 700, "offered"),
 				],
 			},
 		],

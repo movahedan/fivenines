@@ -8,7 +8,8 @@
 	"exports": {
 		"./logger": "./src/logger.ts",
 		"./cookies": "./src/cookies.ts",
-		"./units": "./src/units.ts"
+		"./units": "./src/units.ts",
+		"./ids": "./src/ids.ts"
 	},
 	"scripts": {
 		"typecheck": "tsc --noEmit"

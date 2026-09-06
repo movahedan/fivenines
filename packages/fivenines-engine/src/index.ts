@@ -11,7 +11,14 @@ export type {
 	GameTickMetrics,
 } from "./game";
 export { Game } from "./game";
-export type { ProjectInitial, ProjectStatus } from "./project";
+export type {
+	CampaignWindow,
+	DemandKind,
+	ProjectCategory,
+	ProjectInitial,
+	ProjectStatus,
+} from "./project";
 export { Project } from "./project";
 export type { ServerInitial, ServerTickMetrics } from "./server";
 export { Server } from "./server";
+export type { RandomSource } from "./traffic/random-source";

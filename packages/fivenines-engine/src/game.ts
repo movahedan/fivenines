@@ -1,8 +1,8 @@
 import { ids } from "@packages/shared/ids";
-import { units } from "@packages/shared/units";
 
 import { Customer, type CustomerInitial } from "./customer";
 import { placeProjectDemand } from "./demand";
+import { EMPTY_GAME_TICK_METRICS, type GameTickMetrics, measureGameTick } from "./game.metrics";
 import {
 	type AssetInitial,
 	applyCommand,
@@ -13,6 +13,7 @@ import {
 import type { Server } from "./server";
 import { MathRandomSource, type RandomSource } from "./traffic/random-source";
 
+export type { GameTickMetrics } from "./game.metrics";
 export type { AssetInitial, EngineCommand, GameAsset } from "./game.utils";
 
 export interface GameOptions {
@@ -24,29 +25,13 @@ export interface GameInitial {
 	assets: readonly AssetInitial[];
 }
 
-export interface GameTickMetrics {
-	handledRequests: number;
-	droppedRequests: number;
-	p95LatencyMs: number;
-	utilization: number;
-	errorPpm: number;
-}
-
-const EMPTY_METRICS: GameTickMetrics = {
-	handledRequests: 0,
-	droppedRequests: 0,
-	p95LatencyMs: 0,
-	utilization: 0,
-	errorPpm: 0,
-};
-
 export class Game {
 	#customers: Customer[];
 	#assets: GameAsset[];
 	#hourIndex = 0;
 	#random: RandomSource;
 
-	#metrics: GameTickMetrics = EMPTY_METRICS;
+	#metrics: GameTickMetrics = EMPTY_GAME_TICK_METRICS;
 	#serversById: ReadonlyMap<string, Server> = new Map();
 
 	constructor(initial: GameInitial, options?: GameOptions) {
@@ -142,7 +127,11 @@ export class Game {
 			server.tick();
 		}
 
-		this.#metrics = rollUp(servers, totalDemand, unroutableDemand);
+		this.#metrics = measureGameTick(
+			servers.map((server) => server.metrics),
+			totalDemand,
+			unroutableDemand,
+		);
 		this.#hourIndex += 1;
 
 		return this;
@@ -157,42 +146,4 @@ export class Game {
 
 		this.#serversById = serversById;
 	}
-}
-
-function rollUp(
-	servers: readonly Server[],
-	demandRequests: number,
-	unroutableDemand: number,
-): GameTickMetrics {
-	if (servers.length === 0) {
-		return {
-			handledRequests: 0,
-			droppedRequests: unroutableDemand,
-			p95LatencyMs: 0,
-			utilization: 0,
-			errorPpm: units.partsPerMillion(unroutableDemand, demandRequests),
-		};
-	}
-
-	let handledRequests = 0;
-	let droppedRequests = unroutableDemand;
-	let p95LatencyMs = 0;
-	let utilization = 0;
-
-	for (const server of servers) {
-		const snapshot = server.metrics;
-
-		handledRequests += snapshot.handledRequests;
-		droppedRequests += snapshot.droppedRequests;
-		p95LatencyMs = Math.max(p95LatencyMs, snapshot.p95LatencyMs);
-		utilization = Math.max(utilization, snapshot.utilization);
-	}
-
-	return {
-		handledRequests,
-		droppedRequests,
-		p95LatencyMs,
-		utilization,
-		errorPpm: units.partsPerMillion(droppedRequests, demandRequests),
-	};
 }

@@ -18,12 +18,15 @@ function HelpApp({ errorMessage }: { readonly errorMessage?: string }) {
 			</Text>
 			{errorMessage !== undefined ? <Text color="red">{errorMessage}</Text> : null}
 			<Text> </Text>
-			<Text dimColor>Lint (write), typecheck, test, and build — affected packages only.</Text>
+			<Text dimColor>
+				Lint (write), affected typecheck/test/build, plus `bun test packages tools` and NestJS
+				tests. Lefthook pre-push runs this with --quiet.
+			</Text>
 			<Text> </Text>
 			<Text bold>Flags</Text>
 			<Text>
 				<Text color="green">--quiet</Text> / <Text color="green">-q</Text> — run steps without Ink
-				(for CI)
+				(pre-push / scripts)
 			</Text>
 			<Text> </Text>
 			<Text bold>Examples</Text>

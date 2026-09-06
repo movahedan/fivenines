@@ -9,7 +9,7 @@ on:
 
 jobs:
   get-affected:
-    name: 🔍 Get affected and validate
+    name: 🔍 Get affected
     runs-on: ubuntu-latest
     env:
       TURBO_SCM_HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha || 'HEAD' }}
@@ -17,7 +17,6 @@ jobs:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
     outputs:
-      affected-packages: ${{ steps.affected-packages.outputs.affected-packages }}
       affected-services: ${{ steps.affected-services.outputs.affected-services }}
       service-ports: ${{ steps.service-ports.outputs.service-ports }}
     steps:
@@ -48,16 +47,6 @@ jobs:
         if: steps.bun-cache.outputs.cache-hit != 'true'
         run: bun install
 
-      - name: 🔍 - Check branch name
-        run: bun run precommit -- --branch
-
-      - name: 🔍 - Get affected packages
-        id: affected-packages
-        run: |
-          echo "::group::🔍 Getting affected packages"
-          bun run ci attach-affected --mode turbo --output-id affected-packages
-          echo "::endgroup::"
-
       - name: 🔍 - Get affected services
         id: affected-services
         run: |
@@ -72,22 +61,6 @@ jobs:
           echo "::group::🔍 Getting service ports"
           bun run ci attach-service-ports --output-id service-ports
           echo "::endgroup::"
-
-      - name: ✨ - Biome check
-        if: steps.affected-packages.outputs.affected-packages != ''
-        run: bun run lint
-
-      - name: 🔍 - Type check
-        if: steps.affected-packages.outputs.affected-packages != ''
-        run: bun run typecheck -- ${{ steps.affected-packages.outputs.affected-packages }}
-
-      - name: 🧪 - Test
-        if: steps.affected-packages.outputs.affected-packages != ''
-        run: bun run turbo run test -- ${{ steps.affected-packages.outputs.affected-packages }}
-
-      - name: 🏗️ - Build
-        if: steps.affected-packages.outputs.affected-packages != ''
-        run: bun run build -- ${{ steps.affected-packages.outputs.affected-packages }}
 
   validate-docker-compose:
     name: 🐳 Validate Docker Compose

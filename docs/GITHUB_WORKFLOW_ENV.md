@@ -2,7 +2,9 @@
 
 Set these on the **repository** (Settings → Secrets and variables → Actions). Workflows do **not** use a named GitHub Environment (`environment:`) today.
 
-Compose probes in **Check** use image HEALTHCHECKs and `.env.sample` / compose `${VAR:-default}` values. You do **not** need to copy `POSTGRES_*`, ports, or `VITE_*` into GitHub for that job.
+**Check** computes affected compose services, then builds and probes those **production** images. Lint, typecheck, unit tests, and package builds run locally: Lefthook **pre-push** runs `bun run overall -- --quiet`.
+
+Compose probes use image HEALTHCHECKs and `.env.sample` / compose `${VAR:-default}` values. You do **not** need to copy `POSTGRES_*`, ports, or `VITE_*` into GitHub for that job.
 
 ## Required for remote Turbo cache
 

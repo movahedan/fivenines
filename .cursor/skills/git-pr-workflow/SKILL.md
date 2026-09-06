@@ -13,6 +13,8 @@ description: Fivenines ship path — bun overall, working tree, branch gate, sta
 bun overall
 ```
 
+Lefthook **pre-push** runs `bun run overall -- --quiet`. Do not skip hooks (`--no-verify`) to bypass that gate.
+
 ## 2. Working tree
 
 ```bash

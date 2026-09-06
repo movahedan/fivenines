@@ -23,9 +23,5 @@ pre-push:
       run: bun run precommit --branch
     staged-validation:
       run: bun run precommit --staged
-    check:
-      run: bun run lint
-    test:
-      run: sh -c 'bun test packages tools && cd apps/nestjs && bun test'
-    build:
-      run: bun run build --affected
+    overall:
+      run: bun run overall -- --quiet

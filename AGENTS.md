@@ -30,7 +30,7 @@ Enforced by tooling: [`tools/typescript/base.json`](tools/typescript/base.json),
 
 Setup: [README.md](README.md#quick-start) · Commands: [docs/CHEATSHEET.md](docs/CHEATSHEET.md).
 
-- `bun run overall` — quality gate before commit/PR
+- `bun run overall` — quality gate (Lefthook pre-push runs the same with `--quiet`)
 - `bun test` — tests (`bunfig.toml` + `tools/tests-preset`)
 - `bun run turbo run dev --filter=@apps/web` — player UI (needs Nest on :3002)
 - `bun run precommit` — staged files, branch name, commit message
@@ -117,4 +117,4 @@ React 19, TanStack Start, NestJS, Orval, Tailwind, Biome, Lefthook, Docker Compo
 
 Read the **nested `AGENTS.md`** for the area you touch before editing.
 
-When working with this codebase, run **`bun run overall`** before committing unless a narrower plan gate applies.
+When working with this codebase, run **`bun run overall`** before committing unless a narrower plan gate applies. Push runs it again via Lefthook. GitHub **Check** is production compose for affected services, not this gate.

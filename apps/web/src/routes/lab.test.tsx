@@ -97,6 +97,23 @@ describe("LabPage - tick metrics", () => {
 		expect(Number(value.textContent)).toBeGreaterThan(0);
 	});
 
+	it("handles accepted demand on a Bronze server after Tick", async () => {
+		stubLoggedInHint(true);
+
+		renderLab();
+
+		await waitForLab();
+
+		fireEvent.click(screen.getByRole("button", { name: "Accept globex-portal" }));
+		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
+		fireEvent.click(screen.getByRole("button", { name: "Tick" }));
+
+		const handled = screen.getByRole("row", { name: /handledRequests/ });
+		const dropped = screen.getByRole("row", { name: /droppedRequests/ });
+		expect(Number(within(handled).getByRole("cell").textContent)).toBeGreaterThan(0);
+		expect(Number(within(dropped).getByRole("cell").textContent)).toBe(0);
+	});
+
 	it("adds a Bronze server when Buy Bronze is clicked", async () => {
 		stubLoggedInHint(true);
 

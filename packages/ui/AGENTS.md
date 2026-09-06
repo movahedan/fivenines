@@ -29,7 +29,8 @@ packages/ui/
 ├── src/style.css       # Tokens + Tailwind 4 (unlayered utilities for RN-web)
 ├── src/theme.ts        # THEME / NAV_THEME
 ├── src/utils/          # `cn` (clsx + tailwind-merge)
-├── .storybook/         # Vite + react-native-web + NativeWind interop
+├── scripts/rn-web.ts   # RN-web Vite interop (Storybook + `@apps/web`)
+├── .storybook/         # Storybook config + RN-web stubs
 └── test-rn-preload.ts  # Bun test mocks for RN modules
 ```
 
@@ -51,4 +52,4 @@ Molecules map web `onClick` → atom `onPress`. Icons in generated atoms: `lucid
 
 - Framework: `@storybook/react-vite`, glob `src/molecules/**/*.stories.*` only.
 - Preview imports `src/style.css`. Do not import `react-native` / `@rn-primitives` in `preview.tsx` (Node CLI, no Vite aliases).
-- RN-web + NativeWind: `.storybook/rn-web-vite.ts` (single React, CSS component rewrite, SVG stubs).
+- RN-web + NativeWind: `scripts/rn-web.ts` (single React, CSS component rewrite, SVG stubs). Storybook and `@apps/web` both import it.

@@ -1,7 +1,18 @@
 import { describe, expect, it } from "bun:test";
 
+import { constantProject } from "./fixtures";
 import type { GameInitial } from "./index";
 import { Game, oneBronzeInitial, openingInitial, twoBronzeInitial } from "./index";
+
+const offeredConstantInitial: GameInitial = {
+	customers: [
+		{
+			id: "customer-1",
+			projects: [constantProject("project-1", 700, "offered")],
+		},
+	],
+	assets: [],
+};
 
 describe("Game - tick", () => {
 	it("drops requests on one Bronze and clears drops with lower p95 on two Bronze when both projects are served", () => {
@@ -27,8 +38,8 @@ describe("Game - tick", () => {
 					...customer,
 					projects: [
 						...customer.projects,
-						{ id: "project-offered", estimatedRequestsPerHour: 5000, status: "offered" },
-						{ id: "project-declined", estimatedRequestsPerHour: 5000, status: "declined" },
+						constantProject("project-offered", 5000, "offered"),
+						constantProject("project-declined", 5000, "declined"),
 					],
 				},
 			],
@@ -54,6 +65,28 @@ describe("Game - tick", () => {
 	});
 });
 
+describe("Game - hourIndex", () => {
+	it("starts at 0 and becomes 1 after tick", () => {
+		const game = new Game(oneBronzeInitial);
+
+		expect(game.hourIndex).toBe(0);
+
+		game.tick();
+
+		expect(game.hourIndex).toBe(1);
+	});
+
+	it("does not change hour when acceptProject is dispatched", () => {
+		const game = new Game(offeredConstantInitial);
+
+		expect(game.hourIndex).toBe(0);
+
+		game.dispatch({ type: "acceptProject", payload: { projectId: "project-1" } });
+
+		expect(game.hourIndex).toBe(0);
+	});
+});
+
 describe("Game - construct", () => {
 	it("throws when customer ids are duplicated", () => {
 		const customer = oneBronzeInitial.customers[0];
@@ -70,7 +103,7 @@ describe("Game - construct", () => {
 						customer,
 						{
 							id: customer.id,
-							projects: [{ id: "project-other", estimatedRequestsPerHour: 0, status: "offered" }],
+							projects: [constantProject("project-other", 0, "offered")],
 						},
 					],
 				}),
@@ -92,7 +125,7 @@ describe("Game - construct", () => {
 						customer,
 						{
 							id: "customer-2",
-							projects: [{ id: "project-1", estimatedRequestsPerHour: 0, status: "offered" }],
+							projects: [constantProject("project-1", 0, "offered")],
 						},
 					],
 				}),

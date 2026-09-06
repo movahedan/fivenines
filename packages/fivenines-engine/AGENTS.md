@@ -2,7 +2,7 @@
 
 **@packages/fivenines-engine** — pure simulation kernel (OO `Game` graph). Workspace `name` is **`@packages/fivenines-engine`** (singular `@package`). Path: `packages/fivenines-engine`.
 
-Do **not** import this package from `@apps/web`. Nest is the future production caller; nothing in `apps/` depends on it yet.
+`@apps/web` `/lab` constructs `Game` on the client (Opening Shift). Nest is the future production caller.
 
 ## Commands
 
@@ -16,50 +16,60 @@ Package scripts: `typecheck` (`tsc --noEmit`), `test` (re-roots to repo `bun tes
 
 ## Graph
 
-`Game` owns `customers[]`, `assets[]` (`Server` | `LoadBalancer`), `projectRoutes`, and `balancerPools`.
+`Game` owns `customers[]` and `assets[]` (`Server` only). No load balancers, project routes, or balancer pools.
 
 | Noun | Role |
 |------|------|
 | `Customer` | Org with `projects[]`. Does not emit load. |
-| `Project` | `offered` \| `declined` \| `served`. Emits `estimatedRequestsPerHour` only when `served`. |
-| `Server` / `LoadBalancer` | Inventory. LB is an asset, not a field on `Game`. |
-| Routes / pools | Project → LB (missing ⇒ default pool). LB → servers. Default pool = servers not in any pool. |
+| `Project` | `offered` \| `declined` \| `served`. Served demand is integer RPS from a `DemandModel`. |
+| `Server` | Inventory. Empty fleet: served demand is unroutable drops. |
 
-Ids are unique per game (`customer.id`, `project.id` global, `asset.id`). Construct and `dispatch` throw on unknown attachment ids, duplicate project routes, or a server on two LBs. Unroutable served demand counts as dropped.
+Ids are unique per game (`customer.id`, `project.id` global, `asset.id`) via `@packages/shared/ids`. Construct throws on duplicates. `src/demand.ts` `assignDemandByCpuCap` is fleet CPU split, not traffic.
 
-Catalog: `TINY` (1000 millicores, 1 millicore/request). Fixtures `oneTinyInitial` / `twoTinyInitial` use two served projects at 700+700 and no LB.
+Catalog: Bronze–Diamond (`SERVER_CATALOG`; Bronze = 1000 millicores, 1 millicore/request). Overload fixtures `oneBronzeInitial` / `twoBronzeInitial`: two **constant** served projects at 700+700 (exact **1400**). `openingInitial`: 4 customers, 10 **shaped** offered projects, `assets: []`.
 
-Runtime dep: `@packages/shared/units` only. Integers only. 1 `tick()` = 1 simulated hour.
+Runtime: `@packages/shared/units`, `@packages/shared/ids`. Integers only at the demand boundary. `1 tick() = 1` simulated hour.
+
+## Clock and RNG
+
+`hourIndex` starts at `0`. Each `tick()` uses the **current** hour for demand, rolls metrics, then `hourIndex += 1`. Derived: `hourOfDay = hourIndex % 24`, `dayIndex = floor(hourIndex / 24)`. `dispatch` does not change the clock.
+
+`new Game(initial, { random?: RandomSource })`. Default wraps `Math.random`. Demand code calls `random.nextUnit()` only.
+
+## Project demand
+
+`estimatedRequestsPerHour` is the **baseline**. `demand: "constant"` returns that baseline when served (overload proofs). `demand: "shaped"` uses category rhythm + timezone + optional campaign window + spikes + jitter from `src/catalog/traffic-policy.ts`. Offered / declined return `0` and must not consume RNG.
+
+`ProjectInitial` also requires `category` (`shopping` \| `saas` \| `portfolio`), `timezoneHours` (integer in policy min/max), `campaignProne`, optional `campaign: { startHour, durationHours }` (`durationHours >= 1`).
 
 ## Constructor
 
 ```ts
-import { Game, oneTinyInitial, twoTinyInitial } from "@packages/fivenines-engine";
+import { Game, oneBronzeInitial, twoBronzeInitial } from "@packages/fivenines-engine";
 
-const overloaded = new Game(oneTinyInitial).tick();
-const healthy = new Game(twoTinyInitial).tick();
+const overloaded = new Game(oneBronzeInitial).tick();
+const healthy = new Game(twoBronzeInitial).tick();
 ```
 
-`GameInitial`: `{ customers, assets, projectRoutes, balancerPools }`. Empty routes/pools is valid.
+`GameInitial`: `{ customers, assets }`. Empty `assets` is valid.
 
 After `tick()`, `game.metrics`: `handledRequests`, `droppedRequests`, `p95LatencyMs`, `utilization`, `errorPpm`.
 
 ## `dispatch`
 
-`dispatch(command)` mutates the graph immediately. It does **not** call `tick()` and does not update metrics. Unknown `type` throws.
+`dispatch(command)` mutates the graph immediately. It does **not** call `tick()`, does not update metrics, and does not advance `hourIndex`. Unknown `type` throws.
 
 ```ts
 type EngineCommand =
   | { type: "acceptProject"; payload: { projectId: string } }
-  | { type: "buyServer"; payload: { serverType: "tiny" } }
-  | { type: "buyLoadBalancer" }
-  | { type: "attachProject"; payload: { projectId: string; loadBalancerId: string } }
-  | { type: "attachServer"; payload: { loadBalancerId: string; serverId: string } };
+  | { type: "buyServer"; payload: { serverType: ServerCatalogId } }
+  | { type: "sellServer"; payload: { serverId: string } };
 ```
 
-`acceptProject` requires `status === "offered"`. Implementation: `applyCommand` in `src/game.utils.ts` (returns a new graph; `Game.dispatch` applies it).
+`acceptProject` requires `status === "offered"`. Implementation: `applyCommand` in `src/game.utils.ts`.
 
 ## Related
 
-- Plan: `.cursor/plans/fivenines-engine-kernel.plan.md`
-- Spec: `.cursor/plans/fivenines-engine-domain.design.md`
+- Plan: `.cursor/plans/fivenines-engine-traffic.plan.md`
+- Spec: `.cursor/plans/fivenines-engine-traffic.design.md`
+- Domain (kernel graph): `.cursor/plans/fivenines-engine-domain.design.md`

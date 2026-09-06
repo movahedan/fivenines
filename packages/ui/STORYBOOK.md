@@ -16,7 +16,7 @@ Preview CSS: `.storybook/preview.tsx` imports `../src/style.css`. Do not import 
 
 ## RN-web + NativeWind
 
-Shared Vite config: `.storybook/rn-web-vite.ts`.
+Shared Vite config: `scripts/rn-web.ts` (Storybook and `@apps/web`).
 
 - Alias `react-native` → `react-native-web`
 - One React instance (virtual ESM modules) so Pressable does not get a second copy
@@ -36,10 +36,10 @@ Shared Vite config: `.storybook/rn-web-vite.ts`.
 
 | Symptom | Check |
 |---------|--------|
-| `Cannot read properties of null (reading 'useState')` | Duplicate React — keep `shareSingleReact` in `rn-web-vite.ts` |
+| `Cannot read properties of null (reading 'useState')` | Duplicate React — keep `shareSingleReact` in `scripts/rn-web.ts` |
 | Unstyled canvas / RN-web `.css-view-*` wins | Utilities must be unlayered in `src/style.css` |
 | `Can't resolve nativewind/dist/module/plugin.js` | Do not `@plugin` that path; NativeWind v5 uses `react-native-css` |
 | Flow parse errors | Storybook must run under Node, not Bun |
-| LoginForm / lucide SVG CJS errors | SVG stubs + aliases in `rn-web-vite.ts` |
+| LoginForm / lucide SVG CJS errors | SVG stubs + aliases in `scripts/rn-web.ts` |
 | `react-native-svg` / `ReactNativeSVG.web.js` missing | Keep `react-native-svg` in `@packages/ui` dependencies; Storybook resolves it via `package.json` |
 | Docker `InvalidLockfile` / ignored `bun.lock` | Overlay the repo `bun.lock` after `turbo prune` (pruned lock drops nested `signal-exit`) |

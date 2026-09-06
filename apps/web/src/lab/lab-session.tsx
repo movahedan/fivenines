@@ -103,7 +103,7 @@ function BuyServerButton({ serverType, onDispatch }: BuyServerButtonProps) {
 	return (
 		<Button
 			variant="secondary"
-			onClick={() => onDispatch({ type: "buyServer", payload: { serverType } })}
+			onClick={() => onDispatch({ type: "buyServer", payload: { serverType, region: "utc+0" } })}
 		>
 			{`Buy ${SERVER_TIER_LABEL[serverType]}`}
 		</Button>

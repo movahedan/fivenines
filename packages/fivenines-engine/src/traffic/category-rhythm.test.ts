@@ -4,8 +4,8 @@ import { rhythmFor } from "./category-rhythm";
 import { localHour } from "./local-hour";
 
 describe("localHour - timezone wrap", () => {
-	it("returns 21 when hourIndex is 0 and timezoneHours is -3", () => {
-		expect(localHour(0, -3)).toBe(21);
+	it("returns 19 when hourIndex is 0 and offsetHours is -5", () => {
+		expect(localHour(0, -5)).toBe(19);
 	});
 });
 

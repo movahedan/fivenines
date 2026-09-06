@@ -15,7 +15,10 @@ function offeredInitial(serverCount: 0 | 1): GameInitial {
 				],
 			},
 		],
-		assets: serverCount === 1 ? [{ kind: "server", id: "server-1", catalogId: "bronze" }] : [],
+		assets:
+			serverCount === 1
+				? [{ kind: "server", id: "server-1", catalogId: "bronze", region: "utc+0" }]
+				: [],
 	};
 }
 
@@ -30,8 +33,8 @@ describe("Game - dispatch", () => {
 		const overloaded = acceptBothProjects(new Game(offeredInitial(1))).tick();
 
 		const healthy = acceptBothProjects(new Game(offeredInitial(0)))
-			.dispatch({ type: "buyServer", payload: { serverType: "bronze" } })
-			.dispatch({ type: "buyServer", payload: { serverType: "bronze" } })
+			.dispatch({ type: "buyServer", payload: { serverType: "bronze", region: "utc+0" } })
+			.dispatch({ type: "buyServer", payload: { serverType: "bronze", region: "utc+0" } })
 			.tick();
 
 		expect(overloaded.metrics.droppedRequests).toBeGreaterThan(0);
@@ -48,7 +51,7 @@ describe("Game - dispatch", () => {
 	it("leaves metrics empty until tick after accept and buy", () => {
 		const game = acceptBothProjects(new Game(offeredInitial(1))).dispatch({
 			type: "buyServer",
-			payload: { serverType: "bronze" },
+			payload: { serverType: "bronze", region: "utc+0" },
 		});
 
 		expect(game.metrics).toEqual({
@@ -83,7 +86,7 @@ describe("Game - dispatch", () => {
 	it("removes a bought server when sellServer is dispatched", () => {
 		const game = new Game(offeredInitial(0)).dispatch({
 			type: "buyServer",
-			payload: { serverType: "gold" },
+			payload: { serverType: "gold", region: "utc+0" },
 		});
 
 		expect(game.assets).toHaveLength(1);

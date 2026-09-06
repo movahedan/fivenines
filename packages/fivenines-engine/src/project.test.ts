@@ -10,7 +10,7 @@ function shapedInitial(overrides: Partial<ProjectInitial> = {}): ProjectInitial 
 		status: "offered",
 		demand: "shaped",
 		category: "shopping",
-		timezoneHours: 0,
+		region: "utc+0",
 		campaignProne: false,
 		...overrides,
 	};
@@ -32,8 +32,15 @@ describe("Project - tick", () => {
 });
 
 describe("Project - construction", () => {
-	it("throws when timezoneHours is outside the policy range", () => {
-		expect(() => new Project(shapedInitial({ timezoneHours: 99 }))).toThrow();
+	it("throws when region is unknown", () => {
+		expect(
+			() =>
+				new Project(
+					shapedInitial({
+						region: "utc+3" as unknown as ProjectInitial["region"],
+					}),
+				),
+		).toThrow("unknown region: utc+3");
 	});
 
 	it("throws when campaign durationHours is 0", () => {

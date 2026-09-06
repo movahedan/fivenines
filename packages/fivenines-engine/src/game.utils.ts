@@ -1,15 +1,21 @@
 import type { ServerCatalogId } from "./catalog/kernel";
+import type { RegionId } from "./catalog/regions";
 import { Customer } from "./customer";
 import type { Project, ProjectInitial } from "./project";
 import { Server } from "./server";
 
-export type AssetInitial = { kind: "server"; id: string; catalogId: ServerCatalogId };
+export type AssetInitial = {
+	kind: "server";
+	id: string;
+	catalogId: ServerCatalogId;
+	region: RegionId;
+};
 
 export type GameAsset = Server;
 
 export type EngineCommand =
 	| { type: "acceptProject"; payload: { projectId: string } }
-	| { type: "buyServer"; payload: { serverType: ServerCatalogId } }
+	| { type: "buyServer"; payload: { serverType: ServerCatalogId; region: RegionId } }
 	| { type: "sellServer"; payload: { serverId: string } };
 
 export interface GameGraph {
@@ -27,7 +33,7 @@ export function applyCommand(graph: GameGraph, command: EngineCommand): GameGrap
 		case "buyServer":
 			return {
 				...graph,
-				assets: buyServer(graph.assets, command.payload.serverType),
+				assets: buyServer(graph.assets, command.payload),
 			};
 		case "sellServer":
 			return {
@@ -41,7 +47,7 @@ export function applyCommand(graph: GameGraph, command: EngineCommand): GameGrap
 }
 
 export function createAsset(initial: AssetInitial): GameAsset {
-	return new Server({ id: initial.id, catalogId: initial.catalogId });
+	return new Server({ id: initial.id, catalogId: initial.catalogId, region: initial.region });
 }
 
 function acceptProject(customers: readonly Customer[], projectId: string): readonly Customer[] {
@@ -69,9 +75,16 @@ function acceptProject(customers: readonly Customer[], projectId: string): reado
 
 function buyServer(
 	assets: readonly GameAsset[],
-	serverType: ServerCatalogId,
+	payload: { serverType: ServerCatalogId; region: RegionId },
 ): readonly GameAsset[] {
-	return [...assets, new Server({ id: nextAssetId("server", assets), catalogId: serverType })];
+	return [
+		...assets,
+		new Server({
+			id: nextAssetId("server", assets),
+			catalogId: payload.serverType,
+			region: payload.region,
+		}),
+	];
 }
 
 function sellServer(assets: readonly GameAsset[], serverId: string): readonly GameAsset[] {
@@ -101,7 +114,7 @@ function projectSnapshot(project: Project): ProjectInitial {
 		status: project.status,
 		demand: project.demand,
 		category: project.category,
-		timezoneHours: project.timezoneHours,
+		region: project.region,
 		campaignProne: project.campaignProne,
 		...(project.campaign === undefined ? {} : { campaign: project.campaign }),
 	};

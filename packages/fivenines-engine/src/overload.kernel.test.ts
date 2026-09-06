@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 
 import { constantProject } from "./fixtures";
-import type { GameInitial } from "./index";
+import type { GameInitial, RegionId } from "./index";
 import { Game, oneBronzeInitial, openingInitial, twoBronzeInitial } from "./index";
 
 const offeredConstantInitial: GameInitial = {
@@ -138,10 +138,27 @@ describe("Game - construct", () => {
 				new Game({
 					...oneBronzeInitial,
 					assets: [
-						{ kind: "server", id: "server-1", catalogId: "bronze" },
-						{ kind: "server", id: "server-1", catalogId: "bronze" },
+						{ kind: "server", id: "server-1", catalogId: "bronze", region: "utc+0" },
+						{ kind: "server", id: "server-1", catalogId: "bronze", region: "utc+0" },
 					],
 				}),
 		).toThrow();
+	});
+
+	it("throws when server region is unknown", () => {
+		expect(
+			() =>
+				new Game({
+					...oneBronzeInitial,
+					assets: [
+						{
+							kind: "server",
+							id: "server-1",
+							catalogId: "bronze",
+							region: "utc+3" as unknown as RegionId,
+						},
+					],
+				}),
+		).toThrow("unknown region: utc+3");
 	});
 });

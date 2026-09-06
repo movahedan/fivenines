@@ -68,7 +68,7 @@ Demand is **not** one global integer. Tick walks **each served project**:
 
 A server accumulates **slices**: `{ category, requests, remote: boolean }`.
 
-Remote slice ⇒ those requests count toward load **and** add `REMOTE_LATENCY_MS` to that box’s p95 mix (weighted by local vs remote assigned counts). Policy integer, v1: `40`.
+Remote slice ⇒ those requests count toward load **and** add extra p95 from region distance: `|offsetHours(project) − offsetHours(server)| × PLACEMENT_POLICY.latencyMsPerOffsetHour` (v1: `5`), mixed by slice request counts on that box.
 
 Empty fleet / no servers anywhere: all `R` unroutable (unchanged).
 

@@ -7,11 +7,19 @@ import {
 	type ServerCatalogId,
 } from "./catalog/kernel";
 import { type RegionId, regions } from "./catalog/regions";
+import type { ProjectCategory } from "./project";
 
 export interface ServerInitial {
 	id: string;
 	catalogId: ServerCatalogId;
 	region: RegionId;
+}
+
+export interface DemandSlice {
+	category: ProjectCategory;
+	requests: number;
+	sourceRegion: RegionId;
+	remote: boolean;
 }
 
 export interface ServerTickMetrics {
@@ -32,6 +40,28 @@ const EMPTY_METRICS: ServerTickMetrics = {
 	errorPpm: 0,
 };
 
+function assignedFromSlices(slices: readonly DemandSlice[]): number {
+	return slices.reduce((sum, slice) => sum + slice.requests, 0);
+}
+
+function remoteExtraMsFromSlices(
+	slices: readonly DemandSlice[],
+	serverRegion: RegionId,
+	assignedRequests: number,
+): number {
+	if (assignedRequests === 0) {
+		return 0;
+	}
+
+	const extraMs = slices.reduce(
+		(sum, slice) =>
+			sum + slice.requests * regions.remoteLatencyMs(slice.sourceRegion, serverRegion),
+		0,
+	);
+
+	return Math.floor(extraMs / assignedRequests);
+}
+
 export class Server {
 	readonly id: string;
 	readonly kind = "server" as const;
@@ -42,7 +72,7 @@ export class Server {
 	readonly millicoresPerRequest: number;
 	readonly requestCapacity: number;
 
-	#assignedRequests = 0;
+	#slices: DemandSlice[] = [];
 	#metrics: ServerTickMetrics = EMPTY_METRICS;
 
 	constructor(initial: ServerInitial) {
@@ -67,16 +97,41 @@ export class Server {
 		return this.#metrics;
 	}
 
-	assignDemand(requests: number): void {
-		this.#assignedRequests = units.asNonNegativeInteger(requests, "assignedRequests");
+	get slices(): readonly DemandSlice[] {
+		return this.#slices;
+	}
+
+	get remainingHeadroom(): number {
+		return Math.max(0, this.requestCapacity - assignedFromSlices(this.#slices));
+	}
+
+	resetDemand(): void {
+		this.#slices = [];
+	}
+
+	assignSlice(slice: Omit<DemandSlice, "remote">): void {
+		const requests = units.asNonNegativeInteger(slice.requests, "assignedRequests");
+
+		if (requests === 0) {
+			return;
+		}
+
+		this.#slices.push({
+			category: slice.category,
+			requests,
+			sourceRegion: slice.sourceRegion,
+			remote: slice.sourceRegion !== this.region,
+		});
 	}
 
 	tick(): ServerTickMetrics {
-		const assignedRequests = this.#assignedRequests;
+		const assignedRequests = assignedFromSlices(this.#slices);
 		const handledRequests = Math.min(assignedRequests, this.requestCapacity);
 		const droppedRequests = assignedRequests - handledRequests;
 		const utilization = units.ratioPercent(assignedRequests, this.requestCapacity);
-		const p95LatencyMs = BASE_LATENCY_MS + utilization * LATENCY_MS_PER_UTIL_PERCENT;
+		const remoteExtraMs = remoteExtraMsFromSlices(this.#slices, this.region, assignedRequests);
+		const p95LatencyMs =
+			BASE_LATENCY_MS + utilization * LATENCY_MS_PER_UTIL_PERCENT + remoteExtraMs;
 		const errorPpm =
 			assignedRequests === 0 ? 0 : Math.floor((droppedRequests * 1_000_000) / assignedRequests);
 

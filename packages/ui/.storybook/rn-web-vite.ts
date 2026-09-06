@@ -385,6 +385,16 @@ export function transpileCjsNodeModules(): Plugin {
 					}
 				}
 			}
+			if (filePath.replaceAll("\\", "/").includes("/use-sync-external-store/")) {
+				const names = namedExportsFromCjs(code);
+				const exportNames =
+					names.length > 0 ? names : (["useSyncExternalStoreWithSelector"] as const);
+				try {
+					return { code: appendNamedExports(output, exportNames), map: undefined };
+				} catch {
+					return { code: output, map: undefined };
+				}
+			}
 			return { code: output, map: undefined };
 		},
 	};

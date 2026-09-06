@@ -54,6 +54,9 @@ const reactNativeWebEntry = path.join(
 	path.dirname(requireFromWeb.resolve("react-native-web/package.json")),
 	"dist/index.js",
 );
+const useSyncExternalStoreRoot = path.dirname(
+	requireFromWeb.resolve("use-sync-external-store/package.json"),
+);
 const reactPrebundleIds = [
 	"react",
 	"react-dom",
@@ -73,6 +76,11 @@ const rnJsxExclude = (rnOptimizeDeps.exclude ?? []).filter(
 
 export default defineConfig(({ command }) => {
 	const shareReact = command === "serve";
+	const withSelectorFlavor = command === "build" ? "production" : "development";
+	const withSelectorCjs = path.join(
+		useSyncExternalStoreRoot,
+		`cjs/use-sync-external-store-shim/with-selector.${withSelectorFlavor}.js`,
+	);
 
 	return {
 		server: {
@@ -86,6 +94,8 @@ export default defineConfig(({ command }) => {
 			alias: {
 				...rnWebAliases(),
 				"react-native": reactNativeWebEntry,
+				"use-sync-external-store/shim/with-selector": withSelectorCjs,
+				"use-sync-external-store/shim/with-selector.js": withSelectorCjs,
 			},
 			extensions: rnWebExtensions,
 			dedupe: ["react", "react-dom"],

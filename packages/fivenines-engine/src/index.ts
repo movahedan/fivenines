@@ -1,3 +1,4 @@
+export { CAPACITY_POLICY } from "./catalog/capacity-policy";
 export type { ServerCatalogId } from "./catalog/kernel";
 export { SERVER_CATALOG, SERVER_CATALOG_IDS, SERVER_TIER_LABEL } from "./catalog/kernel";
 export type { RegionId } from "./catalog/regions";

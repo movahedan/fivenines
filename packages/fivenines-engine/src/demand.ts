@@ -83,13 +83,15 @@ function splitByCpuCap(demand: number, servers: readonly Server[]): number[] {
 		return [];
 	}
 
-	const totalCap = servers.reduce((sum, server) => sum + server.cpuMillicores, 0);
+	const totalCap = servers.reduce((sum, server) => sum + server.computeUnitsPerHour, 0);
 
 	if (totalCap === 0) {
 		return servers.map(() => 0);
 	}
 
-	const shares = servers.map((server) => Math.floor((demand * server.cpuMillicores) / totalCap));
+	const shares = servers.map((server) =>
+		Math.floor((demand * server.computeUnitsPerHour) / totalCap),
+	);
 	let assigned = shares.reduce((sum, share) => sum + share, 0);
 
 	for (let index = 0; assigned < demand && index < shares.length; index += 1) {

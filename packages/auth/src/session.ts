@@ -1,4 +1,4 @@
-import { cookies } from "@packages/utils/cookies";
+import { cookies } from "@packages/shared/cookies";
 
 import { authUserFromMe, fetchAuthMe, loginWithPassword, logoutSession } from "./client";
 import {

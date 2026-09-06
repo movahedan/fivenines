@@ -1,4 +1,4 @@
-import { cookies } from "@packages/utils/cookies";
+import { cookies } from "@packages/shared/cookies";
 
 export const WAS_LOGGED_IN_COOKIE = "was_logged_in";
 

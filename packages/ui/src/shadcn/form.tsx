@@ -13,8 +13,7 @@ import {
 	useFormState,
 } from "react-hook-form";
 
-import { cn } from "@packages/utils/cn";
-
+import { cn } from "@/utils";
 import { Label } from "./label";
 
 const Form = FormProvider;

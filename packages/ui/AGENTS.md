@@ -28,7 +28,7 @@ packages/ui/
 ├── src/molecules/      # Wrappers + `*.stories.tsx` only
 ├── src/style.css       # Tokens + Tailwind 4 (unlayered utilities for RN-web)
 ├── src/theme.ts        # THEME / NAV_THEME
-├── src/lib/utils.ts    # CLI `cn`
+├── src/utils/          # `cn` (clsx + tailwind-merge)
 ├── .storybook/         # Vite + react-native-web + NativeWind interop
 └── test-rn-preload.ts  # Bun test mocks for RN modules
 ```

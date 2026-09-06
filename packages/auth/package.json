@@ -30,7 +30,7 @@
 		"test": "bun --cwd ../.. test packages/auth/src"
 	},
 	"dependencies": {
-		"@packages/utils": "workspace:*"
+		"@packages/shared": "workspace:*"
 	},
 	"devDependencies": {
 		"@tools/tests-preset": "workspace:*",

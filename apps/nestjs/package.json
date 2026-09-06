@@ -25,7 +25,7 @@
 		"@nestjs/platform-express": "11.1.29",
 		"@nestjs/swagger": "11.4.7",
 		"@packages/auth": "workspace:*",
-		"@packages/utils": "workspace:*",
+		"@packages/shared": "workspace:*",
 		"@prisma/adapter-pg": "7.1.0",
 		"@prisma/client": "7.1.0",
 		"@prisma/client-runtime-utils": "7.1.0",

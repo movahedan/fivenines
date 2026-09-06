@@ -7,7 +7,7 @@ import { FullWindowOverlay as RNFullWindowOverlay } from "react-native-screens";
 import { buttonTextVariants, buttonVariants } from "@/atoms/button";
 import { NativeOnlyAnimatedView } from "@/atoms/native-only-animated-view";
 import { TextClassContext } from "@/atoms/text";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 const AlertDialog = AlertDialogPrimitive.Root;
 

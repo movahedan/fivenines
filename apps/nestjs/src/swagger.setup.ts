@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import type { INestApplication } from "@nestjs/common";
 import { DocumentBuilder, type OpenAPIObject, SwaggerModule } from "@nestjs/swagger";
 
-import { log } from "@packages/utils/logger";
+import { log } from "@packages/shared/logger";
 
 import * as ClockModels from "./clock/clock.model";
 import * as ApiModels from "./common/api/api-error.model";

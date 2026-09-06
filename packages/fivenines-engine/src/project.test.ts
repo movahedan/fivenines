@@ -22,12 +22,15 @@ describe("Project - tick", () => {
 		const random = new SequenceRandomSource([]);
 
 		expect(project.tick(0, random)).toBe(0);
+		expect(project.metrics.emittedRequests).toBe(0);
 	});
 
 	it("emits demand when the project is served", () => {
 		const project = new Project(shapedInitial({ status: "served" }));
+		const emittedRequests = project.tick(0, new FixedRandomSource(0.5));
 
-		expect(project.tick(0, new FixedRandomSource(0.5))).toBeGreaterThan(0);
+		expect(emittedRequests).toBeGreaterThan(0);
+		expect(project.metrics.emittedRequests).toBe(emittedRequests);
 	});
 });
 

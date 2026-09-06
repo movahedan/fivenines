@@ -57,7 +57,7 @@ const healthy = new Game(twoBronzeInitial).tick();
 
 `GameInitial`: `{ customers, assets }`. Empty `assets` is valid.
 
-After `tick()`, `game.metrics`: `handledRequests`, `droppedRequests`, `p95LatencyMs`, `utilization`, `errorPpm`.
+After `tick()`, `game.metrics` (`src/game.metrics.ts`), each `server.metrics` (`src/server.metrics.ts`), and each `project.metrics` (`src/project.metrics.ts`) hold that hour’s snapshot (SLA will consume this pattern).
 
 ## `dispatch`
 

@@ -29,7 +29,7 @@ Ids are unique per game (`customer.id`, `project.id` global, `asset.id`). Constr
 
 Catalog: `TINY` (1000 millicores, 1 millicore/request). Fixtures `oneTinyInitial` / `twoTinyInitial` use two served projects at 700+700 and no LB.
 
-Runtime dep: `@packages/utils/units` only. Integers only. 1 `tick()` = 1 simulated hour.
+Runtime dep: `@packages/shared/units` only. Integers only. 1 `tick()` = 1 simulated hour.
 
 ## Constructor
 

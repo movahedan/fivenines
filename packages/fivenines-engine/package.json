@@ -16,7 +16,7 @@
 		"test": "bun --cwd ../.. test packages/fivenines-engine"
 	},
 	"dependencies": {
-		"@packages/utils": "workspace:*"
+		"@packages/shared": "workspace:*"
 	},
 	"devDependencies": {
 		"@tools/typescript": "workspace:*",

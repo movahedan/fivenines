@@ -1,4 +1,4 @@
-import { units } from "@packages/utils/units";
+import { units } from "@packages/shared/units";
 
 import {
 	BASE_LATENCY_MS,

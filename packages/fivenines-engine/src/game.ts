@@ -2,7 +2,7 @@ import { ids } from "@packages/shared/ids";
 import { units } from "@packages/shared/units";
 
 import { Customer, type CustomerInitial } from "./customer";
-import { assignDemandByCpuCap } from "./demand";
+import { placeProjectDemand } from "./demand";
 import {
 	type AssetInitial,
 	applyCommand,
@@ -112,25 +112,29 @@ export class Game {
 
 	tick(): Game {
 		for (const server of this.#serversById.values()) {
-			server.assignDemand(0);
+			server.resetDemand();
 		}
 
 		let totalDemand = 0;
+		let unroutableDemand = 0;
+		const servers = [...this.#serversById.values()];
 
 		for (const customer of this.customers) {
 			for (const project of customer.projects) {
-				totalDemand += project.tick(this.#hourIndex, this.#random);
-			}
-		}
+				const demand = project.tick(this.#hourIndex, this.#random);
 
-		const servers = [...this.#serversById.values()];
-		let unroutableDemand = 0;
+				totalDemand += demand;
 
-		if (totalDemand > 0) {
-			if (servers.length === 0) {
-				unroutableDemand = totalDemand;
-			} else {
-				assignDemandByCpuCap(servers, totalDemand);
+				if (demand === 0) {
+					continue;
+				}
+
+				if (servers.length === 0) {
+					unroutableDemand += demand;
+					continue;
+				}
+
+				unroutableDemand += placeProjectDemand(servers, demand, project.region, project.category);
 			}
 		}
 

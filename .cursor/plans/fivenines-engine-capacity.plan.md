@@ -135,7 +135,7 @@ bun run turbo run typecheck --filter=@packages/fivenines-engine --filter=@apps/w
 **Hard constraints:**
 - Must not add category cost vectors yet (assignment still **request counts**).
 - Must keep 1400 when everything is `utc+0`.
-- Must add `REMOTE_LATENCY_MS = 40` weighted into p95 when `remote` fraction > 0.
+- Must add `PLACEMENT_POLICY.latencyMsPerOffsetHour` (v1: 5); remote extra p95 = `|offsetHours|` × that integer, weighted by slice request counts.
 
 ### Code/config surfaces
 

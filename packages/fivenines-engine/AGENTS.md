@@ -22,9 +22,11 @@ Package scripts: `typecheck` (`tsc --noEmit`), `test` (re-roots to repo `bun tes
 |------|------|
 | `Customer` | Org with `projects[]`. Does not emit load. |
 | `Project` | `offered` \| `declined` \| `served`. Served demand is integer RPS from a `DemandModel`. |
-| `Server` | Inventory. Empty fleet: served demand is unroutable drops. Each box has a `region` (same enum as projects); assignment is still fleet-wide. |
+| `Server` | Inventory. Empty fleet: served demand is unroutable drops. Each box has a `region` (same enum as projects). |
 
-Ids are unique per game (`customer.id`, `project.id` global, `asset.id`) via `@packages/shared/ids`. Construct throws on duplicates. `src/demand.ts` `assignDemandByCpuCap` is fleet CPU split, not traffic.
+Ids are unique per game (`customer.id`, `project.id` global, `asset.id`) via `@packages/shared/ids`. Construct throws on duplicates.
+
+Tick walks each served project: `placeProjectDemand` fills **local** boxes first (`server.region === project.region`), then **other-region** overflow, then leftover is **unroutable** `droppedRequests`. Slices are `{ category, requests, sourceRegion, remote }`. Split among a pool uses `cpuMillicores` (floor + remainder) capped by remaining `requestCapacity`. Extra p95 on a box is `|offsetHours| × PLACEMENT_POLICY.latencyMsPerOffsetHour` (v1: `5` in `src/catalog/placement-policy.ts`), mixed by slice request counts (`regions.remoteLatencyMs`).
 
 Catalog: Bronze–Diamond (`SERVER_CATALOG`; Bronze = 1000 millicores, 1 millicore/request). Overload fixtures `oneBronzeInitial` / `twoBronzeInitial`: two **constant** served projects at 700+700 (exact **1400**). `openingInitial`: 4 customers, 10 **shaped** offered projects, `assets: []`.
 

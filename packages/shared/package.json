@@ -1,22 +1,17 @@
 {
 	"private": true,
-	"name": "@packages/utils",
+	"name": "@packages/shared",
 	"type": "module",
 	"imports": {
 		"#*": "./src/*"
 	},
 	"exports": {
-		"./cn": "./src/cn.ts",
 		"./logger": "./src/logger.ts",
 		"./cookies": "./src/cookies.ts",
 		"./units": "./src/units.ts"
 	},
 	"scripts": {
 		"typecheck": "tsc --noEmit"
-	},
-	"dependencies": {
-		"clsx": "2.1.1",
-		"tailwind-merge": "3.6.0"
 	},
 	"devDependencies": {
 		"@tools/typescript": "workspace:*",

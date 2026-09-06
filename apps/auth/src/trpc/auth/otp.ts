@@ -2,7 +2,7 @@ import { createHash, randomInt, randomUUID } from "node:crypto";
 
 import { TRPCError } from "@trpc/server";
 
-import { log } from "@packages/utils/logger";
+import { log } from "@packages/shared/logger";
 
 import { authConfig } from "../../config";
 import { prisma } from "../../db";

@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 
-import { type CookieFlags, cookies } from "@packages/utils/cookies";
+import { type CookieFlags, cookies } from "@packages/shared/cookies";
 
 import { authConfig } from "../../config";
 import { prisma } from "../../db";

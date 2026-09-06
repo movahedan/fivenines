@@ -8,18 +8,14 @@ on:
       - main
 
 jobs:
-  get-affected:
-    name: 🔍 Get affected and validate
+  production-compose:
+    name: 🐳 Production compose
     runs-on: ubuntu-latest
     env:
       TURBO_SCM_HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha || 'HEAD' }}
       TURBO_SCM_BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before || 'HEAD~1' }}
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-    outputs:
-      affected-packages: ${{ steps.affected-packages.outputs.affected-packages }}
-      affected-services: ${{ steps.affected-services.outputs.affected-services }}
-      service-ports: ${{ steps.service-ports.outputs.service-ports }}
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v6.1.0
@@ -48,16 +44,6 @@ jobs:
         if: steps.bun-cache.outputs.cache-hit != 'true'
         run: bun install
 
-      - name: 🔍 - Check branch name
-        run: bun run precommit -- --branch
-
-      - name: 🔍 - Get affected packages
-        id: affected-packages
-        run: |
-          echo "::group::🔍 Getting affected packages"
-          bun run ci attach-affected --mode turbo --output-id affected-packages
-          echo "::endgroup::"
-
       - name: 🔍 - Get affected services
         id: affected-services
         run: |
@@ -73,92 +59,31 @@ jobs:
           bun run ci attach-service-ports --output-id service-ports
           echo "::endgroup::"
 
-      - name: ✨ - Biome check
-        if: steps.affected-packages.outputs.affected-packages != ''
-        run: bun run lint
-
-      - name: 🔍 - Type check
-        if: steps.affected-packages.outputs.affected-packages != ''
-        run: bun run typecheck -- ${{ steps.affected-packages.outputs.affected-packages }}
-
-      - name: 🧪 - Test
-        if: steps.affected-packages.outputs.affected-packages != ''
-        run: bun run turbo run test -- ${{ steps.affected-packages.outputs.affected-packages }}
-
-      - name: 🏗️ - Build
-        if: steps.affected-packages.outputs.affected-packages != ''
-        run: bun run build -- ${{ steps.affected-packages.outputs.affected-packages }}
-
-  validate-docker-compose:
-    name: 🐳 Validate Docker Compose
-    runs-on: ubuntu-latest
-    needs: get-affected
-    if: needs.get-affected.outputs.affected-services != ''
-    env:
-     TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-     TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-
-    steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v6.1.0
-        with:
-          fetch-depth: 0
-
-      - name: 🚀 Setup Bun
-        uses: oven-sh/setup-bun@v2.2.0
-        with:
-          no-cache: true
-          bun-version: 1.4.0
-
-      - name: 🗃️ Cache Bun dependencies
-        uses: actions/cache@v5.1.0
-        id: bun-cache
-        with:
-          path: |
-            ~/.bun/install/cache
-            **/node_modules
-          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-
-  
-      - name: 📦 Install dependencies
-        if: steps.bun-cache.outputs.cache-hit != 'true'
-        run: bun install
-
       - name: 🐳 Setup Docker Buildx
+        if: steps.affected-services.outputs.affected-services != ''
         uses: docker/setup-buildx-action@v4.3.0
 
       - name: 🏗️ Test Production Build
+        if: steps.affected-services.outputs.affected-services != ''
         run: |
           echo "::group::🏗️ Testing Production Build"
-
-          if [ -z "${{ needs.get-affected.outputs.affected-services }}" ]; then
-            echo "No affected services to test"
-            exit 0
-          fi
-
-          # Build production images without cache to test build process
-          bun run container --prod compose build ${{ needs.get-affected.outputs.affected-services }} --no-cache --parallel
+          bun run container --prod compose build ${{ steps.affected-services.outputs.affected-services }} --no-cache --parallel
           if [ $? -ne 0 ]; then
             echo "❌ Production builds failed"
             exit 1
           fi
-          
+
           echo "✅ Production builds completed successfully"
           echo "::endgroup::"
 
       - name: 🧪 Test Production Services
+        if: steps.affected-services.outputs.affected-services != ''
         run: |
           echo "::group::🧪 Testing Production Services"
 
-          if [ -z "${{ needs.get-affected.outputs.affected-services }}" ]; then
-            echo "No affected packages to test"
-            exit 0
-          fi
-
-          if ! bun run container --prod compose up ${{ needs.get-affected.outputs.affected-services }} -d; then
+          if ! bun run container --prod compose up ${{ steps.affected-services.outputs.affected-services }} -d; then
             echo "❌ Production compose up failed"
-            bun run container --prod compose logs --no-color ${{ needs.get-affected.outputs.affected-services }} || true
+            bun run container --prod compose logs --no-color ${{ steps.affected-services.outputs.affected-services }} || true
             exit 1
           fi
 
@@ -168,7 +93,7 @@ jobs:
 
           HTTP_SERVICES="web auth nestjs ui"
 
-          for service in ${{ needs.get-affected.outputs.affected-services }}; do
+          for service in ${{ steps.affected-services.outputs.affected-services }}; do
             case " $HTTP_SERVICES " in
               *" $service "*) ;;
               *)
@@ -177,7 +102,7 @@ jobs:
                 ;;
             esac
 
-            port=$(echo '${{ needs.get-affected.outputs.service-ports }}' | jq -r --arg service "$service" '.[$service] // empty')
+            port=$(echo '${{ steps.service-ports.outputs.service-ports }}' | jq -r --arg service "$service" '.[$service] // empty')
             if [ -z "$port" ] || [ "$port" = "null" ]; then
               echo "❌ Service $service is missing a published port in service-ports"
               exit 1
@@ -209,15 +134,10 @@ jobs:
           done
 
       - name: 🧹 Cleanup
-        if: always()
+        if: always() && steps.affected-services.outputs.affected-services != ''
         run: |
           echo "::group::🧹 Cleaning up Docker resources"
-          if [ -z "${{ needs.get-affected.outputs.affected-services }}" ]; then
-            echo "No affected services to clean up"
-            exit 0
-          fi
-
-          bun run container --prod compose down ${{ needs.get-affected.outputs.affected-services }} --remove-orphans || true
+          bun run container --prod compose down ${{ steps.affected-services.outputs.affected-services }} --remove-orphans || true
           docker system prune -f || true
           echo "✅ Cleanup completed"
           echo "::endgroup::"

@@ -16,7 +16,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@packages/auth": "workspace:*",
-        "@packages/utils": "workspace:*",
+        "@packages/shared": "workspace:*",
         "@prisma/client": "6.19.3",
         "@trpc/server": "11.8.0",
         "jose": "6.1.0",
@@ -45,7 +45,7 @@
         "@nestjs/platform-express": "11.1.29",
         "@nestjs/swagger": "11.4.7",
         "@packages/auth": "workspace:*",
-        "@packages/utils": "workspace:*",
+        "@packages/shared": "workspace:*",
         "@prisma/adapter-pg": "7.1.0",
         "@prisma/client": "7.1.0",
         "@prisma/client-runtime-utils": "7.1.0",
@@ -75,9 +75,9 @@
         "@packages/fivenines-engine": "workspace:*",
         "@packages/http": "workspace:*",
         "@packages/nestjs-sdk": "workspace:*",
+        "@packages/shared": "workspace:*",
         "@packages/shared-react": "workspace:*",
         "@packages/ui": "workspace:*",
-        "@packages/utils": "workspace:*",
         "@tanstack/react-query": "5.99.2",
         "@tanstack/react-router": "1.170.32",
         "@tanstack/react-start": "1.168.49",
@@ -104,7 +104,7 @@
       "name": "@packages/auth",
       "version": "0.1.0",
       "dependencies": {
-        "@packages/utils": "workspace:*",
+        "@packages/shared": "workspace:*",
       },
       "devDependencies": {
         "@tools/tests-preset": "workspace:*",
@@ -167,6 +167,14 @@
         "zod": "4.1.13",
       },
     },
+    "packages/shared": {
+      "name": "@packages/shared",
+      "devDependencies": {
+        "@tools/typescript": "workspace:*",
+        "@types/bun": "1.3.14",
+        "@types/node": "25.8.0",
+      },
+    },
     "packages/shared-react": {
       "name": "@packages/shared-react",
       "version": "0.1.0",
@@ -207,7 +215,6 @@
     "packages/ui": {
       "name": "@packages/ui",
       "dependencies": {
-        "@packages/utils": "workspace:*",
         "@radix-ui/react-accordion": "1.2.20",
         "@radix-ui/react-alert-dialog": "1.1.23",
         "@radix-ui/react-aspect-ratio": "1.1.15",
@@ -309,18 +316,6 @@
         "tailwindcss": "4.3.3",
         "tailwindcss-animate": "1.0.7",
         "tw-animate-css": "1.4.0",
-      },
-    },
-    "packages/utils": {
-      "name": "@packages/utils",
-      "dependencies": {
-        "clsx": "2.1.1",
-        "tailwind-merge": "3.6.0",
-      },
-      "devDependencies": {
-        "@tools/typescript": "workspace:*",
-        "@types/bun": "1.3.14",
-        "@types/node": "25.8.0",
       },
     },
     "tools/scripts": {
@@ -803,13 +798,13 @@
 
     "@packages/nestjs-sdk": ["@packages/nestjs-sdk@workspace:packages/nestjs-sdk"],
 
+    "@packages/shared": ["@packages/shared@workspace:packages/shared"],
+
     "@packages/shared-react": ["@packages/shared-react@workspace:packages/shared-react"],
 
     "@packages/shared-tanstack": ["@packages/shared-tanstack@workspace:packages/shared-tanstack"],
 
     "@packages/ui": ["@packages/ui@workspace:packages/ui"],
-
-    "@packages/utils": ["@packages/utils@workspace:packages/utils"],
 
     "@paralleldrive/cuid2": ["@paralleldrive/cuid2@2.3.1", "", { "dependencies": { "@noble/hashes": "^1.1.5" } }, "sha512-XO7cAxhnTZl0Yggq6jOgjiOHhbgcO4NqFqwSmQpjK3b6TEE6Uj/jfSk6wzYyemh3+I0sHirKSetjQwn5cZktFw=="],
 

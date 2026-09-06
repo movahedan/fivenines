@@ -1,7 +1,7 @@
 import * as SwitchPrimitives from "@rn-primitives/switch";
 import { Platform } from "react-native";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 function Switch({ className, ...props }: React.ComponentProps<typeof SwitchPrimitives.Root>) {
 	return (

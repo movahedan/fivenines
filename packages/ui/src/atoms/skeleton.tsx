@@ -1,6 +1,6 @@
 import { View } from "react-native";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 function Skeleton({
 	className,

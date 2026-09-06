@@ -6,7 +6,7 @@ import { Platform } from "react-native";
 import { Icon } from "@/atoms/icon";
 import { TextClassContext } from "@/atoms/text";
 import { toggleVariants } from "@/atoms/toggle";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 const ToggleGroupContext = React.createContext<VariantProps<typeof toggleVariants> | null>(null);
 

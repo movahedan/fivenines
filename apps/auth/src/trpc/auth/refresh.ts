@@ -1,5 +1,5 @@
 import type { TenantRole } from "@packages/auth/contract";
-import { cookies } from "@packages/utils/cookies";
+import { cookies } from "@packages/shared/cookies";
 
 import { authConfig } from "../../config";
 import { prisma } from "../../db";

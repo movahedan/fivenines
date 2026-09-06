@@ -8,7 +8,7 @@ import { FullWindowOverlay as RNFullWindowOverlay } from "react-native-screens";
 import { Icon } from "@/atoms/icon";
 import { NativeOnlyAnimatedView } from "@/atoms/native-only-animated-view";
 import { TextClassContext } from "@/atoms/text";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 const ContextMenu = ContextMenuPrimitive.Root;
 const ContextMenuTrigger = ContextMenuPrimitive.Trigger;

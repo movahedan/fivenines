@@ -3,7 +3,7 @@ import { Check } from "lucide-react-native";
 import { Platform } from "react-native";
 
 import { Icon } from "@/atoms/icon";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 const DEFAULT_HIT_SLOP = 24;
 

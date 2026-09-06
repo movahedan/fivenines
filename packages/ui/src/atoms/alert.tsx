@@ -4,7 +4,7 @@ import { View } from "react-native";
 
 import { Icon } from "@/atoms/icon";
 import { Text, TextClassContext } from "@/atoms/text";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 function Alert({
 	className,

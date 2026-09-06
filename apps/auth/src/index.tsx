@@ -1,6 +1,6 @@
 import type { AuthLoginResult } from "@packages/auth";
-import { cookies } from "@packages/utils/cookies";
-import { log } from "@packages/utils/logger";
+import { cookies } from "@packages/shared/cookies";
+import { log } from "@packages/shared/logger";
 
 import { authConfig } from "./config";
 import { LoginPage } from "./pages/login";

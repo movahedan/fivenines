@@ -37,7 +37,7 @@ RUN addgroup --system --gid 1001 runner-group \
 COPY --from=pruner /app/out/json/ .
 COPY --from=installer /app/node_modules ./node_modules
 COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=build /app/packages/utils ./packages/utils
+COPY --from=build /app/packages/shared ./packages/shared
 COPY --from=build /app/apps/nestjs ./apps/nestjs
 
 RUN bun apps/nestjs/scripts/hoist-prisma-client-runtime-utils.ts

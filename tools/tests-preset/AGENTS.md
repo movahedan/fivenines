@@ -76,7 +76,7 @@ describe('Button Component', () => {
 ### Entity/Utility Testing
 ```typescript
 import { describe, it, expect } from 'bun:test';
-import { cn } from '@packages/utils/cn';
+import { cn } from '@packages/ui/utils';
 
 describe('cn utility', () => {
   it('merges classes correctly', () => {

@@ -5,8 +5,9 @@ import { fileURLToPath } from "node:url";
 import { build as esbuildBuild, transform } from "esbuild";
 import type { Plugin, UserConfig } from "vite";
 
-const storybookDir = path.dirname(fileURLToPath(import.meta.url));
-const uiRoot = path.resolve(storybookDir, "..");
+const scriptsDir = path.dirname(fileURLToPath(import.meta.url));
+const uiRoot = path.resolve(scriptsDir, "..");
+const storybookDir = path.join(uiRoot, ".storybook");
 const requireFromUi = createRequire(path.join(uiRoot, "package.json"));
 
 function packageDir(specifier: string): string {
@@ -138,7 +139,9 @@ function rewriteCjsRequires(bundled: string, externals: string[]): string {
 		return bundled;
 	}
 	const imports = externals
-		.map((specifier, index) => `import __ext${String(index)} from ${JSON.stringify(specifier)};`)
+		.map(
+			(specifier, index) => `import * as __ext${String(index)} from ${JSON.stringify(specifier)};`,
+		)
 		.join("\n");
 	const bindings = new Map(
 		externals.map((specifier, index) => [specifier, `__ext${String(index)}`]),
@@ -151,6 +154,17 @@ function rewriteCjsRequires(bundled: string, externals: string[]): string {
 		return binding;
 	});
 	return `${imports}\n${next}`;
+}
+
+function rewriteExternalRequires(bundled: string): string {
+	const specifiers = [
+		...new Set(
+			[...bundled.matchAll(/__require\(["']([^"']+)["']\)/g)].flatMap((match) =>
+				match[1] === undefined ? [] : [match[1]],
+			),
+		),
+	];
+	return rewriteCjsRequires(bundled, specifiers);
 }
 
 function appendNamedExports(bundled: string, names: readonly string[], extra = ""): string {
@@ -302,7 +316,7 @@ export function transpileRnPrimitivesJsx(): Plugin {
 			if (!output) {
 				return { code: result.code, map: result.map || undefined };
 			}
-			return { code: output, map: undefined };
+			return { code: rewriteExternalRequires(output), map: undefined };
 		},
 	};
 }
@@ -375,13 +389,14 @@ export function transpileCjsNodeModules(): Plugin {
 			if (!output) {
 				return;
 			}
+			const esmOutput = rewriteExternalRequires(output);
 			if (filePath.includes(`${path.sep}react-native-svg${path.sep}`)) {
 				const names = namedExportsFromCjs(code);
 				if (names.length > 0) {
 					try {
-						return { code: appendNamedExports(output, names), map: undefined };
+						return { code: appendNamedExports(esmOutput, names), map: undefined };
 					} catch {
-						return { code: output, map: undefined };
+						return { code: esmOutput, map: undefined };
 					}
 				}
 			}
@@ -390,12 +405,12 @@ export function transpileCjsNodeModules(): Plugin {
 				const exportNames =
 					names.length > 0 ? names : (["useSyncExternalStoreWithSelector"] as const);
 				try {
-					return { code: appendNamedExports(output, exportNames), map: undefined };
+					return { code: appendNamedExports(esmOutput, exportNames), map: undefined };
 				} catch {
-					return { code: output, map: undefined };
+					return { code: esmOutput, map: undefined };
 				}
 			}
-			return { code: output, map: undefined };
+			return { code: esmOutput, map: undefined };
 		},
 	};
 }
@@ -531,14 +546,18 @@ export function rnWebAliases(): Record<string, string> {
 	};
 }
 
+export const rnWebSsrNoExternal: Array<string | RegExp> = [/^@rn-primitives\//, /^@radix-ui\//];
+
 export const rnWebExtensions = [
 	".web.tsx",
 	".web.ts",
 	".web.jsx",
+	".web.mjs",
 	".web.js",
 	".tsx",
 	".ts",
 	".jsx",
+	".mjs",
 	".js",
 	".json",
 ];
@@ -696,6 +715,20 @@ export function applyRnWebVite(viteConfig: UserConfig): UserConfig {
 			...(rnWebOptimizeDeps().include ?? []),
 		].filter((dep) => !(sharedReactPackages as readonly string[]).includes(dep)),
 		exclude: [...(viteConfig.optimizeDeps?.exclude ?? []), ...(rnWebOptimizeDeps().exclude ?? [])],
+	};
+	viteConfig.ssr = {
+		...viteConfig.ssr,
+		noExternal:
+			viteConfig.ssr?.noExternal === true
+				? true
+				: [
+						...(Array.isArray(viteConfig.ssr?.noExternal)
+							? viteConfig.ssr.noExternal
+							: viteConfig.ssr?.noExternal === undefined
+								? []
+								: [viteConfig.ssr.noExternal]),
+						...rnWebSsrNoExternal,
+					],
 	};
 	return viteConfig;
 }

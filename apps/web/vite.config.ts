@@ -15,10 +15,11 @@ import {
 	rnWebAliases,
 	rnWebExtensions,
 	rnWebOptimizeDeps,
+	rnWebSsrNoExternal,
 	shareSingleReact,
 	transpileCjsNodeModules,
 	transpileRnPrimitivesJsx,
-} from "../../packages/ui/.storybook/rn-web-vite.ts";
+} from "../../packages/ui/scripts/rn-web.ts";
 import { acceptIncludesJson, isLivenessPath, processStatusBody } from "./src/liveness.ts";
 
 const webPort = Number(process.env.WEB_PORT ?? process.env.PORT ?? "3000");
@@ -110,6 +111,7 @@ export default defineConfig(({ command }) => {
 			exclude: shareReact ? [...rnJsxExclude, ...reactPrebundleIds] : rnJsxExclude,
 		},
 		ssr: {
+			noExternal: rnWebSsrNoExternal,
 			optimizeDeps: {
 				exclude: shareReact ? [...rnJsxExclude, ...reactPrebundleIds] : rnJsxExclude,
 			},

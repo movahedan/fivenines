@@ -3,7 +3,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { StorybookConfig } from "@storybook/react-vite";
 import type { Plugin, ViteDevServer } from "vite";
 
-import { applyRnWebVite } from "./rn-web-vite.ts";
+import { applyRnWebVite } from "../scripts/rn-web.ts";
 
 const config: StorybookConfig = {
 	stories: ["../src/molecules/**/*.stories.@(js|jsx|mjs|ts|tsx)"],

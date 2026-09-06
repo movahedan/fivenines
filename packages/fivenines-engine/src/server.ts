@@ -6,7 +6,7 @@ import {
 	SERVER_CATALOG,
 	type ServerCatalogId,
 } from "./catalog/kernel";
-import { parseRegionId, type RegionId } from "./catalog/regions";
+import { type RegionId, regions } from "./catalog/regions";
 
 export interface ServerInitial {
 	id: string;
@@ -50,7 +50,7 @@ export class Server {
 
 		this.id = initial.id;
 		this.catalogId = initial.catalogId;
-		this.region = parseRegionId(initial.region);
+		this.region = regions.parseRegionId(initial.region);
 		this.cpuMillicores = units.asNonNegativeInteger(spec.cpuMillicores, "cpuMillicores");
 		this.memoryMiB = units.asNonNegativeInteger(spec.memoryMiB, "memoryMiB");
 		this.millicoresPerRequest = units.asNonNegativeInteger(

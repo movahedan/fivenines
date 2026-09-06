@@ -1,4 +1,4 @@
-export const REGIONS = {
+const BY_ID = {
 	"utc-8": { offsetHours: -8 },
 	"utc-5": { offsetHours: -5 },
 	"utc+0": { offsetHours: 0 },
@@ -6,13 +6,13 @@ export const REGIONS = {
 	"utc+9": { offsetHours: 9 },
 } as const;
 
-export type RegionId = keyof typeof REGIONS;
+export type RegionId = keyof typeof BY_ID;
 
-export function isRegionId(value: string): value is RegionId {
-	return Object.hasOwn(REGIONS, value);
+function isRegionId(value: string): value is RegionId {
+	return Object.hasOwn(BY_ID, value);
 }
 
-export function parseRegionId(value: string): RegionId {
+function parseRegionId(value: string): RegionId {
 	if (!isRegionId(value)) {
 		throw new Error(`unknown region: ${value}`);
 	}
@@ -20,6 +20,13 @@ export function parseRegionId(value: string): RegionId {
 	return value;
 }
 
-export function offsetHoursFor(region: RegionId): number {
-	return REGIONS[region].offsetHours;
+function offsetHoursFor(region: RegionId): number {
+	return BY_ID[region].offsetHours;
 }
+
+export const regions = {
+	byId: BY_ID,
+	isRegionId,
+	parseRegionId,
+	offsetHoursFor,
+};

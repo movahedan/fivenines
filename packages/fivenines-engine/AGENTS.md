@@ -40,7 +40,7 @@ Runtime: `@packages/shared/units`, `@packages/shared/ids`. Integers only at the 
 
 `estimatedRequestsPerHour` is the **baseline**. `demand: "constant"` returns that baseline when served (overload proofs). `demand: "shaped"` uses category rhythm + timezone + optional campaign window + spikes + jitter from `src/catalog/traffic-policy.ts`. Offered / declined return `0` and must not consume RNG.
 
-`ProjectInitial` also requires `category` (`shopping` \| `saas` \| `portfolio`), `region` (`utc-8` \| `utc-5` \| `utc+0` \| `utc+1` \| `utc+9`; unknown id throws), `campaignProne`, optional `campaign: { startHour, durationHours }` (`durationHours >= 1`). Shaped demand uses `offsetHoursFor(region)` for `localHour` (`src/catalog/regions.ts`).
+`ProjectInitial` also requires `category` (`shopping` \| `saas` \| `portfolio`), `region` (`utc-8` \| `utc-5` \| `utc+0` \| `utc+1` \| `utc+9`; unknown id throws), `campaignProne`, optional `campaign: { startHour, durationHours }` (`durationHours >= 1`). Shaped demand uses `regions.offsetHoursFor(region)` for `localHour` (`src/catalog/regions.ts`).
 
 ## Constructor
 

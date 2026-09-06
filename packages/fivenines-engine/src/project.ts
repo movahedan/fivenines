@@ -1,6 +1,6 @@
 import { units } from "@packages/shared/units";
 
-import { parseRegionId, type RegionId } from "./catalog/regions";
+import { type RegionId, regions } from "./catalog/regions";
 import { TRAFFIC_POLICY } from "./catalog/traffic-policy";
 import { ConstantDemand, type DemandModel, ProjectDemand } from "./traffic/project-demand";
 import type { RandomSource } from "./traffic/random-source";
@@ -65,7 +65,7 @@ export class Project {
 		}
 
 		this.category = initial.category;
-		this.region = parseRegionId(initial.region);
+		this.region = regions.parseRegionId(initial.region);
 		this.campaignProne = initial.campaignProne;
 		this.campaign = initial.campaign === undefined ? undefined : parseCampaign(initial.campaign);
 		this.#demandModel =

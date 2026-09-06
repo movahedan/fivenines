@@ -20,6 +20,7 @@ The package provides shared helpers:
 import { cn } from '@packages/utils/cn';
 import { log } from '@packages/utils/logger';
 import { cookies } from '@packages/utils/cookies';
+import { units } from '@packages/utils/units';
 ```
 
 ## Available Utilities
@@ -73,6 +74,19 @@ cookies.get("was_logged_in");
 cookies.get("auth_access", req.headers);
 cookies.set("auth_session", id, { path: "/", httpOnly: true, domain: ".fivenines.com" }, headers);
 cookies.delete("auth_session", { path: "/", domain: ".fivenines.com" }, headers);
+```
+
+### `units` - integer helpers
+
+Throws on non-finite or non-integer input. Ratios floor; a zero denominator returns `0`.
+
+```typescript
+import { units } from "@packages/utils/units";
+
+units.asFiniteInteger(3, "n");
+units.asNonNegativeInteger(0, "n");
+units.ratioPercent(1, 3);
+units.partsPerMillion(1, 3);
 ```
 
 ## Usage in Components
@@ -167,7 +181,9 @@ packages/utils/
 │   ├── logger.ts      # Logging utility
 │   ├── logger.test.ts # Tests for logger utility
 │   ├── cookies.ts     # cookies.get / set / delete
-│   └── cookies.test.ts
+│   ├── cookies.test.ts
+│   ├── units.ts       # units.asFiniteInteger / asNonNegativeInteger / ratios
+│   └── units.test.ts
 ├── package.json       # Package configuration with exports
 └── AGENTS.md         # This documentation
 ```

@@ -1,22 +1,22 @@
 {
 	"private": true,
-	"name": "@packages/utils",
+	"name": "@package/fivenines-engine",
 	"type": "module",
 	"imports": {
 		"#*": "./src/*"
 	},
 	"exports": {
-		"./cn": "./src/cn.ts",
-		"./logger": "./src/logger.ts",
-		"./cookies": "./src/cookies.ts",
-		"./units": "./src/units.ts"
+		".": {
+			"types": "./src/index.ts",
+			"default": "./src/index.ts"
+		}
 	},
 	"scripts": {
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"test": "bun --cwd ../.. test packages/fivenines-engine"
 	},
 	"dependencies": {
-		"clsx": "2.1.1",
-		"tailwind-merge": "3.6.0"
+		"@packages/utils": "workspace:*"
 	},
 	"devDependencies": {
 		"@tools/typescript": "workspace:*",

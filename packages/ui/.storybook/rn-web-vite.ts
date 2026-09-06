@@ -634,7 +634,7 @@ export function rewriteReactNativeCssImports(): Plugin {
 		enforce: "pre",
 		transform(code, id) {
 			const filePath = id.split("?")[0] ?? id;
-			if (filePath.includes(`${path.sep}react-native-css${path.sep}`)) {
+			if (filePath.includes("react-native-css")) {
 				return;
 			}
 			if (!/\.(mjs|cjs|js|jsx|ts|tsx)$/u.test(filePath)) {

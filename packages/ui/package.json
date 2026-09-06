@@ -21,6 +21,10 @@
 			"types": "./src/molecules/index.ts",
 			"default": "./src/molecules/index.ts"
 		},
+		"./molecules/button": {
+			"types": "./src/molecules/button/button.tsx",
+			"default": "./src/molecules/button/button.tsx"
+		},
 		"./atoms": {
 			"types": "./src/atoms/index.ts",
 			"default": "./src/atoms/index.ts"
@@ -40,6 +44,10 @@
 		"./theme.ts": {
 			"types": "./src/theme.ts",
 			"default": "./src/theme.ts"
+		},
+		"./installed-package-root.ts": {
+			"types": "./src/installed-package-root.ts",
+			"default": "./src/installed-package-root.ts"
 		},
 		"./style.css": "./src/style.css"
 	},

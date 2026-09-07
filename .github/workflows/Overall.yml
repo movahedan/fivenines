@@ -53,9 +53,7 @@ jobs:
 
       - name: Convert lcov to Cobertura
         run: |
-          if [ ! -f coverage/lcov.info ]; then
-            bun test packages tools --coverage --coverage-reporter=lcov
-          fi
+          bun test packages tools --coverage --coverage-reporter=lcov
           python3 -m pip install --user lcov_cobertura
           export PATH="$HOME/.local/bin:$PATH"
           lcov_cobertura coverage/lcov.info -o coverage/cobertura.xml

@@ -2,7 +2,7 @@
 
 Set these on the **repository** (Settings → Secrets and variables → Actions). Workflows do **not** use a named GitHub Environment (`environment:`) today.
 
-**Check** is production compose for affected services. **Overall** is `bun install` plus `bun run overall --quiet --coverage` (one packages/tools test run, lcov from that step). It converts lcov to Cobertura and uploads it with `actions/upload-code-coverage`. That upload needs **GitHub Code Quality** enabled on the repo ([Settings → Code quality](https://github.com/movahedan/fivenines/settings/code-quality)); without it the API returns 404 and the step is non-blocking (`fail-on-error: false`) so the required `overall` check still passes. Do not use `--frozen-lockfile` on `bun install` in this repo. Lefthook **pre-push** still runs `bun run overall -- --quiet` locally (no extra coverage pass).
+**Check** is production compose for affected services. **Overall** is `bun install` plus `bun run overall -- --quiet --coverage` (one packages/tools test run, lcov from that step). It converts lcov to Cobertura and uploads it with `actions/upload-code-coverage`. That upload needs **GitHub Code Quality** enabled on the repo ([Settings → Code quality](https://github.com/movahedan/fivenines/settings/code-quality)); without it the API returns 404 and the step is non-blocking (`fail-on-error: false`) so the required `overall` check still passes. Do not use `--frozen-lockfile` on `bun install` in this repo. Lefthook **pre-push** still runs `bun run overall -- --quiet` locally (no extra coverage pass).
 
 **CodeQL** (`.github/workflows/codeql.yml`) scans Actions + JS/TS with `security-extended`. It needs no extra secrets or variables.
 

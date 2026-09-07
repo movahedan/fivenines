@@ -30,7 +30,7 @@ Run from repo root. Filters use workspace `name` (`@apps/nestjs`, `@packages/ui`
 | `bun run precommit` | Branch / message / staged checks |
 | Lefthook pre-push | Branch + staged + `bun run overall -- --quiet` |
 
-GitHub Actions secrets/variables: [GITHUB_WORKFLOW_ENV.md](GITHUB_WORKFLOW_ENV.md). CI **Overall** (`bun install` + `bun run overall --quiet --coverage`) is the required quality check; **Check** is production compose. Native GitHub coverage upload needs Code Quality (Team/Enterprise org). On this user-owned repo the upload 404s; Overall still produces Cobertura and does not fail the job.
+GitHub Actions secrets/variables: [GITHUB_WORKFLOW_ENV.md](GITHUB_WORKFLOW_ENV.md). CI **Overall** (`bun install` + `bun run overall -- --quiet --coverage`) is the required quality check; **Check** is production compose. Native GitHub coverage upload needs Code Quality (Team/Enterprise org). On this user-owned repo the upload 404s; Overall still produces Cobertura and does not fail the job.
 
 ## Dev (host)
 
@@ -89,7 +89,7 @@ Then open `http://play.fivenines.com:3000` (Play), login at `http://auth.fivenin
 | `bun run container up -- --profile auth` | Postgres + `@apps/auth` :3001 (migrate + seed) |
 | `bun run container up -- --profile auth --profile nestjs` | Both services + Postgres (host dev: set Nest `AUTH_*` in `.env`) |
 
-Compose Postgres is **18**. Mount is `/var/lib/postgresql` (18+ image layout). A **17** `postgres_data` volume (old `/var/lib/postgresql/data` path) will not start. Reset (`bun run container cleanup`) or dump/restore.
+Compose Postgres is **18**. Volume mounts at `/var/lib/postgresql`; `PGDATA` is `/var/lib/postgresql/18/docker`. A **17** volume at `/var/lib/postgresql/data` will not start. Reset (`bun run container cleanup`) or dump/restore.
 
 Process-up probe (JSON): `curl -sf -H 'Accept: application/json' http://localhost:3000/` (web), `:3001/status` (auth), `:3002/status` (nest), `:9000/status` (Storybook). Compose HEALTHCHECK and `bun run container check` use the same contract (`"ok":true`, 3 retries).
 

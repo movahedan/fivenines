@@ -34,8 +34,8 @@ function HelpApp({ errorMessage }: { readonly errorMessage?: string }) {
 			<Text> </Text>
 			<Text bold>Examples</Text>
 			<Text dimColor>bun run overall</Text>
-			<Text dimColor>bun run overall --quiet</Text>
-			<Text dimColor>bun run overall --quiet --coverage</Text>
+			<Text dimColor>bun run overall -- --quiet</Text>
+			<Text dimColor>bun run overall -- --quiet --coverage</Text>
 		</Box>
 	);
 }

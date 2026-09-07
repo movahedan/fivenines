@@ -63,7 +63,7 @@ services:
       start_period: 10s
 
   postgres:
-    # Postgres 18 stores data under /var/lib/postgresql (not .../data). A 17 volume will not start; reset or dump/restore.
+    # Volume is the 18+ parent dir. PGDATA is versioned. A 17 .../data volume will not start; reset or dump/restore.
     image: postgres:18-alpine
     profiles: ["nestjs", "auth", "web", "all"]
     networks:
@@ -72,6 +72,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-fivenines}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fivenines}
       POSTGRES_DB: ${POSTGRES_DB:-fivenines}
+      PGDATA: /var/lib/postgresql/18/docker
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:

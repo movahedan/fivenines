@@ -1,6 +1,11 @@
 import { useState } from "react";
 
-import type { EngineCommand, RegionId, ServerCatalogId } from "@packages/fivenines-engine";
+import type {
+	BillingSettlement,
+	EngineCommand,
+	RegionId,
+	ServerCatalogId,
+} from "@packages/fivenines-engine";
 import {
 	DEFAULT_REGION,
 	REGION_IDS,
@@ -23,6 +28,12 @@ const METRIC_KEYS = [
 
 function formatSlaPpm(value: number | null): string {
 	return value === null ? "—" : String(value);
+}
+
+function lastSettlementLabel(settlements: readonly BillingSettlement[]): string {
+	const last = settlements.at(-1);
+
+	return last === undefined ? "—" : String(last.periodRevenueCents);
 }
 
 export function LabSession() {
@@ -128,6 +139,20 @@ export function LabSession() {
 											<>
 												<p>this-hour {formatSlaPpm(project.metrics.availabilityPpm)} ppm</p>
 												<p>window {formatSlaPpm(project.metrics.windowAvailabilityPpm)} ppm</p>
+												<p>this-period PAYG {project.periodPaygCents}</p>
+												<p>hours served this week {project.hoursServedInPeriod}</p>
+												<p>last settlement {lastSettlementLabel(project.settlements)}</p>
+												{project.settlements.length > 0 ? (
+													<ul aria-label="settlement history">
+														{project.settlements.map((settlement) => (
+															<li key={settlement.periodIndex}>
+																period {settlement.periodIndex} PAYG {settlement.paygCents}{" "}
+																recurring {settlement.recurringCents} credit{" "}
+																{settlement.creditCents} revenue {settlement.periodRevenueCents}
+															</li>
+														))}
+													</ul>
+												) : null}
 											</>
 										) : null}
 										{project.status === "offered" ? (

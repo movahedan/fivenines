@@ -3,7 +3,11 @@ import { afterEach, describe, expect, it, mock } from "bun:test";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
 import { AuthProvider } from "@packages/auth/react";
-import { SKU_ECONOMY, STARTING_CASH_CENTS } from "@packages/fivenines-engine";
+import {
+	OPENING_COMMERCIAL_STUB,
+	SKU_ECONOMY,
+	STARTING_CASH_CENTS,
+} from "@packages/fivenines-engine";
 
 import { LabPage } from "./lab";
 
@@ -196,6 +200,72 @@ describe("LabPage - tick metrics", () => {
 
 		expect(within(served).getByText("this-hour 0 ppm")).toBeTruthy();
 		expect(within(served).getByText("window 0 ppm")).toBeTruthy();
+	});
+
+	it("credits this-period PAYG and cash after Buy Bronze, Accept, and Tick", async () => {
+		stubLoggedInHint(true);
+
+		renderLab();
+
+		await waitForLab();
+
+		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
+		fireEvent.click(screen.getByRole("button", { name: "Accept globex-portal" }));
+		fireEvent.click(screen.getByRole("button", { name: "Tick" }));
+
+		const served = screen.getByText(/globex-portal served/).closest("li");
+		expect(served instanceof HTMLElement).toBe(true);
+		if (!(served instanceof HTMLElement)) {
+			return;
+		}
+
+		const handled = Number(
+			within(screen.getByRole("row", { name: /handledRequests/ })).getByRole("cell").textContent,
+		);
+		const paygCents = handled * OPENING_COMMERCIAL_STUB.paygCentsPerHandled;
+
+		expect(paygCents).toBeGreaterThan(0);
+		expect(within(served).getByText(`this-period PAYG ${paygCents}`)).toBeTruthy();
+		expect(within(served).getByText("hours served this week 1")).toBeTruthy();
+		expect(within(served).getByText("last settlement —")).toBeTruthy();
+		expect(within(served).queryByRole("list", { name: "settlement history" })).toBeNull();
+
+		const maintenanceCents = Number(
+			within(screen.getByRole("row", { name: /Last opex maintenance/ })).getByRole("cell")
+				.textContent,
+		);
+		const powerCents = Number(
+			within(screen.getByRole("row", { name: /Last opex power/ })).getByRole("cell").textContent,
+		);
+		const cashCents = Number(
+			within(screen.getByRole("row", { name: /Cash/ })).getByRole("cell").textContent,
+		);
+
+		expect(cashCents).toBe(
+			STARTING_CASH_CENTS -
+				SKU_ECONOMY.bronze.purchaseCents -
+				maintenanceCents -
+				powerCents +
+				paygCents,
+		);
+	});
+
+	it("does not show billing digits on offered project rows", async () => {
+		stubLoggedInHint(true);
+
+		renderLab();
+
+		await waitForLab();
+
+		const offered = screen.getByText(/globex-portal offered/).closest("li");
+		expect(offered instanceof HTMLElement).toBe(true);
+		if (!(offered instanceof HTMLElement)) {
+			return;
+		}
+
+		expect(within(offered).queryByText(/this-period PAYG/)).toBeNull();
+		expect(within(offered).queryByText(/hours served/)).toBeNull();
+		expect(within(offered).queryByText(/last settlement/)).toBeNull();
 	});
 
 	it("does not show SLA ppm digits on offered project rows", async () => {

@@ -35,25 +35,25 @@ describe("economy-policy - v1 tables", () => {
 			},
 			silver: {
 				purchaseCents: 28_000,
-				maintenanceCentsPerHour: 140,
+				maintenanceCentsPerHour: 55,
 				idlePowerCentsPerHour: 60,
 				maxPowerCentsPerHour: 220,
 			},
 			gold: {
 				purchaseCents: 48_000,
-				maintenanceCentsPerHour: 220,
+				maintenanceCentsPerHour: 40,
 				idlePowerCentsPerHour: 100,
 				maxPowerCentsPerHour: 380,
 			},
 			platinum: {
 				purchaseCents: 72_000,
-				maintenanceCentsPerHour: 340,
+				maintenanceCentsPerHour: 28,
 				idlePowerCentsPerHour: 160,
 				maxPowerCentsPerHour: 600,
 			},
 			diamond: {
 				purchaseCents: 120_000,
-				maintenanceCentsPerHour: 550,
+				maintenanceCentsPerHour: 18,
 				idlePowerCentsPerHour: 280,
 				maxPowerCentsPerHour: 1_000,
 			},
@@ -73,6 +73,24 @@ describe("economy-policy - v1 tables", () => {
 				Math.floor((expected[catalogId].purchaseCents * 70) / 100),
 			);
 		}
+	});
+
+	it("charges less hourly maintenance on better SKUs; thin-ram is a high-maint trap", () => {
+		expect(SKU_ECONOMY.bronze.maintenanceCentsPerHour).toBeGreaterThan(
+			SKU_ECONOMY.silver.maintenanceCentsPerHour,
+		);
+		expect(SKU_ECONOMY.silver.maintenanceCentsPerHour).toBeGreaterThan(
+			SKU_ECONOMY.gold.maintenanceCentsPerHour,
+		);
+		expect(SKU_ECONOMY.gold.maintenanceCentsPerHour).toBeGreaterThan(
+			SKU_ECONOMY.platinum.maintenanceCentsPerHour,
+		);
+		expect(SKU_ECONOMY.platinum.maintenanceCentsPerHour).toBeGreaterThan(
+			SKU_ECONOMY.diamond.maintenanceCentsPerHour,
+		);
+		expect(SKU_ECONOMY["thin-ram"].maintenanceCentsPerHour).toBeGreaterThan(
+			SKU_ECONOMY.bronze.maintenanceCentsPerHour,
+		);
 	});
 
 	it("bills idle power at 0 utilization and max power when utilization exceeds 100", () => {

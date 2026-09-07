@@ -55,11 +55,13 @@ SKU money (purchase above 40_000 = unreachable on the opener):
 | SKU | purchase | with $400 | maint /h | idle power /h | max power /h |
 |-----|--------:|-----------|--------:|--------------:|-------------:|
 | bronze | 16_000 | two, or one + thin-ram | 80 | 35 | 120 |
-| silver | 28_000 | one | 140 | 60 | 220 |
-| gold | 48_000 | no | 220 | 100 | 380 |
-| platinum | 72_000 | no | 340 | 160 | 600 |
-| diamond | 120_000 | no | 550 | 280 | 1_000 |
+| silver | 28_000 | one | 55 | 60 | 220 |
+| gold | 48_000 | no | 40 | 100 | 380 |
+| platinum | 72_000 | no | 28 | 160 | 600 |
+| diamond | 120_000 | no | 18 | 280 | 1_000 |
 | thin-ram | 14_000 | yes (trap) | 90 | 45 | 150 |
+
+Better SKUs cost **less** maintenance per hour (efficiency). Power still scales up with size. `thin-ram` stays a high-maint trap.
 
 No SKU unlock / checkpoint flags. Gold+ are price-gated only.
 

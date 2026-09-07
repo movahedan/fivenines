@@ -61,7 +61,7 @@ After `tick()`, `game.metrics` (`src/game.metrics.ts`), each `server.metrics` (`
 
 ## Wallet and opex
 
-Money tunables live in `src/catalog/economy-policy.ts` (not `SERVER_CATALOG`). Salvage is `floor(purchaseCents * SALVAGE_PERCENT / 100)` (`SALVAGE_PERCENT = 70`). Jail is sticky: `cashCents <= -DEBT_LIMIT_CENTS` (20_000) sets `jailed`; this slice never clears it. Negative cash is allowed; buy still requires `cashCents >= purchaseCents`.
+Money tunables live in `src/catalog/economy-policy.ts` (not `SERVER_CATALOG`). Salvage is `floor(purchaseCents * SALVAGE_PERCENT / 100)` (`SALVAGE_PERCENT = 70`). Better SKUs pay **less** maintenance per hour; power still scales up with size; `thin-ram` is a high-maint trap. Jail is sticky: `cashCents <= -DEBT_LIMIT_CENTS` (20_000) sets `jailed`; this slice never clears it. Negative cash is allowed; buy still requires `cashCents >= purchaseCents`.
 
 Opex runs **after** `server.tick` / `measureGameTick`, **before** `hourIndex += 1`. Per box, using this hour’s `server.metrics.utilization` (tightest axis; 0 when `assignedRequests === 0`; may exceed 100):
 

@@ -83,7 +83,7 @@ Idle boxes still pay maintenance + idle power. Overload bills **max** power, not
 
 Commercial tunables live in `src/catalog/commercial-policy.ts`. Every project must have `commercial: { paygCentsPerThousandHandled, recurringCentsPerPeriod, targetPpm, creditPpm }`. PAYG and recurring ≥ 0 integers; at least one > 0; `targetPpm` / `creditPpm` finite integers. Construct throws otherwise. `acceptProject` copies `commercial` (`asServed`); it does not invent a catalog card. Player–customer MSA (multipliers) is a **different** contract noun later — not fields on `Project`.
 
-Opening cards come from `commercialTermsForCategory` (portfolio 300 / saas 450 / shopping 600 cents per thousand handled; recurring 800 / 1_500 / 2_500; target 990_000; credit 1_000_000). `OPENING_COMMERCIAL_STUB` is the saas card. Overload fixtures use `PAYG_ONLY_COMMERCIAL_STUB` (1000 cents per thousand so PAYG equals handled count).
+Opening cards come from `commercialTermsForCategory` (portfolio 450 / saas 450 / shopping 800 cents per thousand handled; recurring 800 / 1_500 / 2_500; target 990_000; credit 1_000_000). `OPENING_COMMERCIAL_STUB` is the saas card. Overload fixtures use `PAYG_ONLY_COMMERCIAL_STUB` (1000 cents per thousand so PAYG equals handled count).
 
 After opex, served projects accrue `paygCentsForHandled(handled, paygCentsPerThousandHandled)` (`floor(handled * rate / 1000)`) into `cashCents` and period buckets (`game.commercial.ts`). Emit-0: no PAYG and no period handled/emitted; still increment `hoursServedInPeriod`. Offered/declined: no PAYG. Jailed games still accrue.
 

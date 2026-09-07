@@ -164,4 +164,25 @@ describe("Game - economy balance", () => {
 
 		expect(game.cashCents).toBeLessThan(STARTING_CASH_CENTS * 2);
 	});
+
+	it("stays solvent over a 168-hour close when two owned Bronzes serve globex-billing and initech-tps", () => {
+		const cashAfterFleet = 8_000;
+		const game = new Game(
+			{
+				...openingInitial,
+				assets: [
+					{ kind: "server", id: "server-1", catalogId: "bronze", region: DEFAULT_REGION },
+					{ kind: "server", id: "server-2", catalogId: "bronze", region: DEFAULT_REGION },
+				],
+				cashCents: cashAfterFleet,
+			},
+			{ random: new FixedRandomSource(0.5) },
+		);
+		game.dispatch({ type: "acceptProject", payload: { projectId: "globex-billing" } });
+		game.dispatch({ type: "acceptProject", payload: { projectId: "initech-tps" } });
+		tickHours(game, BILLING_PERIOD_HOURS);
+
+		expect(game.jailed).toBe(false);
+		expect(game.cashCents).toBeGreaterThan(0);
+	});
 });

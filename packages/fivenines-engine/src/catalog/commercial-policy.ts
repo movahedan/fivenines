@@ -13,9 +13,9 @@ export interface CommercialTerms {
 }
 
 export const PAYG_CENTS_PER_THOUSAND_BY_CATEGORY: Record<CommercialCategory, number> = {
-	portfolio: 300,
+	portfolio: 450,
 	saas: 450,
-	shopping: 600,
+	shopping: 800,
 };
 
 export const RECURRING_CENTS_PER_PERIOD_BY_CATEGORY: Record<CommercialCategory, number> = {

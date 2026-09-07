@@ -1,6 +1,7 @@
 import type { Project, RegionId, ServerCatalogId } from "@packages/fivenines-engine";
 import { SERVER_CATALOG, SKU_ECONOMY } from "@packages/fivenines-engine";
 import { formatters } from "@packages/shared/formatters";
+import { units } from "@packages/shared/units";
 
 import type { EventLogTone } from "@/molecules/event-log/event-log";
 
@@ -83,16 +84,12 @@ export function skuRamLabel(catalogId: ServerCatalogId): string {
 	return `${String(SERVER_CATALOG[catalogId].memoryMiB)} MiB`;
 }
 
-export function utilTone(utilization: number): "primary" | "warning" | "destructive" {
-	if (utilization >= 90) {
-		return "destructive";
-	}
+export function skuNetLabel(catalogId: ServerCatalogId): string {
+	return `${String(SERVER_CATALOG[catalogId].networkBytesPerHour)} B/h`;
+}
 
-	if (utilization >= 70) {
-		return "warning";
-	}
-
-	return "primary";
+export function axisPercent(load: number, cap: number): number {
+	return units.ratioPercent(load, cap);
 }
 
 export function commandLogTone(commandType: string): EventLogTone {

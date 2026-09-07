@@ -17,26 +17,27 @@ import {
 	SKU_ECONOMY,
 } from "@packages/fivenines-engine";
 import { formatters } from "@packages/shared/formatters";
-import { Button } from "@packages/ui/molecules/button";
 
 import { ActiveProjectCard } from "@/molecules/active-project-card/active-project-card";
+import { Button } from "@/molecules/button/button";
 import { EventLog, type EventLogEntry } from "@/molecules/event-log/event-log";
 import { Hud } from "@/molecules/hud/hud";
 import { PanelHeader } from "@/molecules/panel-header/panel-header";
 import { ProjectOfferCard } from "@/molecules/project-offer-card/project-offer-card";
 import { ServerCard } from "@/molecules/server-card/server-card";
 import {
+	axisPercent,
 	commandLogTone,
 	REGION_CLASS,
 	skuCostLabel,
 	skuCpuLabel,
+	skuNetLabel,
 	skuOpexLabel,
 	skuRamLabel,
 	slaPercent,
 	slaStatusLabel,
 	slaTone,
 	sparklineFromSlaHours,
-	utilTone,
 } from "./hub-map";
 import { useHubGame } from "./use-hub-game";
 
@@ -207,9 +208,12 @@ export function HubSession() {
 							game.assets.map((asset) => (
 								<ServerCard
 									cpuLabel={skuCpuLabel(asset.catalogId)}
+									cpuPercent={axisPercent(asset.metrics.cpuLoad, asset.computeUnitsPerHour)}
 									idLabel={asset.id}
 									key={asset.id}
 									label={`${SERVER_TIER_LABEL[asset.catalogId]} · ${asset.region}`}
+									netLabel={skuNetLabel(asset.catalogId)}
+									netPercent={axisPercent(asset.metrics.netLoad, asset.networkBytesPerHour)}
 									onSell={() => {
 										runCommand(
 											{ type: "sellServer", payload: { serverId: asset.id } },
@@ -217,8 +221,8 @@ export function HubSession() {
 										);
 									}}
 									opexLabel={skuOpexLabel(asset.catalogId)}
-									utilPercent={Math.min(100, asset.metrics.utilization)}
-									utilTone={utilTone(asset.metrics.utilization)}
+									ramLabel={skuRamLabel(asset.catalogId)}
+									ramPercent={axisPercent(asset.metrics.memOcc, asset.memoryMiB)}
 									variant="fleet"
 								/>
 							))

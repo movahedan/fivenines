@@ -107,6 +107,9 @@ describe("HubPage - ops landmarks", () => {
 		await waitFor(() => {
 			expect(screen.getByText("Fleet (1)")).toBeTruthy();
 		});
+		expect(screen.getByLabelText("CPU 0 percent")).toBeTruthy();
+		expect(screen.getByLabelText("NET 0 percent")).toBeTruthy();
+		expect(screen.getByLabelText("RAM 0 percent")).toBeTruthy();
 	});
 
 	it("moves an accepted offer into the active panel", async () => {

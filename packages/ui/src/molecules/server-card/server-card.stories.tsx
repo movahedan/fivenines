@@ -12,7 +12,7 @@ const meta: Meta<typeof ServerCard> = {
 		},
 		docs: {
 			description: {
-				component: "Fleet or market server card with util blocks or a buy action.",
+				component: "Fleet or market server card with CPU/NET/RAM bars or a buy action.",
 			},
 		},
 	},
@@ -27,10 +27,13 @@ export const Fleet: Story = {
 		variant: "fleet",
 		label: "m5.large",
 		idLabel: "#A1F2",
-		cpuLabel: "CPU 3/8",
+		cpuLabel: "1000 cu",
+		netLabel: "1000000 B/h",
+		ramLabel: "4096 MiB",
 		opexLabel: "opex -$4/hr",
-		utilPercent: 38,
-		utilTone: "primary",
+		cpuPercent: 38,
+		netPercent: 12,
+		ramPercent: 8,
 		onSell: () => undefined,
 		className: "w-80",
 	},
@@ -39,9 +42,10 @@ export const Fleet: Story = {
 export const FleetHot: Story = {
 	args: {
 		...Fleet.args,
-		cpuLabel: "CPU 8/8",
-		utilPercent: 96,
-		utilTone: "destructive",
+		cpuLabel: "1000 cu",
+		cpuPercent: 96,
+		netPercent: 40,
+		ramPercent: 22,
 	},
 };
 

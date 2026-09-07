@@ -6,7 +6,7 @@ import { Text } from "../../atoms/text";
 import { Button } from "../button/button";
 import { MetricStat } from "../metric-stat/metric-stat";
 
-const FLEET_CPU_BLOCKS = 16;
+const FLEET_AXIS_BLOCKS = 16;
 
 const UTIL_FILL_CLASS = {
 	primary: "bg-primary",
@@ -14,16 +14,20 @@ const UTIL_FILL_CLASS = {
 	destructive: "bg-destructive",
 } as const;
 
+type UtilTone = keyof typeof UTIL_FILL_CLASS;
+
 export interface ServerCardProps {
 	readonly variant: "fleet" | "market";
 	readonly label: string;
 	readonly idLabel?: string;
 	readonly cpuLabel: string;
 	readonly ramLabel?: string;
+	readonly netLabel?: string;
 	readonly opexLabel: string;
 	readonly costLabel?: string;
-	readonly utilPercent?: number;
-	readonly utilTone?: keyof typeof UTIL_FILL_CLASS;
+	readonly cpuPercent?: number;
+	readonly netPercent?: number;
+	readonly ramPercent?: number;
 	readonly canAfford?: boolean;
 	readonly onSell?: () => void;
 	readonly onBuy?: () => void;
@@ -36,10 +40,12 @@ export function ServerCard({
 	idLabel,
 	cpuLabel,
 	ramLabel,
+	netLabel,
 	opexLabel,
 	costLabel,
-	utilPercent,
-	utilTone = "primary",
+	cpuPercent,
+	netPercent,
+	ramPercent,
 	canAfford,
 	onSell,
 	onBuy,
@@ -70,11 +76,6 @@ export function ServerCard({
 		);
 	}
 
-	const filledCount = Math.min(
-		FLEET_CPU_BLOCKS,
-		Math.max(0, Math.round(((utilPercent ?? 0) / 100) * FLEET_CPU_BLOCKS)),
-	);
-
 	return (
 		<Card className={cn("gap-2 p-3", className)}>
 			<View className="flex-row items-center justify-between gap-2">
@@ -90,33 +91,68 @@ export function ServerCard({
 					</Button>
 				) : null}
 			</View>
-			<View className="gap-1">
-				<View className="flex-row items-center justify-between">
-					<Text className="font-mono text-xs text-muted-foreground">{cpuLabel}</Text>
-					{utilPercent === undefined ? null : (
-						<Text className={cn("font-mono text-xs", utilTextClass(utilTone))}>
-							{`${Math.round(utilPercent)}%`}
-						</Text>
-					)}
-				</View>
-				<View className="flex-row gap-0.5">
-					{Array.from({ length: FLEET_CPU_BLOCKS }, (_, index) => (
-						<View
-							className={cn(
-								"h-2 flex-1 rounded-sm",
-								index < filledCount ? UTIL_FILL_CLASS[utilTone] : "bg-muted",
-							)}
-							key={`cpu-${index.toString()}`}
-						/>
-					))}
-				</View>
-			</View>
+			<FleetAxis capLabel={cpuLabel} name="CPU" percent={cpuPercent ?? 0} />
+			<FleetAxis capLabel={netLabel} name="NET" percent={netPercent ?? 0} />
+			<FleetAxis capLabel={ramLabel} name="RAM" percent={ramPercent ?? 0} />
 			<Text className="font-mono text-xs text-muted-foreground">{opexLabel}</Text>
 		</Card>
 	);
 }
 
-function utilTextClass(tone: keyof typeof UTIL_FILL_CLASS): string {
+interface FleetAxisProps {
+	readonly name: string;
+	readonly capLabel?: string;
+	readonly percent: number;
+}
+
+function FleetAxis({ name, capLabel, percent }: FleetAxisProps) {
+	const tone = utilToneFromPercent(percent);
+	const filledCount = Math.min(
+		FLEET_AXIS_BLOCKS,
+		Math.max(0, Math.round((percent / 100) * FLEET_AXIS_BLOCKS)),
+	);
+
+	return (
+		<View accessibilityLabel={`${name} ${String(Math.round(percent))} percent`} className="gap-1">
+			<View className="flex-row items-center justify-between gap-2">
+				<View className="min-w-0 flex-1 flex-row items-baseline gap-1.5">
+					<Text className="font-mono text-xs text-muted-foreground">{name}</Text>
+					{capLabel ? (
+						<Text className="font-mono text-xs text-muted-foreground">{capLabel}</Text>
+					) : null}
+				</View>
+				<Text className={cn("font-mono text-xs", utilTextClass(tone))}>
+					{`${String(Math.round(percent))}%`}
+				</Text>
+			</View>
+			<View className="flex-row gap-0.5">
+				{Array.from({ length: FLEET_AXIS_BLOCKS }, (_, index) => (
+					<View
+						className={cn(
+							"h-2 flex-1 rounded-sm",
+							index < filledCount ? UTIL_FILL_CLASS[tone] : "bg-muted",
+						)}
+						key={`${name}-${index.toString()}`}
+					/>
+				))}
+			</View>
+		</View>
+	);
+}
+
+function utilToneFromPercent(percent: number): UtilTone {
+	if (percent >= 90) {
+		return "destructive";
+	}
+
+	if (percent >= 70) {
+		return "warning";
+	}
+
+	return "primary";
+}
+
+function utilTextClass(tone: UtilTone): string {
 	if (tone === "warning") {
 		return "text-warning";
 	}

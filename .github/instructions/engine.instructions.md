@@ -2,6 +2,8 @@
 applyTo: "packages/fivenines-engine/**"
 ---
 
+Shared review rubric (GitHub Copilot + Cursor). Implementation truth: [`packages/fivenines-engine/AGENTS.md`](../../packages/fivenines-engine/AGENTS.md).
+
 When performing a code review on the simulation kernel:
 
 - Tick is one simulated hour. `dispatch` must not advance `hourIndex`, charge opex, accrue PAYG, settle receivable, close the week, or rewrite SLA ring slots.

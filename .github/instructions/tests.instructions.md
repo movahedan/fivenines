@@ -2,6 +2,8 @@
 applyTo: "**/*.{test,spec}.ts"
 ---
 
+Shared review rubric (GitHub Copilot + Cursor). Test style details: [`tools/tests-preset/AGENTS.md`](../../tools/tests-preset/AGENTS.md).
+
 When performing a code review on tests:
 
 - Runner is `bun:test`. Names: `describe('<module> - <unit>')`, `it('<outcome> when <condition>')`.

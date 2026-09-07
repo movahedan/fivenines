@@ -1,8 +1,8 @@
-# Copilot code review (GitHub)
+# Copilot code review (GitHub) — also Cursor
 
-These instructions apply when **GitHub Copilot code review** reviews a pull request on this repository. They do not replace Cursor rules (`.cursor/rules/`) or nested `AGENTS.md` files.
+Shared **review rubric** for GitHub Copilot code review and Cursor agents. Implementation maps stay in nested `AGENTS.md`; do not copy formulas here.
 
-When performing a code review, prefer **bugs, security, and contract lies** over style. Biome and TypeScript already enforce formatting, `noExplicitAny`, and unused locals. Do not nags about import order, kebab-case filenames, or missing JSDoc.
+When performing a code review, prefer **bugs, security, and contract lies** over style. Biome and TypeScript already enforce formatting, `noExplicitAny`, and unused locals. Do not nag about import order, kebab-case filenames, or missing JSDoc.
 
 When performing a code review, treat `@packages/fivenines-engine` as the authority for demand, capacity, wallet, jail, SLA ppm, PAYG, and week close. Flag UI or Nest code that invents those numbers or ticks a second clock. `/hub` and `/lab` may construct `Game` in the browser today; other production routes must not.
 
@@ -18,4 +18,4 @@ When performing a code review, do not demand a 336-hour tick loop in tests. Use 
 
 When performing a code review, keep comments short, severity-tagged in Copilot’s usual High/Medium/Low, and include a suggested change when the fix is local.
 
-Path-specific review notes live in `.github/instructions/*.instructions.md`. Architecture and commands stay in `AGENTS.md` and `docs/CHEATSHEET.md`.
+Path-specific review notes: `.github/instructions/*.instructions.md` (`applyTo`). Cursor reaches the same files via root `AGENTS.md` and `.cursor/rules/code-review.mdc`.

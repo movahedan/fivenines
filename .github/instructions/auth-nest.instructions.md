@@ -6,6 +6,8 @@ applyTo:
   - "packages/http/**"
 ---
 
+Shared review rubric (GitHub Copilot + Cursor). Implementation truth: nested `AGENTS.md` in auth / nest / http packages.
+
 When performing a code review on auth, Nest, or HTTP:
 
 - Cookies: HttpOnly access on `Domain=.fivenines.com`. Do not log tokens or put secrets in client bundles.

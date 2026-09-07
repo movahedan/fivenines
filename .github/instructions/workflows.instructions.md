@@ -2,6 +2,8 @@
 applyTo: ".github/workflows/**"
 ---
 
+Shared review rubric (GitHub Copilot + Cursor). Workflow env: [`docs/GITHUB_WORKFLOW_ENV.md`](../../docs/GITHUB_WORKFLOW_ENV.md).
+
 When performing a code review on GitHub Actions:
 
 - Pin actions to the same style as `Check.yml` (major.minor.patch, not floating `@v4`).

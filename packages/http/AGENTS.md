@@ -2,6 +2,8 @@
 
 **@packages/http** — HTTP client with client, server-request, and static/build runtimes. Transport types and `baseFetch` live in `src/base-fetch.ts`. The public `Fetcher` shape is `(url, RequestInit?) => Promise<TData>` so Orval mutators can call it directly.
 
+**Code review:** [`.github/instructions/auth-nest.instructions.md`](../../.github/instructions/auth-nest.instructions.md) (shared with GitHub Copilot).
+
 ## Commands
 
 ```bash

@@ -2,6 +2,8 @@
 
 **@packages/auth** — browser auth session + React provider for `@apps/auth`, plus shared scopes / JWT claim types.
 
+**Code review:** [`.github/instructions/auth-nest.instructions.md`](../../.github/instructions/auth-nest.instructions.md) (shared with GitHub Copilot).
+
 ## Exports
 
 | Import | Contents |

@@ -2,6 +2,8 @@
 
 **@packages/fivenines-engine** — pure simulation kernel (OO `Game` graph). Workspace `name` is **`@packages/fivenines-engine`** (singular `@package`). Path: `packages/fivenines-engine`.
 
+**Code review:** [`.github/instructions/engine.instructions.md`](../../.github/instructions/engine.instructions.md) (shared with GitHub Copilot). This file stays implementation truth.
+
 `@apps/web` `/lab` constructs `Game` on the client (Opening Shift). Nest is the future production caller.
 
 ## Commands

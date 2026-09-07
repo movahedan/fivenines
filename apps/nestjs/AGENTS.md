@@ -2,6 +2,8 @@
 
 Guidance for **@apps/nestjs** — multi-tenant feature flags control-plane API (NestJS 11, OpenAPI, Zod).
 
+**Code review:** [`.github/instructions/auth-nest.instructions.md`](../../.github/instructions/auth-nest.instructions.md) (shared with GitHub Copilot).
+
 ## Overview
 
 - **Port:** 3002 (`NESTJS_PORT`)

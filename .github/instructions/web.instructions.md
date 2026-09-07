@@ -2,6 +2,8 @@
 applyTo: "apps/web/**"
 ---
 
+Shared review rubric (GitHub Copilot + Cursor). Implementation truth: [`apps/web/AGENTS.md`](../../apps/web/AGENTS.md).
+
 When performing a code review on `@apps/web`:
 
 - `/hub` and `/lab` are the only allowed client `Game` constructors. Flag new routes that tick the engine in the browser.

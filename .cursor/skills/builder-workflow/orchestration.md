@@ -38,7 +38,7 @@ Checkup in builder **requires** `composer-2-fast`.
 | `explore` | Read-only search |
 | `shell` | Commands, git |
 | `ci-investigator` | One failing CI check |
-| `code-reviewer` | Review vs plan/standards |
+| `code-reviewer` | Review vs [`.github/copilot-instructions.md`](../../../.github/copilot-instructions.md) and matching `.github/instructions/*.instructions.md` |
 | `generalPurpose` | Multi-step writes |
 
 Launch multiple agents in **one message** only when paths do not overlap.

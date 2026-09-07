@@ -48,6 +48,7 @@ timeout = 5000
 
 # Enable coverage reporting
 coverage = true
+coverageReporter = ["text", "lcov"]
 coverageDir = "./coverage"
 coverageThreshold = { lines = 0.1, functions = 0.1, statements = 0.1 }
 coverageIgnoreSourcemaps = true

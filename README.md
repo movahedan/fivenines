@@ -150,7 +150,7 @@ Everything you need to build rock-solid applications is right here! We've kept i
 
 ## Quick start
 
-**Prerequisites:** Git, [Bun](https://bun.sh/) 1.3.x, [Docker](https://docs.docker.com/desktop/), Node **≥ 25**.
+**Prerequisites:** Git, [Bun](https://bun.sh/) **1.4.2** (root `packageManager`), [Docker](https://docs.docker.com/desktop/), Node **≥ 26**.
 
 ```bash
 git clone https://github.com/movahedan/fivenines.git && cd fivenines

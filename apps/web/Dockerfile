@@ -1,4 +1,4 @@
-FROM oven/bun:1.4.0-alpine AS base
+FROM oven/bun:1.4.2-alpine AS base
 RUN bun install -g turbo@2.5.5
 
 FROM base AS turbo
@@ -26,7 +26,7 @@ COPY --from=pruner /app/tools ./tools
 COPY --from=installer /app/ .
 RUN cp apps/web/.env.sample apps/web/.env && bun run build --filter=@apps/web
 
-FROM oven/bun:1.4.0-alpine AS runner
+FROM oven/bun:1.4.2-alpine AS runner
 WORKDIR /app
 RUN apk add --no-cache curl \
 	&& addgroup --system --gid 1001 runner-group \

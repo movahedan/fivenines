@@ -10,6 +10,7 @@ volumes:
 
 services:
   postgres:
+    # Postgres 18 cannot use a data directory from 17. Reset postgres_data or dump/restore.
     image: postgres:18-alpine
     networks:
       - prod-network

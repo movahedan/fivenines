@@ -4,7 +4,7 @@ Shared with GitHub Copilot (code review **and** coding agent) and Cursor. Implem
 
 ## Before you commit
 
-Lefthook runs `bun run overall -- --quiet` on **pre-push**, not on every commit. GitHub Copilot’s commits go through GitHub and **do not run Lefthook**.
+Lefthook runs `bun run overall -- --quiet` on **pre-push**, not on every commit. GitHub Copilot’s commits go through GitHub and **do not run Lefthook**. GitHub Actions **Overall** is the same gate on PRs (`bun install` + `bun run overall`; no `--frozen-lockfile`).
 
 Before `git commit` or `git push`:
 

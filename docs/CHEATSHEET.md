@@ -29,7 +29,7 @@ Run from repo root. Filters use workspace `name` (`@apps/nestjs`, `@packages/ui`
 | `bun run precommit` | Branch / message / staged checks |
 | Lefthook pre-push | Branch + staged + `bun run overall -- --quiet` |
 
-GitHub Actions secrets/variables: [GITHUB_WORKFLOW_ENV.md](GITHUB_WORKFLOW_ENV.md).
+GitHub Actions secrets/variables: [GITHUB_WORKFLOW_ENV.md](GITHUB_WORKFLOW_ENV.md). CI **Overall** (`bun install` + `bun run overall`) is the required quality check; **Check** is production compose. Coverage for the GitHub Code Quality ruleset is uploaded from that Overall job (Bun lcov → Cobertura). Line thresholds stay at 10% in `bunfig.toml` and on the ruleset until the uploaded number is honest enough to raise.
 
 ## Dev (host)
 
@@ -87,6 +87,8 @@ Then open `http://play.fivenines.com:3000` (Play), login at `http://auth.fivenin
 | `bun run container up -- --profile nestjs` | Postgres + `@apps/nestjs` :3002 |
 | `bun run container up -- --profile auth` | Postgres + `@apps/auth` :3001 (migrate + seed) |
 | `bun run container up -- --profile auth --profile nestjs` | Both services + Postgres (host dev: set Nest `AUTH_*` in `.env`) |
+
+Compose Postgres is **18**. If the `postgres_data` volume was created by **17**, the 18 container will refuse to start. Reset the volume (`bun run container cleanup`) or dump/restore. Do not expect an in-place catalog upgrade.
 
 Process-up probe (JSON): `curl -sf -H 'Accept: application/json' http://localhost:3000/` (web), `:3001/status` (auth), `:3002/status` (nest), `:9000/status` (Storybook). Compose HEALTHCHECK and `bun run container check` use the same contract (`"ok":true`, 3 retries).
 

@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, mock } from "bun:test";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
 import { AuthProvider } from "@packages/auth/react";
+import { SKU_ECONOMY, STARTING_CASH_CENTS } from "@packages/fivenines-engine";
 
 import { LabPage } from "./lab";
 
@@ -139,6 +140,42 @@ describe("LabPage - tick metrics", () => {
 		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
 
 		expect(screen.getByText(/server-1 Bronze utc\+9/)).toBeTruthy();
+	});
+
+	it("shows starting cash in cents on the finance strip", async () => {
+		stubLoggedInHint(true);
+
+		renderLab();
+
+		await waitForLab();
+
+		const row = screen.getByRole("row", { name: /Cash/ });
+		expect(Number(within(row).getByRole("cell").textContent)).toBe(STARTING_CASH_CENTS);
+	});
+
+	it("drops displayed cash after Buy Bronze", async () => {
+		stubLoggedInHint(true);
+
+		renderLab();
+
+		await waitForLab();
+
+		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
+
+		const row = screen.getByRole("row", { name: /Cash/ });
+		expect(Number(within(row).getByRole("cell").textContent)).toBe(
+			STARTING_CASH_CENTS - SKU_ECONOMY.bronze.purchaseCents,
+		);
+	});
+
+	it("disables Buy Gold at start because cash is below purchase", async () => {
+		stubLoggedInHint(true);
+
+		renderLab();
+
+		await waitForLab();
+
+		expect(screen.getByRole("button", { name: "Buy Gold" })).toBeDisabled();
 	});
 
 	it("removes a server when Delete is clicked", async () => {

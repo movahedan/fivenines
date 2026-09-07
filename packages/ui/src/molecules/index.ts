@@ -1,7 +1,6 @@
 export * from "./active-project-card/active-project-card";
 export * from "./button/button";
 export * from "./card/card";
-export * from "./counter-button/counter-button";
 export * from "./event-log/event-log";
 export * from "./hud/hud";
 export * from "./input/input";

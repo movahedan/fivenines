@@ -89,7 +89,7 @@ const ComplexLayoutComponent = () => {
 			</CardHeader>
 			<CardContent>
 				<div className="grid w-full items-center gap-4">
-					<div className="flex flex-col space-y-1.5">
+					<div className="flex flex-col gap-1.5">
 						<label htmlFor={nameId}>Name</label>
 						<input
 							id={nameId}
@@ -97,7 +97,7 @@ const ComplexLayoutComponent = () => {
 							className="border rounded px-3 py-2"
 						/>
 					</div>
-					<div className="flex flex-col space-y-1.5">
+					<div className="flex flex-col gap-1.5">
 						<label htmlFor={frameworkId}>Framework</label>
 						<select id={frameworkId} className="border rounded px-3 py-2">
 							<option value="">Select a framework</option>

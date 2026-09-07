@@ -16,6 +16,8 @@ describe("Link", () => {
 		const link = screen.getByRole("link");
 		expect(link).toBeInTheDocument();
 		expect(link).toHaveAttribute("href", "https://example.com");
+		expect(link).toHaveClass("text-info");
+		expect(link).toHaveClass("hover:text-primary");
 		expect(link).toHaveTextContent("Example Link");
 	});
 
@@ -66,6 +68,7 @@ describe("Link", () => {
 		const link = screen.getByTestId("test-link");
 		expect(link).toHaveAttribute("aria-label", "Test link");
 		expect(link).toHaveClass("custom-class");
+		expect(link).toHaveClass("text-info");
 		expect(link).toHaveAttribute("href", "https://example.com");
 	});
 

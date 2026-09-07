@@ -3,6 +3,7 @@ import { useState } from "react";
 import type {
 	BillingSettlement,
 	EngineCommand,
+	Project,
 	RegionId,
 	ServerCatalogId,
 } from "@packages/fivenines-engine";
@@ -39,7 +40,7 @@ function lastSettlementLabel(settlements: readonly BillingSettlement[]): string 
 export function LabSession() {
 	const { game, lastError, tick, dispatch, reset } = useLabGame();
 	const [region, setRegion] = useState<RegionId>(DEFAULT_REGION);
-	const { cashCents, jailed, maintenanceCents, powerCents } = game.finance;
+	const { cashCents, accountsReceivableCents, jailed, maintenanceCents, powerCents } = game.finance;
 
 	return (
 		<main className="flex flex-col gap-6">
@@ -58,6 +59,10 @@ export function LabSession() {
 						<tr>
 							<th scope="row">Cash</th>
 							<td>{cashCents}</td>
+						</tr>
+						<tr>
+							<th scope="row">Accounts receivable</th>
+							<td>{accountsReceivableCents}</td>
 						</tr>
 						<tr>
 							<th scope="row">Jailed</th>
@@ -135,6 +140,7 @@ export function LabSession() {
 								{customer.projects.map((project) => (
 									<li key={project.id}>
 										{project.id} {project.status}
+										{project.status === "offered" ? <OfferCard project={project} /> : null}
 										{project.status === "served" ? (
 											<>
 												<p>this-hour {formatSlaPpm(project.metrics.availabilityPpm)} ppm</p>
@@ -186,6 +192,28 @@ export function LabSession() {
 				)}
 			</section>
 		</main>
+	);
+}
+
+function OfferCard({ project }: { readonly project: Project }) {
+	const campaign = project.campaign;
+
+	return (
+		<>
+			<p>region {project.region}</p>
+			<p>baseline {project.estimatedRequestsPerHour}</p>
+			<p>traffic {project.category}</p>
+			<p>spikes {project.campaignProne ? "campaign-prone" : "none"}</p>
+			{campaign !== undefined ? (
+				<p>
+					campaign hour {campaign.startHour} for {campaign.durationHours}h
+				</p>
+			) : null}
+			<p>PAYG {project.commercial.paygCentsPerThousandHandled}/1000</p>
+			<p>recurring {project.commercial.recurringCentsPerPeriod}</p>
+			<p>SLA target {project.commercial.targetPpm}</p>
+			<p>penalty mild 25% / severe 50% / catastrophe 100%</p>
+		</>
 	);
 }
 

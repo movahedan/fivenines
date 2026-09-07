@@ -5,6 +5,7 @@ import {
 	OPENING_COMMERCIAL_STUB,
 	PAYG_ONLY_COMMERCIAL_STUB,
 	SETTLEMENT_HISTORY_K,
+	slaCreditPpm,
 } from "./catalog/commercial-policy";
 import { STARTING_CASH_CENTS } from "./catalog/economy-policy";
 import { slaAvailabilityPpm } from "./catalog/sla-policy";
@@ -36,9 +37,10 @@ function expectedCredit(
 	periodRevenueCents: number,
 	periodPpm: number | null,
 	targetPpm: number,
-	creditPpm: number,
 ): number {
-	if (periodPpm === null || periodPpm >= targetPpm) {
+	const creditPpm = slaCreditPpm(periodPpm, targetPpm);
+
+	if (creditPpm === 0) {
 		return 0;
 	}
 
@@ -161,7 +163,6 @@ describe("Game - billing close", () => {
 			recurringCents,
 			periodPpm,
 			OPENING_COMMERCIAL_STUB.targetPpm,
-			OPENING_COMMERCIAL_STUB.creditPpm,
 		);
 
 		expect(settlement?.periodPpm).toBe(0);

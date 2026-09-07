@@ -20,6 +20,11 @@ export function constantProject(
 	};
 }
 
+const OPENING_TARGET_PPM: Partial<Record<string, number>> = {
+	"acme-web": 995_000,
+	"initech-tps": 980_000,
+};
+
 function shapedProject(
 	id: string,
 	estimatedRequestsPerHour: number,
@@ -36,7 +41,10 @@ function shapedProject(
 		category,
 		region,
 		campaignProne,
-		commercial: commercialTermsForCategory(category),
+		commercial: {
+			...commercialTermsForCategory(category),
+			...(OPENING_TARGET_PPM[id] === undefined ? {} : { targetPpm: OPENING_TARGET_PPM[id] }),
+		},
 		...(campaign === undefined ? {} : { campaign }),
 	};
 }

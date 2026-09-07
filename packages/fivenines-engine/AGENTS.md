@@ -36,7 +36,7 @@ Runtime: `@packages/shared/units`, `@packages/shared/ids`. Integers only at the 
 
 ## Clock and RNG
 
-`hourIndex` starts at `0`. Each `tick()` uses the **current** hour for demand, rolls physics metrics, attributes per-project SLA, charges opex, accrues PAYG, may trip jail, then `hourIndex += 1`. If `hourIndex % BILLING_PERIOD_HOURS === 0`, week close runs. Derived: `hourOfDay = hourIndex % 24`, `dayIndex = floor(hourIndex / 24)`. `dispatch` does not change the clock, does not charge hourly opex, does not accrue PAYG, does not close the week, and does not rewrite SLA ring slots.
+`hourIndex` starts at `0`. Each `tick()` uses the **current** hour for demand, rolls physics metrics, attributes per-project SLA, charges opex, accrues PAYG into **accounts receivable**, may trip jail from **cash**, then `hourIndex += 1`. If `hourIndex % PAYG_SETTLE_HOURS === 0` (24), receivable settles into cash. If `hourIndex % BILLING_PERIOD_HOURS === 0`, week close runs. Derived: `hourOfDay = hourIndex % 24`, `dayIndex = floor(hourIndex / 24)`. `dispatch` does not change the clock, does not charge hourly opex, does not accrue PAYG, does not settle receivable, does not close the week, and does not rewrite SLA ring slots.
 
 `new Game(initial, { random?: RandomSource })`. Default wraps `Math.random`. Demand code calls `random.nextUnit()` only.
 
@@ -55,9 +55,9 @@ const overloaded = new Game(oneBronzeInitial).tick();
 const healthy = new Game(twoBronzeInitial).tick();
 ```
 
-`GameInitial`: `{ customers, assets, cashCents?, jailed? }`. Empty `assets` is valid. Defaults: `cashCents = STARTING_CASH_CENTS` (25_000), `jailed = false` (`src/catalog/economy-policy.ts`). Cash is signed integer cents. Opening cash buys one Bronze (18_000) with runway; Silver and above stay out of reach at start.
+`GameInitial`: `{ customers, assets, cashCents?, accountsReceivableCents?, jailed? }`. Empty `assets` is valid. Defaults: `cashCents = STARTING_CASH_CENTS` (25_000), `accountsReceivableCents = 0`, `jailed = false` (`src/catalog/economy-policy.ts`). Cash is signed integer cents. Opening cash buys one Bronze (18_000) with runway; Silver and above stay out of reach at start.
 
-After `tick()`, `game.metrics` (`src/game.metrics.ts`), each `server.metrics` (`src/server.metrics.ts`), and each `project.metrics` (`src/project.metrics.ts`) hold that hour’s snapshot. `game.finance` (`src/game.finance.ts`) is the last-hour money snapshot: `cashCents`, `jailed`, fleet totals `opexCents` / `maintenanceCents` / `powerCents`.
+After `tick()`, `game.metrics` (`src/game.metrics.ts`), each `server.metrics` (`src/server.metrics.ts`), and each `project.metrics` (`src/project.metrics.ts`) hold that hour’s snapshot. `game.finance` (`src/game.finance.ts`) is the last-hour money snapshot: `cashCents`, `accountsReceivableCents`, `jailed`, fleet totals `opexCents` / `maintenanceCents` / `powerCents`.
 
 ## SLA measurement
 
@@ -77,23 +77,29 @@ powerCents   = idle + floor((max - idle) * utilForPower / 100)
 opexCents    = maintenance + powerCents
 ```
 
-Idle boxes still pay maintenance + idle power. Overload bills **max** power, not above TDP. Empty fleet opex is 0. Then `cashCents -= totalOpex`. Served PAYG is added next. Jail trips after that combined wallet move.
+Idle boxes still pay maintenance + idle power. Overload bills **max** power, not above TDP. Empty fleet opex is 0. Then `cashCents -= totalOpex`. Served PAYG is added to `accountsReceivableCents`, not cash. Jail trips after the opex cash move (receivable does not delay jail).
 
 ## Billing (PAYG)
 
 Commercial tunables live in `src/catalog/commercial-policy.ts`. Every project must have `commercial: { paygCentsPerThousandHandled, recurringCentsPerPeriod, targetPpm, creditPpm }`. PAYG and recurring ≥ 0 integers; at least one > 0; `targetPpm` / `creditPpm` finite integers. Construct throws otherwise. `acceptProject` copies `commercial` (`asServed`); it does not invent a catalog card. Player–customer MSA (multipliers) is a **different** contract noun later — not fields on `Project`.
 
-Opening cards come from `commercialTermsForCategory` (portfolio 330 / saas 450 / shopping 650 cents per thousand handled; recurring 800 / 1_500 / 2_500; target 990_000; credit 1_000_000). `OPENING_COMMERCIAL_STUB` is the saas card. Overload fixtures use `PAYG_ONLY_COMMERCIAL_STUB` (1000 cents per thousand so PAYG equals handled count).
+Opening cards come from `commercialTermsForCategory` (portfolio 330 / saas 450 / shopping 650 cents per thousand handled; recurring 800 / 1_500 / 2_500; target 990_000; credit 1_000_000). `OPENING_COMMERCIAL_STUB` is the saas card. Overload fixtures use `PAYG_ONLY_COMMERCIAL_STUB` (1000 cents per thousand so PAYG equals handled count). Opening `acme-web` target is **995_000**; `initech-tps` is **980_000**.
 
-After opex, served projects accrue `paygCentsForHandled(handled, paygCentsPerThousandHandled)` (`floor(handled * rate / 1000)`) into `cashCents` and period buckets (`game.commercial.ts`). Emit-0: no PAYG and no period handled/emitted; still increment `hoursServedInPeriod`. Offered/declined: no PAYG. Jailed games still accrue.
+After opex, served projects accrue `paygCentsForHandled(handled, paygCentsPerThousandHandled)` into **period buckets** and `game.accountsReceivableCents` (`game.commercial.ts`). Emit-0: no PAYG and no period handled/emitted; still increment `hoursServedInPeriod`. Offered/declined: no PAYG. Jailed games still accrue receivable.
 
-After `hourIndex += 1`, if `hourIndex % BILLING_PERIOD_HOURS === 0` (168), close each project with `hoursServedInPeriod > 0`:
+After `hourIndex += 1`, if `hourIndex % PAYG_SETTLE_HOURS === 0` (24), `cashCents += accountsReceivableCents` and receivable resets to 0.
+
+If `hourIndex % BILLING_PERIOD_HOURS === 0` (168), close each project with `hoursServedInPeriod > 0`:
 
 ```
 recurring = floor(recurringCentsPerPeriod * hoursServedInPeriod / 168)
 periodPpm = slaAvailabilityPpm(periodHandled, periodEmitted)  // Z2; not windowAvailabilityPpm
-credit    = periodPpm === null || periodPpm >= targetPpm ? 0
-          : min(periodRevenue, floor(periodRevenue * creditPpm / 1_000_000))
+creditPpm = slaCreditPpm(periodPpm, targetPpm)
+          // 0 if null or >= target
+          // 250_000 if periodPpm >= 950_000
+          // 500_000 if periodPpm >= 800_000
+          // 1_000_000 otherwise
+credit    = min(periodRevenue, floor(periodRevenue * creditPpm / 1_000_000))
 ```
 
 `periodRevenue = periodPaygCents + recurring`. Cash += recurring − credit. Push a settlement (`periodIndex = hourIndex / 168`); keep `SETTLEMENT_HISTORY_K` (8). Reset period buckets. Offered/declined skip. Jail still closes.

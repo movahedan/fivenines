@@ -27,11 +27,11 @@ Routes live under `src/routes/` (same convention as xpertell product apps):
 
 ## Lab
 
-`src/lab/lab-session.tsx` reads the engine wallet; it does **not** subtract cash. Finance strip: `game.finance` cash, jailed, last-hour maintenance vs power. Buy disabled when `jailed` or `cashCents < SKU_ECONOMY[sku].purchaseCents`. Accept disabled when jailed. Sell/Delete stays enabled if a server exists. Reset constructs a new `Game(openingInitial)` (starting cash, not jailed). Region picker uses `REGION_IDS` / `DEFAULT_REGION` from the engine.
+`src/lab/lab-session.tsx` reads the engine wallet; it does **not** subtract cash. Finance strip: `game.finance` cash, **accounts receivable**, jailed, last-hour maintenance vs power. Buy disabled when `jailed` or `cashCents < SKU_ECONOMY[sku].purchaseCents`. Accept disabled when jailed. Sell/Delete stays enabled if a server exists. Reset constructs a new `Game(openingInitial)` (starting cash, not jailed). Region picker uses `REGION_IDS` / `DEFAULT_REGION` from the engine.
 
-Served project rows show this-hour and window `availabilityPpm` from `project.metrics` (`—` when `null`). Offered and declined rows show no SLA digits. No sparkline.
+Offered project rows show region, baseline, category, spike/campaign flags, PAYG per thousand, recurring, SLA target, and the 25/50/100 credit bands before Accept. Served project rows show this-hour and window `availabilityPpm` from `project.metrics` (`—` when `null`). Offered and declined rows show no live this-hour/window SLA digits. No sparkline.
 
-Served rows also show this-period PAYG (`periodPaygCents`), hours served this week, last settlement (or `—`), and a compact list of ≤8 closes from `project.settlements`. Offered/declined rows show no billing digits. Lab does not run week-close itself.
+Served rows also show this-period PAYG (`periodPaygCents`), hours served this week, last settlement (or `—`), and a compact list of ≤8 closes from `project.settlements`. Offered rows do not show this-period PAYG or settlement history. Lab does not run week-close or receivable settle itself.
 
 ```bash
 bun test apps/web/src/routes/lab.test.tsx

@@ -17,6 +17,7 @@ describe("Game - construct wallet", () => {
 		expect(game.jailed).toBe(false);
 		expect(game.finance).toEqual({
 			cashCents: STARTING_CASH_CENTS,
+			accountsReceivableCents: 0,
 			jailed: false,
 			opexCents: 0,
 			maintenanceCents: 0,
@@ -90,9 +91,8 @@ describe("Game - opex", () => {
 		game.tick();
 
 		expect(game.metrics.handledRequests + game.metrics.droppedRequests).toBe(1400);
-		expect(game.cashCents).toBe(
-			STARTING_CASH_CENTS - game.finance.opexCents + game.metrics.handledRequests,
-		);
+		expect(game.cashCents).toBe(STARTING_CASH_CENTS - game.finance.opexCents);
+		expect(game.accountsReceivableCents).toBe(game.metrics.handledRequests);
 		expect(game.finance.opexCents).toBeGreaterThan(0);
 	});
 });

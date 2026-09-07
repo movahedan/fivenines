@@ -4,19 +4,19 @@ overview: "Scenario harness first, then catalog/PAYG unit retune. No AR, cancel,
 todos:
   - id: phase-1-harness
     content: "Phase 1: economy.balance.test.ts target scenarios (may be red until phase 2)"
-    status: in_progress
+    status: completed
   - id: phase-1-verify
     content: "Phase 1: bun test packages/fivenines-engine/src/economy.balance.test.ts (expect fail)"
-    status: pending
+    status: completed
   - id: phase-2-policy
     content: "Phase 2: payg per thousand, start cash, maint curve, creditPpm, opening cards"
-    status: pending
+    status: completed
   - id: phase-2-verify
     content: "Phase 2 gate: bun test packages/fivenines-engine && web lab.test && typecheck"
     status: pending
   - id: phase-2-docs
     content: "Phase 2: documentation-sync engine + web AGENTS"
-    status: pending
+    status: completed
   - id: phase-2-pr
     content: "Phase 2: git-pr-workflow after green (two commits on one PR)"
     status: pending

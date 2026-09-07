@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
-import { BILLING_PERIOD_HOURS, OPENING_COMMERCIAL_STUB } from "./catalog/commercial-policy";
+import { BILLING_PERIOD_HOURS, commercialTermsForCategory } from "./catalog/commercial-policy";
 import { SKU_ECONOMY, STARTING_CASH_CENTS } from "./catalog/economy-policy";
 import type { ServerCatalogId } from "./catalog/kernel";
 import { DEFAULT_REGION, type RegionId } from "./catalog/regions";
@@ -50,7 +50,7 @@ function constantContract(
 		category,
 		region: DEFAULT_REGION,
 		campaignProne: false,
-		commercial: OPENING_COMMERCIAL_STUB,
+		commercial: commercialTermsForCategory(category),
 	};
 }
 
@@ -140,13 +140,13 @@ describe("Game - economy balance", () => {
 		expect(goldNet).toBeLessThan(bronzeNet);
 	});
 
-	it("survives 168 hours solvent when one Bronze serves only initech-tps", () => {
+	it("survives 168 hours solvent when one Bronze serves only northwind-search", () => {
 		const game = new Game(openingInitial, { random: new FixedRandomSource(0.5) });
 		game.dispatch({
 			type: "buyServer",
 			payload: { serverType: "bronze", region: DEFAULT_REGION },
 		});
-		game.dispatch({ type: "acceptProject", payload: { projectId: "initech-tps" } });
+		game.dispatch({ type: "acceptProject", payload: { projectId: "northwind-search" } });
 		tickHours(game, BILLING_PERIOD_HOURS);
 
 		expect(game.jailed).toBe(false);

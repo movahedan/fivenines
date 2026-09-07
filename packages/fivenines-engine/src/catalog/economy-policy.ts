@@ -1,6 +1,6 @@
 import type { ServerCatalogId } from "./kernel";
 
-export const STARTING_CASH_CENTS = 40_000;
+export const STARTING_CASH_CENTS = 25_000;
 export const DEBT_LIMIT_CENTS = 20_000;
 export const SALVAGE_PERCENT = 70;
 
@@ -13,38 +13,38 @@ export interface SkuEconomy {
 
 export const SKU_ECONOMY: Record<ServerCatalogId, SkuEconomy> = {
 	bronze: {
-		purchaseCents: 16_000,
+		purchaseCents: 18_000,
 		maintenanceCentsPerHour: 80,
 		idlePowerCentsPerHour: 35,
 		maxPowerCentsPerHour: 120,
 	},
 	silver: {
 		purchaseCents: 28_000,
-		maintenanceCentsPerHour: 55,
+		maintenanceCentsPerHour: 150,
 		idlePowerCentsPerHour: 60,
 		maxPowerCentsPerHour: 220,
 	},
 	gold: {
 		purchaseCents: 48_000,
-		maintenanceCentsPerHour: 40,
+		maintenanceCentsPerHour: 280,
 		idlePowerCentsPerHour: 100,
 		maxPowerCentsPerHour: 380,
 	},
 	platinum: {
 		purchaseCents: 72_000,
-		maintenanceCentsPerHour: 28,
+		maintenanceCentsPerHour: 520,
 		idlePowerCentsPerHour: 160,
 		maxPowerCentsPerHour: 600,
 	},
 	diamond: {
 		purchaseCents: 120_000,
-		maintenanceCentsPerHour: 18,
+		maintenanceCentsPerHour: 960,
 		idlePowerCentsPerHour: 280,
 		maxPowerCentsPerHour: 1_000,
 	},
 	"thin-ram": {
 		purchaseCents: 14_000,
-		maintenanceCentsPerHour: 90,
+		maintenanceCentsPerHour: 200,
 		idlePowerCentsPerHour: 45,
 		maxPowerCentsPerHour: 150,
 	},

@@ -3,7 +3,6 @@ import { lazy, Suspense, useEffect, useState } from "react";
 
 import { useAuth } from "@packages/auth/react";
 
-import { isReturnHomeAfterLogout, POST_LOGOUT_PATH } from "../auth/after-logout";
 import { useGameClock } from "../clock/use-game-clock";
 
 const HubSession = lazy(async () => {
@@ -26,11 +25,6 @@ export function HubPage() {
 
 	useEffect(() => {
 		if (!wasLoggedIn) {
-			if (isReturnHomeAfterLogout()) {
-				window.location.replace(POST_LOGOUT_PATH);
-				return;
-			}
-
 			window.location.assign(loginHref({ redirectUri: "/hub" }));
 			return;
 		}
@@ -39,11 +33,6 @@ export function HubPage() {
 
 	useEffect(() => {
 		if (clock.status === "unauthenticated") {
-			if (isReturnHomeAfterLogout()) {
-				window.location.replace(POST_LOGOUT_PATH);
-				return;
-			}
-
 			window.location.assign(loginHref({ redirectUri: "/hub" }));
 		}
 	}, [clock.status, loginHref]);

@@ -13,13 +13,13 @@ todos:
     status: completed
   - id: phase-2-close
     content: "Phase 2: U1 close, V1 recurring, Z2/T1 credit, cap-8 settlements"
-    status: pending
+    status: completed
   - id: phase-2-verify
     content: "Phase 2 gate: bun test packages/fivenines-engine && bun run turbo run typecheck --filter=@packages/fivenines-engine"
-    status: pending
+    status: completed
   - id: phase-2-docs
     content: "Phase 2: documentation-sync (engine AGENTS.md) after build, before PR"
-    status: pending
+    status: completed
   - id: phase-3-lab
     content: "Phase 3: /lab this-period PAYG, last settlement, history list"
     status: pending

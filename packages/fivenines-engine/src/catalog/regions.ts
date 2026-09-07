@@ -14,6 +14,10 @@ function isRegionId(value: string): value is RegionId {
 	return Object.hasOwn(BY_ID, value);
 }
 
+export const REGION_IDS = Object.keys(BY_ID).filter(isRegionId);
+
+export const DEFAULT_REGION: RegionId = "utc+0";
+
 function parseRegionId(value: string): RegionId {
 	if (!isRegionId(value)) {
 		throw new Error(`unknown region: ${value}`);
@@ -36,6 +40,8 @@ function remoteLatencyMs(from: RegionId, to: RegionId): number {
 
 export const regions = {
 	byId: BY_ID,
+	ids: REGION_IDS,
+	defaultId: DEFAULT_REGION,
 	isRegionId,
 	parseRegionId,
 	offsetHoursFor,

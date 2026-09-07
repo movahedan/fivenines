@@ -2,8 +2,15 @@ import { units } from "@packages/shared/units";
 
 import { type RegionId, regions } from "./catalog/regions";
 import { TRAFFIC_POLICY } from "./catalog/traffic-policy";
+import {
+	EMPTY_PROJECT_TICK_METRICS,
+	measureProjectTick,
+	type ProjectTickMetrics,
+} from "./project.metrics";
 import { ConstantDemand, type DemandModel, ProjectDemand } from "./traffic/project-demand";
 import type { RandomSource } from "./traffic/random-source";
+
+export type { ProjectTickMetrics } from "./project.metrics";
 
 export type ProjectStatus = "offered" | "declined" | "served";
 export type ProjectCategory = "shopping" | "saas" | "portfolio";
@@ -50,6 +57,7 @@ export class Project {
 	readonly campaign: CampaignWindow | undefined;
 	readonly #status: ProjectStatus;
 	readonly #demandModel: DemandModel;
+	#metrics: ProjectTickMetrics = EMPTY_PROJECT_TICK_METRICS;
 
 	constructor(initial: ProjectInitial) {
 		this.id = initial.id;
@@ -84,11 +92,21 @@ export class Project {
 		return this.#status;
 	}
 
+	get metrics(): ProjectTickMetrics {
+		return this.#metrics;
+	}
+
 	tick(hourIndex: number, random: RandomSource): number {
 		if (this.#status !== "served") {
+			this.#metrics = EMPTY_PROJECT_TICK_METRICS;
+
 			return 0;
 		}
 
-		return this.#demandModel.demandFor(hourIndex, random);
+		const emittedRequests = this.#demandModel.demandFor(hourIndex, random);
+
+		this.#metrics = measureProjectTick(emittedRequests);
+
+		return emittedRequests;
 	}
 }

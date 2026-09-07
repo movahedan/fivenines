@@ -125,7 +125,20 @@ describe("LabPage - tick metrics", () => {
 
 		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
 
-		expect(screen.getByText(/server-1 Bronze/)).toBeTruthy();
+		expect(screen.getByText(/server-1 Bronze utc\+0/)).toBeTruthy();
+	});
+
+	it("adds a Bronze server in utc+9 when that region is selected", async () => {
+		stubLoggedInHint(true);
+
+		renderLab();
+
+		await waitForLab();
+
+		fireEvent.change(screen.getByLabelText("Region"), { target: { value: "utc+9" } });
+		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
+
+		expect(screen.getByText(/server-1 Bronze utc\+9/)).toBeTruthy();
 	});
 
 	it("removes a server when Delete is clicked", async () => {

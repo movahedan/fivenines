@@ -36,7 +36,7 @@ Runtime: `@packages/shared/units`, `@packages/shared/ids`. Integers only at the 
 
 ## Clock and RNG
 
-`hourIndex` starts at `0`. Each `tick()` uses the **current** hour for demand, rolls physics metrics, attributes per-project SLA, charges opex, accrues PAYG into **accounts receivable**, may trip jail from **cash**, then `hourIndex += 1`. If `hourIndex % PAYG_SETTLE_HOURS === 0` (24), receivable settles into cash. If `hourIndex % BILLING_PERIOD_HOURS === 0`, week close runs. Derived: `hourOfDay = hourIndex % 24`, `dayIndex = floor(hourIndex / 24)`. `dispatch` does not change the clock, does not charge hourly opex, does not accrue PAYG, does not settle receivable, does not close the week, and does not rewrite SLA ring slots.
+`hourIndex` starts at `0`. Each `tick()` uses the **current** hour for demand, rolls physics metrics, attributes per-project SLA, charges opex, accrues PAYG into **accounts receivable**, may trip jail from **cash**, then `hourIndex += 1`. If `hourIndex % PAYG_SETTLE_HOURS === 0` (24), receivable settles into cash. If `hourIndex % BILLING_PERIOD_HOURS === 0`, week close runs. Derived: `hourOfDay = hourIndex % 24`, `dayIndex = floor(hourIndex / 24)`. `dispatch` does not change the clock, does not charge hourly opex, does not accrue PAYG, does not settle receivable, does not close the week, does not rewrite SLA ring slots, and does not emit sim events. Each `tick()` replaces `game.events` (`EngineEvent` in `src/game.events.ts`) with that hour’s **edge** lines only: `slaBreached` / `slaRecovered` (window vs `targetPpm`), `paygSettled`, `weeklyCreditCharged`, `serverSaturated` (utilization ≥ 100), `cashLow` (cash crossing ≤ 0). Construct starts with `events: []`. Event `hourIndex` is the hour just simulated (before the increment).
 
 `new Game(initial, { random?: RandomSource })`. Default wraps `Math.random`. Demand code calls `random.nextUnit()` only.
 
@@ -63,7 +63,7 @@ After `tick()`, `game.metrics` (`src/game.metrics.ts`), each `server.metrics` (`
 
 After `server.tick`, `applyProjectSla` (`src/game.sla.ts`) attributes each project’s **handled** vs misses. Unroutable leftover is a miss. Capacity drops on a box split in proportion to that project’s `requests` on the box (floor + remainder). Conservation: `handled + unroutable + capacityDrop = emitted`. Game `handledRequests` / `droppedRequests` / `errorPpm` stay physics (N1); they are not the SLA scalar.
 
-This-hour `availabilityPpm = floor(handled * 1_000_000 / emitted)` when `emitted > 0`, else `null`. Each `Project` keeps a ring of `{ handled, emitted }` up to `SLA_WINDOW_HOURS` (168 in `src/catalog/sla-policy.ts`). Emit-0 hours (offered / declined / zero demand) are **not** appended. `windowAvailabilityPpm` is the same floor over ring sums; `null` if `sumEmitted === 0`. Partial windows are valid. The ring has no target %; credits use **period** buckets at week close (Z2), not `windowAvailabilityPpm`.
+This-hour `availabilityPpm = floor(handled * 1_000_000 / emitted)` when `emitted > 0`, else `null`. Each `Project` keeps a ring of `{ handled, emitted }` up to `SLA_WINDOW_HOURS` (168 in `src/catalog/sla-policy.ts`). Emit-0 hours (offered / declined / zero demand) are **not** appended. `windowAvailabilityPpm` is the same floor over ring sums; `null` if `sumEmitted === 0`. Partial windows are valid. The ring has no target %; credits use **period** buckets at week close (Z2), not `windowAvailabilityPpm`. `slaRecoveryHours(samples, targetPpm)` (`src/catalog/sla-policy.ts`) simulates appending 100% hours on that ring (FIFO 168) and returns hours until window ≥ target, or `null` if already meeting, empty, or unreachable in one window. It does not mutate the ring.
 
 ## Wallet and opex
 
@@ -111,11 +111,14 @@ credit    = min(periodRevenue, floor(periodRevenue * creditPpm / 1_000_000))
 ```ts
 type EngineCommand =
   | { type: "acceptProject"; payload: { projectId: string } }
+  | { type: "declineProject"; payload: { projectId: string } }
   | { type: "buyServer"; payload: { serverType: ServerCatalogId; region: RegionId } }
   | { type: "sellServer"; payload: { serverId: string } };
 ```
 
 `acceptProject` requires `status === "offered"`. Throws if `jailed`. No cash change.
+
+`declineProject` requires `status === "offered"` (`Project.asDeclined()`). Allowed while jailed. No cash change. Unknown id / not offered throws.
 
 `buyServer` throws if `jailed` or `cashCents < purchaseCents` (no debit). Else debit catalog purchase and add the box.
 

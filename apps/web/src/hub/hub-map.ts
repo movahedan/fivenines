@@ -1,5 +1,5 @@
-import type { Project, RegionId, ServerCatalogId } from "@packages/fivenines-engine";
-import { SERVER_CATALOG, SKU_ECONOMY } from "@packages/fivenines-engine";
+import type { EngineEvent, Project, RegionId, ServerCatalogId } from "@packages/fivenines-engine";
+import { SERVER_CATALOG, SKU_ECONOMY, slaRecoveryHours } from "@packages/fivenines-engine";
 import { formatters } from "@packages/shared/formatters";
 import { units } from "@packages/shared/units";
 
@@ -29,6 +29,34 @@ export function sparklineFromSlaHours(project: Project): readonly number[] {
 
 		return sample.handled / sample.emitted;
 	});
+}
+
+export function slaShareLabel(availabilityPpm: number | null): string {
+	if (availabilityPpm === null) {
+		return "—";
+	}
+
+	const percent = availabilityPpm / 10_000;
+
+	if (Number.isInteger(percent)) {
+		return `${String(percent)}%`;
+	}
+
+	return `${percent.toFixed(2)}%`;
+}
+
+export function recoveryEtaLabel(project: Project): string {
+	const hours = slaRecoveryHours(project.slaHours, project.commercial.targetPpm);
+
+	if (hours === null) {
+		return "—";
+	}
+
+	return `${String(hours)} healthy hours`;
+}
+
+export function sparklineTargetFromPpm(targetPpm: number): number {
+	return targetPpm / 1_000_000;
 }
 
 export function slaTone(
@@ -93,7 +121,7 @@ export function axisPercent(load: number, cap: number): number {
 }
 
 export function commandLogTone(commandType: string): EventLogTone {
-	if (commandType === "sellServer") {
+	if (commandType === "sellServer" || commandType === "declineProject") {
 		return "warn";
 	}
 
@@ -102,4 +130,41 @@ export function commandLogTone(commandType: string): EventLogTone {
 	}
 
 	return "info";
+}
+
+export function engineEventTone(event: EngineEvent): EventLogTone {
+	if (event.type === "slaRecovered" || event.type === "paygSettled") {
+		return "success";
+	}
+
+	if (event.type === "weeklyCreditCharged") {
+		return "warn";
+	}
+
+	if (
+		event.type === "slaBreached" ||
+		event.type === "serverSaturated" ||
+		event.type === "cashLow"
+	) {
+		return "danger";
+	}
+
+	return "info";
+}
+
+export function engineEventMessage(event: EngineEvent): string {
+	switch (event.type) {
+		case "slaBreached":
+			return `SLA breached ${event.projectId} (${slaShareLabel(event.windowPpm)})`;
+		case "slaRecovered":
+			return `SLA recovered ${event.projectId} (${slaShareLabel(event.windowPpm)})`;
+		case "paygSettled":
+			return `PAYG settled ${formatters.cents(event.cents)}`;
+		case "weeklyCreditCharged":
+			return `Weekly credit ${event.projectId} ${formatters.cents(event.creditCents)}`;
+		case "serverSaturated":
+			return `Server saturated ${event.serverId}`;
+		case "cashLow":
+			return `Cash low ${formatters.cents(event.cashCents)}`;
+	}
 }

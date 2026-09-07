@@ -21,7 +21,12 @@ export interface ActiveProjectCardProps {
 	readonly slaStatusLabel: string;
 	readonly slaTone?: keyof typeof SLA_INDICATOR_CLASS;
 	readonly slaPercent: number;
+	readonly currentHourLabel: string;
+	readonly rollingLabel: string;
+	readonly targetLabel: string;
+	readonly recoveryEtaLabel: string;
 	readonly sparkline: readonly number[];
+	readonly sparklineTarget: number;
 	readonly sparklineWarmingLabel?: string;
 	readonly serverLabel: string;
 	readonly paygLabel: string;
@@ -37,7 +42,12 @@ export function ActiveProjectCard({
 	slaStatusLabel,
 	slaTone = "primary",
 	slaPercent,
+	currentHourLabel,
+	rollingLabel,
+	targetLabel,
+	recoveryEtaLabel,
 	sparkline,
+	sparklineTarget,
 	sparklineWarmingLabel,
 	serverLabel,
 	paygLabel,
@@ -74,27 +84,59 @@ export function ActiveProjectCard({
 				</View>
 				<Progress indicatorClassName={SLA_INDICATOR_CLASS[slaTone]} value={slaPercent} />
 			</View>
+			<View className="gap-0.5">
+				<SlaMetricRow caption="Current hour" value={currentHourLabel} />
+				<SlaMetricRow caption="Rolling 168h" value={rollingLabel} />
+				<SlaMetricRow caption="Target" value={targetLabel} />
+				<SlaMetricRow caption="Recovery ETA" value={recoveryEtaLabel} />
+			</View>
 			<View className="h-6 flex-row items-end gap-px">
 				{hasSparkline ? (
-					sparkline.map((value, index) => (
-						<View
-							className={cn("flex-1 rounded-sm", value < 0.5 ? "bg-destructive" : "bg-primary")}
-							key={`spark-${index.toString()}`}
-							style={{ height: `${Math.min(100, Math.max(0, value * 100))}%` }}
-						/>
-					))
+					sparkline.map((value, index) => {
+						const barClass = sparklineBarClass(value, sparklineTarget);
+
+						return (
+							<View
+								className={cn("flex-1 rounded-sm", barClass)}
+								key={`spark-${index.toString()}`}
+								style={{ height: `${Math.min(100, Math.max(0, value * 100))}%` }}
+								testID={`sparkline-bar-${barClass}`}
+							/>
+						);
+					})
 				) : sparklineWarmingLabel ? (
 					<Text className="w-full text-center font-mono text-xs text-muted-foreground">
 						{sparklineWarmingLabel}
 					</Text>
 				) : null}
 			</View>
-			<View className="flex-row items-center justify-between">
+			<View className="flex-row items-end justify-between">
 				<Text className="font-mono text-xs text-muted-foreground">{serverLabel}</Text>
-				<Text className="font-mono text-xs text-primary">{paygLabel}</Text>
+				<View className="items-end">
+					<Text className="font-mono text-xs text-primary">{paygLabel}</Text>
+					<Text className="font-mono text-xs text-muted-foreground">WTD revenue</Text>
+				</View>
 			</View>
 		</Card>
 	);
+}
+
+interface SlaMetricRowProps {
+	readonly caption: string;
+	readonly value: string;
+}
+
+function SlaMetricRow({ caption, value }: SlaMetricRowProps) {
+	return (
+		<View className="flex-row items-center justify-between">
+			<Text className="font-mono text-xs text-muted-foreground">{caption}</Text>
+			<Text className="font-mono text-xs text-card-foreground">{value}</Text>
+		</View>
+	);
+}
+
+function sparklineBarClass(value: number, sparklineTarget: number): string {
+	return value >= sparklineTarget ? "bg-primary" : "bg-destructive";
 }
 
 function slaStatusClass(tone: keyof typeof SLA_INDICATOR_CLASS): string {

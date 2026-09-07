@@ -132,6 +132,30 @@ describe("HubPage - ops landmarks", () => {
 			expect(screen.getByText("Incoming (9)")).toBeTruthy();
 		});
 	});
+
+	it("removes a declined offer from the incoming queue", async () => {
+		stubLoggedInHint(true);
+		globalThis.fetch = mock(async () =>
+			Promise.resolve(new Response(null, { status: 401 })),
+		) as unknown as typeof fetch;
+
+		renderHub();
+
+		await waitForOpsFloor();
+		expect(screen.getByText("Receivable today")).toBeTruthy();
+		expect(screen.getByText("OPEX / hour")).toBeTruthy();
+		const decline = screen.getAllByRole("button", { name: "DECLINE" })[0];
+		if (decline === undefined) {
+			throw new Error("expected an offer DECLINE button");
+		}
+		fireEvent.click(decline);
+
+		await waitFor(() => {
+			expect(screen.getByText("Incoming (9)")).toBeTruthy();
+			expect(screen.getByText("Active (0)")).toBeTruthy();
+		});
+		expect(screen.queryByText(/not a kernel command/)).toBeNull();
+	});
 });
 
 describe("PlayButton - hub entry", () => {

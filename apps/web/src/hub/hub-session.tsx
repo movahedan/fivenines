@@ -1,4 +1,4 @@
-import { useCallback, useId, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { useAuth } from "@packages/auth/react";
 import type {
@@ -28,16 +28,21 @@ import { ServerCard } from "@/molecules/server-card/server-card";
 import {
 	axisPercent,
 	commandLogTone,
+	engineEventMessage,
+	engineEventTone,
 	REGION_CLASS,
+	recoveryEtaLabel,
 	skuCostLabel,
 	skuCpuLabel,
 	skuNetLabel,
 	skuOpexLabel,
 	skuRamLabel,
 	slaPercent,
+	slaShareLabel,
 	slaStatusLabel,
 	slaTone,
 	sparklineFromSlaHours,
+	sparklineTargetFromPpm,
 } from "./hub-map";
 import { useHubGame } from "./use-hub-game";
 
@@ -73,6 +78,7 @@ export function HubSession() {
 	const [buyRegion, setBuyRegion] = useState<RegionId>(DEFAULT_REGION);
 	const [entries, setEntries] = useState<readonly EventLogEntry[]>([]);
 	const regionSelectId = useId();
+	const loggedHourRef = useRef<number | null>(null);
 	const { cashCents, accountsReceivableCents, jailed, opexCents } = game.finance;
 
 	const pushEntry = useCallback(
@@ -91,6 +97,18 @@ export function HubSession() {
 		[],
 	);
 
+	useEffect(() => {
+		if (loggedHourRef.current === game.hourIndex) {
+			return;
+		}
+
+		loggedHourRef.current = game.hourIndex;
+
+		for (const event of game.events) {
+			pushEntry(engineEventTone(event), engineEventMessage(event), event.hourIndex);
+		}
+	}, [game.events, game.hourIndex, pushEntry]);
+
 	const runCommand = (command: EngineCommand, message: string): void => {
 		dispatch(command);
 		pushEntry(commandLogTone(command.type), message, game.hourIndex);
@@ -102,7 +120,7 @@ export function HubSession() {
 		game.assets.filter((asset) => asset.region === region).length;
 
 	return (
-		<div className="flex min-h-screen min-w-[1280px] flex-col bg-background text-foreground">
+		<div className="flex h-screen min-w-[1280px] flex-col overflow-hidden bg-background text-foreground">
 			<Hud
 				account={
 					<Button
@@ -119,8 +137,12 @@ export function HubSession() {
 				jailed={jailed}
 				metrics={[
 					{ label: "CASH", value: formatters.cents(cashCents), tone: "primary" },
-					{ label: "AR", value: formatters.cents(accountsReceivableCents), tone: "info" },
-					{ label: "OPEX", value: formatters.cents(opexCents), tone: "warning" },
+					{
+						label: "Receivable today",
+						value: formatters.cents(accountsReceivableCents),
+						tone: "info",
+					},
+					{ label: "OPEX / hour", value: formatters.cents(opexCents), tone: "warning" },
 				]}
 				onToggleRunning={toggleRunning}
 				running={running}
@@ -136,10 +158,10 @@ export function HubSession() {
 			<main className="flex min-h-0 flex-1">
 				<section
 					aria-label="Incoming queue"
-					className="flex w-[320px] shrink-0 flex-col border-r border-border bg-panel"
+					className="flex min-h-0 w-[320px] shrink-0 flex-col border-r border-border bg-panel"
 				>
 					<PanelHeader count={offers.length} label="Incoming" tone="warning" />
-					<div className="flex flex-col gap-2 overflow-y-auto p-2">
+					<div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
 						{offers.map(({ customerId, project }) => (
 							<ProjectOfferCard
 								cpuLabel={`${String(project.estimatedRequestsPerHour)} /h`}
@@ -154,10 +176,9 @@ export function HubSession() {
 									);
 								}}
 								onDecline={() => {
-									pushEntry(
-										"warn",
-										`Decline is not a kernel command (${project.id})`,
-										game.hourIndex,
+									runCommand(
+										{ type: "declineProject", payload: { projectId: project.id } },
+										`Declined ${project.id}`,
 									);
 								}}
 								paygLabel={`${String(project.commercial.paygCentsPerThousandHandled)}¢/k`}
@@ -168,9 +189,12 @@ export function HubSession() {
 						))}
 					</div>
 				</section>
-				<section aria-label="Active floor" className="flex min-w-0 flex-1 flex-col bg-background">
+				<section
+					aria-label="Active floor"
+					className="flex min-h-0 min-w-0 flex-1 flex-col bg-background"
+				>
 					<PanelHeader count={served.length} label="Active" tone="primary" />
-					<div className="grid grid-cols-2 gap-2 overflow-y-auto p-2">
+					<div className="grid min-h-0 flex-1 grid-cols-2 gap-2 overflow-y-auto p-2">
 						{served.length === 0 ? (
 							<p className="col-span-2 font-mono text-sm text-muted-foreground">
 								No served projects
@@ -179,29 +203,35 @@ export function HubSession() {
 							served.map(({ customerId, project }) => {
 								const sparkline = sparklineFromSlaHours(project);
 								const windowPpm = project.metrics.windowAvailabilityPpm;
+								const targetPpm = project.commercial.targetPpm;
 
 								return (
 									<ActiveProjectCard
+										currentHourLabel={slaShareLabel(project.metrics.availabilityPpm)}
 										customerName={customerId}
 										key={project.id}
 										name={project.id}
 										paygLabel={formatters.cents(project.periodPaygCents)}
+										recoveryEtaLabel={recoveryEtaLabel(project)}
 										regionClassName={REGION_CLASS[project.region]}
 										regionLabel={project.region}
+										rollingLabel={slaShareLabel(windowPpm)}
 										serverLabel={`${String(localCount(project.region))} local`}
-										slaLabel={formatters.ppm(windowPpm)}
+										slaLabel={slaShareLabel(windowPpm)}
 										slaPercent={slaPercent(windowPpm)}
-										slaStatusLabel={slaStatusLabel(windowPpm, project.commercial.targetPpm)}
-										slaTone={slaTone(windowPpm, project.commercial.targetPpm)}
+										slaStatusLabel={slaStatusLabel(windowPpm, targetPpm)}
+										slaTone={slaTone(windowPpm, targetPpm)}
 										sparkline={sparkline}
+										sparklineTarget={sparklineTargetFromPpm(targetPpm)}
 										sparklineWarmingLabel={sparkline.length === 0 ? "warming" : undefined}
+										targetLabel={slaShareLabel(targetPpm)}
 									/>
 								);
 							})
 						)}
 					</div>
 					<PanelHeader count={game.assets.length} label="Fleet" tone="info" />
-					<div className="grid grid-cols-2 gap-2 overflow-y-auto p-2">
+					<div className="grid min-h-0 flex-1 grid-cols-2 gap-2 overflow-y-auto p-2">
 						{game.assets.length === 0 ? (
 							<p className="col-span-2 font-mono text-sm text-muted-foreground">No servers</p>
 						) : (
@@ -231,7 +261,7 @@ export function HubSession() {
 				</section>
 				<section
 					aria-label="Server market"
-					className="flex w-[300px] shrink-0 flex-col border-l border-border bg-panel"
+					className="flex min-h-0 w-[300px] shrink-0 flex-col border-l border-border bg-panel"
 				>
 					<PanelHeader
 						count={SERVER_CATALOG_IDS.length}
@@ -256,7 +286,7 @@ export function HubSession() {
 							</label>
 						}
 					/>
-					<div className="flex flex-col gap-2 overflow-y-auto p-2">
+					<div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
 						{SERVER_CATALOG_IDS.map((catalogId: ServerCatalogId) => {
 							const canAfford = !jailed && cashCents >= SKU_ECONOMY[catalogId].purchaseCents;
 
@@ -285,7 +315,7 @@ export function HubSession() {
 					</div>
 				</section>
 			</main>
-			<section aria-label="Event log" className="h-40 border-t border-border">
+			<section aria-label="Event log" className="h-40 shrink-0 border-t border-border">
 				<EventLog entries={entries} />
 			</section>
 		</div>

@@ -68,13 +68,7 @@ export function ProjectOfferCard({
 				>
 					ACCEPT
 				</Button>
-				<Button
-					className="flex-1"
-					disabled={disabled}
-					onClick={onDecline}
-					size="sm"
-					variant="destructive"
-				>
+				<Button className="flex-1" onClick={onDecline} size="sm" variant="destructive">
 					DECLINE
 				</Button>
 			</View>

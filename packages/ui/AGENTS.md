@@ -48,7 +48,7 @@ packages/ui/
 
 Molecules map web `onClick` → atom `onPress`. Stack label+control with `flex flex-col gap-*` — `space-y-*` on a DOM wrapper does not apply to RN-web Label/Input. Icons in generated atoms: `lucide-react-native` (declare `react-native-svg`). CSS `@import "tailwindcss-safe-area"` needs that package declared. UI Docker installer copies the repo `bun.lock` over prune output so Bun does not ignore a broken nested lock.
 
-**Ops chrome** (engine-agnostic display props + callbacks; no `@packages/fivenines-engine` / `@packages/auth`): `Hud`, `PanelHeader`, `MetricStat`, `ProjectOfferCard`, `ActiveProjectCard` (`slaPercent` 0–100, `sparkline` 0–1), `ServerCard` (`variant`: `fleet` | `market`), `EventLog`. Pass region color via token `className` (`text-info`, …), not hex. Barrel: `@packages/ui/molecules`.
+**Ops chrome** (engine-agnostic display props + callbacks; no `@packages/fivenines-engine` / `@packages/auth`): `Hud`, `PanelHeader`, `MetricStat`, `ProjectOfferCard` (`disabled` gates Accept only; Decline stays enabled), `ActiveProjectCard` (`slaPercent` 0–100, SLA caption rows, `sparkline` 0–1 vs `sparklineTarget`), `ServerCard` (`variant`: `fleet` | `market`), `EventLog`. Pass region color via token `className` (`text-info`, …), not hex. Barrel: `@packages/ui/molecules`.
 
 `test-rn-preload.ts` stubs `react-native` → RN-web, lucide, `@rn-primitives/progress`, and `react-native-reanimated` for molecule tests.
 

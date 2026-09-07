@@ -1,6 +1,7 @@
 import { ids } from "@packages/shared/ids";
 import { units } from "@packages/shared/units";
 
+import { BILLING_PERIOD_HOURS } from "./catalog/commercial-policy";
 import { DEBT_LIMIT_CENTS, STARTING_CASH_CENTS } from "./catalog/economy-policy";
 import { Customer, type CustomerInitial } from "./customer";
 import { placeProjectDemand } from "./demand";
@@ -9,6 +10,7 @@ import {
 	closeBillingPeriodIfDue,
 	settlePaygReceivableIfDue,
 } from "./game.commercial";
+import type { EngineEvent } from "./game.events";
 import {
 	EMPTY_GAME_OPEX,
 	type GameFinanceSnapshot,
@@ -27,6 +29,7 @@ import {
 import type { Server } from "./server";
 import { MathRandomSource, type RandomSource } from "./traffic/random-source";
 
+export type { EngineEvent } from "./game.events";
 export type { GameFinanceSnapshot } from "./game.finance";
 export type { GameTickMetrics } from "./game.metrics";
 export type { AssetInitial, EngineCommand, GameAsset } from "./game.utils";
@@ -54,6 +57,7 @@ export class Game {
 	#opex: GameOpexTotals = EMPTY_GAME_OPEX;
 
 	#metrics: GameTickMetrics = EMPTY_GAME_TICK_METRICS;
+	#events: EngineEvent[] = [];
 	#serversById: ReadonlyMap<string, Server> = new Map();
 
 	constructor(initial: GameInitial, options?: GameOptions) {
@@ -118,6 +122,10 @@ export class Game {
 		};
 	}
 
+	get events(): readonly EngineEvent[] {
+		return this.#events;
+	}
+
 	get hourIndex(): number {
 		return this.#hourIndex;
 	}
@@ -151,6 +159,22 @@ export class Game {
 	}
 
 	tick(): Game {
+		const eventHourIndex = this.#hourIndex;
+		const cashBeforeCents = this.#cashCents;
+		const windowPpmByProjectId = new Map(
+			this.customers.flatMap((customer) =>
+				customer.projects.map(
+					(project) => [project.id, project.metrics.windowAvailabilityPpm] as const,
+				),
+			),
+		);
+		const utilizationByServerId = new Map(
+			[...this.#serversById.values()].map(
+				(server) => [server.id, server.metrics.utilization] as const,
+			),
+		);
+		const events: EngineEvent[] = [];
+
 		for (const server of this.#serversById.values()) {
 			server.resetDemand();
 		}
@@ -186,11 +210,49 @@ export class Game {
 
 		for (const server of this.#serversById.values()) {
 			server.tick();
+
+			const previousUtilization = utilizationByServerId.get(server.id) ?? 0;
+
+			if (previousUtilization < 100 && server.metrics.utilization >= 100) {
+				events.push({
+					type: "serverSaturated",
+					hourIndex: eventHourIndex,
+					serverId: server.id,
+				});
+			}
 		}
 
 		const projects = this.customers.flatMap((customer) => customer.projects);
 
 		applyProjectSla(projects, servers);
+
+		for (const project of projects) {
+			const previousPpm = windowPpmByProjectId.get(project.id) ?? null;
+			const nextPpm = project.metrics.windowAvailabilityPpm;
+			const targetPpm = project.commercial.targetPpm;
+			const previousMeetingOrNull = previousPpm === null || previousPpm >= targetPpm;
+			const previousBreached = previousPpm !== null && previousPpm < targetPpm;
+			const nextBreached = nextPpm !== null && nextPpm < targetPpm;
+			const nextMeeting = nextPpm !== null && nextPpm >= targetPpm;
+
+			if (previousMeetingOrNull && nextBreached && nextPpm !== null) {
+				events.push({
+					type: "slaBreached",
+					hourIndex: eventHourIndex,
+					projectId: project.id,
+					windowPpm: nextPpm,
+				});
+			}
+
+			if (previousBreached && nextMeeting && nextPpm !== null) {
+				events.push({
+					type: "slaRecovered",
+					hourIndex: eventHourIndex,
+					projectId: project.id,
+					windowPpm: nextPpm,
+				});
+			}
+		}
 
 		this.#metrics = measureGameTick(
 			servers.map((server) => server.metrics),
@@ -215,9 +277,42 @@ export class Game {
 
 		if (settledPaygCents > 0) {
 			this.#accountsReceivableCents = 0;
+			events.push({
+				type: "paygSettled",
+				hourIndex: eventHourIndex,
+				cents: settledPaygCents,
+			});
 		}
 
 		this.#cashCents += closeBillingPeriodIfDue(projects, this.#hourIndex);
+		const closedPeriodIndex = this.#hourIndex / BILLING_PERIOD_HOURS;
+
+		for (const project of projects) {
+			const latest = project.settlements[project.settlements.length - 1];
+
+			if (
+				latest !== undefined &&
+				latest.periodIndex === closedPeriodIndex &&
+				latest.creditCents > 0
+			) {
+				events.push({
+					type: "weeklyCreditCharged",
+					hourIndex: eventHourIndex,
+					projectId: project.id,
+					creditCents: latest.creditCents,
+				});
+			}
+		}
+
+		if (cashBeforeCents > 0 && this.#cashCents <= 0) {
+			events.push({
+				type: "cashLow",
+				hourIndex: eventHourIndex,
+				cashCents: this.#cashCents,
+			});
+		}
+
+		this.#events = events;
 
 		return this;
 	}

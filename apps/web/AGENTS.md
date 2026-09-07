@@ -31,6 +31,8 @@ Routes live under `src/routes/` (same convention as xpertell product apps):
 
 Served project rows show this-hour and window `availabilityPpm` from `project.metrics` (`—` when `null`). Offered and declined rows show no SLA digits. No sparkline.
 
+Served rows also show this-period PAYG (`periodPaygCents`), hours served this week, last settlement (or `—`), and a compact list of ≤8 closes from `project.settlements`. Offered/declined rows show no billing digits. Lab does not run week-close itself.
+
 ```bash
 bun test apps/web/src/routes/lab.test.tsx
 ```

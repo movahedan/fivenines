@@ -22,7 +22,7 @@ todos:
     status: completed
   - id: b3
     content: "B3 billing lab — billing plan Phase 3"
-    status: pending
+    status: completed
 isProject: true
 ---
 
@@ -148,6 +148,7 @@ _(Master appends here. Newest last.)_
 - 2026-09-07: **C2** `/lab` served-row this-hour and window ppm. Next: **B1** PAYG.
 - 2026-09-07: **B1** required commercial terms + PAYG into wallet and period buckets. Next: **B2** week close + credits.
 - 2026-09-07: **B2** U1 week close, V1 prorated recurring, T1/Z2 credit, cap 8. Next: **B3** lab billing HUD.
+- 2026-09-07: **B3** `/lab` this-period PAYG, hours served, last settlement, ≤8 history. Economy M1 stack complete.
 
 ---
 

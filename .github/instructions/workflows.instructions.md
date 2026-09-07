@@ -6,7 +6,7 @@ Shared review rubric (GitHub Copilot + Cursor). Workflow env: [`docs/GITHUB_WORK
 
 When performing a code review on GitHub Actions:
 
-- Pin actions to the same style as `Check.yml` (major.minor.patch, not floating `@v4`).
+- Pin **third-party** actions (`oven-sh/*`, `docker/*`, …) to a full commit SHA with a `# vX.Y.Z` comment. GitHub-owned `actions/*` / `github/codeql-action` may stay on version tags. Do not use floating `@v4`.
 - Least privilege: default `contents: read`; add `security-events: write` only for SARIF upload.
 - Do not introduce `POSTGRES_*` or compose ports as Actions secrets. Check uses `.env.sample` defaults.
 - Bun version should stay aligned with the root `packageManager` field.

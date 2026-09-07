@@ -1,5 +1,6 @@
 import type { Project, RegionId, ServerCatalogId } from "@packages/fivenines-engine";
 import { SERVER_CATALOG, SKU_ECONOMY } from "@packages/fivenines-engine";
+import { formatters } from "@packages/shared/formatters";
 
 import type { EventLogTone } from "@/molecules/event-log/event-log";
 
@@ -10,30 +11,6 @@ export const REGION_CLASS: Record<RegionId, string> = {
 	"utc+1": "bg-sla/20 text-sla",
 	"utc+9": "bg-destructive/20 text-destructive",
 };
-
-export function formatCents(cents: number): string {
-	const sign = cents < 0 ? "-" : "";
-	const absolute = Math.abs(cents);
-	const dollars = Math.floor(absolute / 100);
-	const remainder = absolute % 100;
-
-	return `${sign}$${String(dollars)}.${String(remainder).padStart(2, "0")}`;
-}
-
-export function formatHourTick(hourIndex: number): string {
-	return `T+${String(hourIndex).padStart(4, "0")}`;
-}
-
-export function formatClockLabel(hourIndex: number): string {
-	const dayIndex = Math.floor(hourIndex / 24);
-	const hourOfDay = hourIndex % 24;
-
-	return `D${String(dayIndex)} H${String(hourOfDay).padStart(2, "0")}`;
-}
-
-export function formatPpm(value: number | null): string {
-	return value === null ? "—" : `${String(value)} ppm`;
-}
 
 export function slaPercent(windowAvailabilityPpm: number | null): number {
 	if (windowAvailabilityPpm === null) {
@@ -89,13 +66,13 @@ export function slaStatusLabel(windowAvailabilityPpm: number | null, targetPpm: 
 }
 
 export function skuCostLabel(catalogId: ServerCatalogId): string {
-	return formatCents(SKU_ECONOMY[catalogId].purchaseCents);
+	return formatters.cents(SKU_ECONOMY[catalogId].purchaseCents);
 }
 
 export function skuOpexLabel(catalogId: ServerCatalogId): string {
 	const sku = SKU_ECONOMY[catalogId];
 
-	return `${formatCents(sku.maintenanceCentsPerHour + sku.idlePowerCentsPerHour)}/h idle`;
+	return `${formatters.cents(sku.maintenanceCentsPerHour + sku.idlePowerCentsPerHour)}/h idle`;
 }
 
 export function skuCpuLabel(catalogId: ServerCatalogId): string {

@@ -16,6 +16,7 @@ import {
 	SERVER_TIER_LABEL,
 	SKU_ECONOMY,
 } from "@packages/fivenines-engine";
+import { formatters } from "@packages/shared/formatters";
 import { Button } from "@packages/ui/molecules/button";
 
 import { ActiveProjectCard } from "@/molecules/active-project-card/active-project-card";
@@ -26,10 +27,6 @@ import { ProjectOfferCard } from "@/molecules/project-offer-card/project-offer-c
 import { ServerCard } from "@/molecules/server-card/server-card";
 import {
 	commandLogTone,
-	formatCents,
-	formatClockLabel,
-	formatHourTick,
-	formatPpm,
 	REGION_CLASS,
 	skuCostLabel,
 	skuCpuLabel,
@@ -82,7 +79,7 @@ export function HubSession() {
 			setEntries((current) => {
 				const next: EventLogEntry = {
 					id: `${String(hourIndex)}-${String(current.length)}-${message}`,
-					tickLabel: formatHourTick(hourIndex),
+					tickLabel: formatters.hourTick(hourIndex),
 					message,
 					tone,
 				};
@@ -117,17 +114,17 @@ export function HubSession() {
 						{user?.email ?? "Sign out"}
 					</Button>
 				}
-				clockLabel={formatClockLabel(game.hourIndex)}
+				clockLabel={formatters.clockLabel(game.hourIndex)}
 				jailed={jailed}
 				metrics={[
-					{ label: "CASH", value: formatCents(cashCents), tone: "primary" },
-					{ label: "AR", value: formatCents(accountsReceivableCents), tone: "info" },
-					{ label: "OPEX", value: formatCents(opexCents), tone: "warning" },
+					{ label: "CASH", value: formatters.cents(cashCents), tone: "primary" },
+					{ label: "AR", value: formatters.cents(accountsReceivableCents), tone: "info" },
+					{ label: "OPEX", value: formatters.cents(opexCents), tone: "warning" },
 				]}
 				onToggleRunning={toggleRunning}
 				running={running}
 				subtitle="Opening Shift"
-				tickLabel={formatHourTick(game.hourIndex)}
+				tickLabel={formatters.hourTick(game.hourIndex)}
 				title="Five Nines"
 			/>
 			{lastError !== null ? (
@@ -165,7 +162,7 @@ export function HubSession() {
 								paygLabel={`${String(project.commercial.paygCentsPerThousandHandled)}¢/k`}
 								regionClassName={REGION_CLASS[project.region]}
 								regionLabel={project.region}
-								slaLabel={formatPpm(project.commercial.targetPpm)}
+								slaLabel={formatters.ppm(project.commercial.targetPpm)}
 							/>
 						))}
 					</div>
@@ -187,11 +184,11 @@ export function HubSession() {
 										customerName={customerId}
 										key={project.id}
 										name={project.id}
-										paygLabel={formatCents(project.periodPaygCents)}
+										paygLabel={formatters.cents(project.periodPaygCents)}
 										regionClassName={REGION_CLASS[project.region]}
 										regionLabel={project.region}
 										serverLabel={`${String(localCount(project.region))} local`}
-										slaLabel={formatPpm(windowPpm)}
+										slaLabel={formatters.ppm(windowPpm)}
 										slaPercent={slaPercent(windowPpm)}
 										slaStatusLabel={slaStatusLabel(windowPpm, project.commercial.targetPpm)}
 										slaTone={slaTone(windowPpm, project.commercial.targetPpm)}

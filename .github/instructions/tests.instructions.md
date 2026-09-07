@@ -1,5 +1,5 @@
 ---
-applyTo: "**/*.{test,spec}.ts"
+applyTo: "**/*.test.ts,**/*.spec.ts"
 ---
 
 Shared review rubric (GitHub Copilot + Cursor). Test style details: [`tools/tests-preset/AGENTS.md`](../../tools/tests-preset/AGENTS.md).

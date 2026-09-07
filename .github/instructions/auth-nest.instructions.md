@@ -1,9 +1,5 @@
 ---
-applyTo:
-  - "apps/auth/**"
-  - "apps/nestjs/**"
-  - "packages/auth/**"
-  - "packages/http/**"
+applyTo: "apps/auth/**,apps/nestjs/**,packages/auth/**,packages/http/**"
 ---
 
 Shared review rubric (GitHub Copilot + Cursor). Implementation truth: nested `AGENTS.md` in auth / nest / http packages.

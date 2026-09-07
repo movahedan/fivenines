@@ -105,9 +105,9 @@ const WithErrorComponent = () => {
 				id={emailId}
 				type="email"
 				placeholder="Enter your email"
-				className="border-red-500 focus:border-red-500"
+				className="border-destructive focus:border-destructive"
 			/>
-			<p className="text-sm text-red-500">Please enter a valid email address.</p>
+			<p className="text-sm text-destructive">Please enter a valid email address.</p>
 		</div>
 	);
 };

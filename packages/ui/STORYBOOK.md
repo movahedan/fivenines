@@ -12,7 +12,7 @@ bun run turbo run dev --filter=@packages/ui
 
 URL: **http://localhost:9000**. `dev-storybook.ts` launches the Storybook CLI with **Node** (Bun cannot parse React Native Flow). If Docker already binds 9000, stop that listener first (`strictPort`).
 
-Preview CSS: `.storybook/preview.tsx` imports `../src/style.css`. Do not import `react-native` or `@rn-primitives` in preview (the Node CLI loads that file without Vite aliases).
+Preview CSS: `.storybook/preview.tsx` imports `../src/style.css` (ops navy canvas, Inter + JetBrains Mono). Default Storybook background is **ops** (`#050912`); the decorator uses `bg-background font-sans text-foreground`. Do not import `react-native` or `@rn-primitives` in preview (the Node CLI loads that file without Vite aliases). There is no light theme toggle.
 
 ## RN-web + NativeWind
 

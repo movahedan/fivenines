@@ -190,7 +190,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
 					{/* Success Message */}
 					{success && (
-						<div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md">
+						<div className="p-3 text-sm text-primary bg-primary/10 border border-primary/20 rounded-md">
 							{success}
 						</div>
 					)}

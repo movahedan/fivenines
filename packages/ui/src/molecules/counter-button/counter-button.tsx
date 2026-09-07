@@ -6,40 +6,16 @@ export function CounterButton() {
 	const [count, setCount] = useState(0);
 
 	return (
-		<div
-			style={{
-				background: "rgba(0,0,0,0.05)",
-				borderRadius: "8px",
-				padding: "1.5rem",
-				fontWeight: 500,
-			}}
-		>
-			<p style={{ margin: "0 0 1.5rem 0" }}>
-				This component is from{" "}
-				<code
-					style={{
-						padding: "0.2rem 0.3rem",
-						background: "rgba(0,0,0,0.1)",
-						borderRadius: "0.25rem",
-					}}
-				>
-					ui
-				</code>
+		<div className="bg-muted rounded-lg p-6 font-medium">
+			<p className="m-0 mb-6">
+				This component is from <code className="px-1 py-0.5 bg-primary/10 rounded">ui</code>
 			</p>
 			<div>
 				<button
 					onClick={() => {
 						setCount((c) => c + 1);
 					}}
-					style={{
-						background: "black",
-						color: "white",
-						border: "none",
-						padding: "0.5rem 1rem",
-						borderRadius: "0.25rem",
-						display: "inline-block",
-						cursor: "pointer",
-					}}
+					className="bg-primary text-primary-foreground border-none px-4 py-2 rounded inline-block cursor-pointer"
 					type="button"
 				>
 					Count: {count}

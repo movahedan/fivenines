@@ -26,8 +26,8 @@ packages/ui/
 ├── src/atoms/          # RNR primitives (CLI output)
 ├── src/shadcn/         # Frozen web shadcn (export `./shadcn`)
 ├── src/molecules/      # Wrappers + `*.stories.tsx` only
-├── src/style.css       # Tokens + Tailwind 4 (unlayered utilities for RN-web)
-├── src/theme.ts        # THEME / NAV_THEME
+├── src/style.css       # Ops tokens + Tailwind 4 (unlayered utilities for RN-web)
+├── src/theme.ts        # THEME / NAV_THEME (mirrors CSS; light and dark are the same ops map)
 ├── src/utils/          # `cn` (clsx + tailwind-merge)
 ├── scripts/rn-web.ts   # RN-web Vite interop (Storybook + `@apps/web`)
 ├── .storybook/         # Storybook config + RN-web stubs
@@ -47,6 +47,12 @@ packages/ui/
 | `@packages/ui/theme.ts` | `src/theme.ts` |
 
 Molecules map web `onClick` → atom `onPress`. Icons in generated atoms: `lucide-react-native` (declare `react-native-svg`). CSS `@import "tailwindcss-safe-area"` needs that package declared. UI Docker installer copies the repo `bun.lock` over prune output so Bun does not ignore a broken nested lock.
+
+## Tokens
+
+Canonical source: `src/style.css` (`:root` and `.dark` share the **ops** navy/neon palette). `@theme inline` maps CSS vars to NativeWind/Tailwind utilities (`bg-background`, `text-primary`, `bg-hud`, `shadow-glow-primary`, …). Fonts: Inter (`font-sans`) and JetBrains Mono (`font-mono`) via Google Fonts `@import` in `style.css`. `src/theme.ts` `THEME.light` / `THEME.dark` and `NAV_THEME` must stay in lockstep with those hex values — do not keep a second light palette.
+
+To add a semantic color: set `--name` on `:root` and `.dark`, add `--color-name: var(--name)` under `@theme inline`, and add the same hex on the `OPS` object in `theme.ts`. Use the utility in JSX (`text-warning`, `bg-panel`); do not hardcode hex in molecules or apps. `tailwind.config.js` is leftover shadcn `hsl(var(--*))` wrappers — do not put a third palette there.
 
 ## Storybook
 

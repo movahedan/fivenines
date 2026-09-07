@@ -113,7 +113,7 @@ const ComplexLayoutComponent = () => {
 				<button type="button" className="px-4 py-2 border rounded">
 					Cancel
 				</button>
-				<button type="button" className="px-4 py-2 bg-blue-500 text-white rounded">
+				<button type="button" className="px-4 py-2 bg-primary text-primary-foreground rounded">
 					Deploy
 				</button>
 			</CardFooter>

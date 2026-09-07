@@ -14,15 +14,15 @@ const preview: Preview = {
 			},
 		},
 		backgrounds: {
-			default: "light",
+			default: "ops",
 			values: [
 				{
-					name: "light",
-					value: "#ffffff",
+					name: "ops",
+					value: "#050912",
 				},
 				{
-					name: "dark",
-					value: "#333333",
+					name: "hud",
+					value: "#060c1e",
 				},
 			],
 		},
@@ -33,18 +33,18 @@ const preview: Preview = {
 	globalTypes: {
 		theme: {
 			description: "Global theme for components",
-			defaultValue: "light",
+			defaultValue: "dark",
 			toolbar: {
 				title: "Theme",
 				icon: "circlehollow",
-				items: ["light", "dark"],
+				items: ["dark"],
 				dynamicTitle: true,
 			},
 		},
 	},
 	decorators: [
 		(Story) => (
-			<div style={{ padding: "1rem" }}>
+			<div className="bg-background font-sans text-foreground" style={{ padding: "1rem" }}>
 				<Story />
 			</div>
 		),

@@ -4,13 +4,13 @@ overview: "Three PRs after opex+SLA: PAYG accrue; week close+credit+cap-8 histor
 todos:
   - id: phase-1-payg
     content: "Phase 1: required commercial fields; PAYG each tick into wallet + period bucket"
-    status: pending
+    status: completed
   - id: phase-1-verify
     content: "Phase 1 gate: bun test packages/fivenines-engine && bun run turbo run typecheck --filter=@packages/fivenines-engine"
-    status: pending
+    status: completed
   - id: phase-1-docs
     content: "Phase 1: documentation-sync (engine AGENTS.md) after build, before PR"
-    status: pending
+    status: completed
   - id: phase-2-close
     content: "Phase 2: U1 close, V1 recurring, Z2/T1 credit, cap-8 settlements"
     status: pending

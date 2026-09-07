@@ -22,7 +22,14 @@ A served project:
 
 ## Contract noun (Q1 / R1 / S4 / Y1)
 
-Commercial fields are **required** on every `ProjectInitial` (no category/industry defaults in this slice):
+Commercial fields live on a required **`commercial`** object on every `ProjectInitial` / `Project` (no category/industry defaults in this slice). That blob is the project rate card, not the player–customer MSA (multipliers on `Customer` later).
+
+| Field | Rule |
+|-------|------|
+| `paygCentsPerHandled` | ≥ 0 |
+| `recurringCentsPerPeriod` | ≥ 0 |
+| `targetPpm` | integer ppm |
+| `creditPpm` | fraction of **period revenue** credited on miss |
 
 | Field | Rule |
 |-------|------|

@@ -1,3 +1,4 @@
+import { OPENING_COMMERCIAL_STUB, PAYG_ONLY_COMMERCIAL_STUB } from "./catalog/commercial-policy";
 import type { RegionId } from "./catalog/regions";
 import type { GameInitial } from "./game";
 import type { CampaignWindow, ProjectCategory, ProjectInitial, ProjectStatus } from "./project";
@@ -15,6 +16,7 @@ export function constantProject(
 		category: "saas",
 		region: "utc+0",
 		campaignProne: false,
+		commercial: PAYG_ONLY_COMMERCIAL_STUB,
 	};
 }
 
@@ -34,6 +36,7 @@ function shapedProject(
 		category,
 		region,
 		campaignProne,
+		commercial: OPENING_COMMERCIAL_STUB,
 		...(campaign === undefined ? {} : { campaign }),
 	};
 }

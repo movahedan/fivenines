@@ -16,7 +16,7 @@ todos:
     status: completed
   - id: b1
     content: "B1 PAYG — fivenines-engine-billing.plan.md Phase 1"
-    status: pending
+    status: completed
   - id: b2
     content: "B2 week close + credits — billing plan Phase 2"
     status: pending
@@ -146,6 +146,7 @@ _(Master appends here. Newest last.)_
 - 2026-09-07: **A2** `/lab` finance HUD (cash, jailed, opex split, buy/accept disable). Next: **C1** SLA engine.
 - 2026-09-07: **C1** per-project attribution + 168h availability ring. Next: **C2** lab SLA digits.
 - 2026-09-07: **C2** `/lab` served-row this-hour and window ppm. Next: **B1** PAYG.
+- 2026-09-07: **B1** required commercial terms + PAYG into wallet and period buckets. Next: **B2** week close + credits.
 
 ---
 

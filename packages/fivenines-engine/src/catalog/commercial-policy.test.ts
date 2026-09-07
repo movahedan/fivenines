@@ -18,9 +18,9 @@ describe("commercial-policy - v1 tables", () => {
 		expect(BILLING_PERIOD_HOURS).toBe(168);
 		expect(SETTLEMENT_HISTORY_K).toBe(8);
 		expect(PAYG_CENTS_PER_THOUSAND_BY_CATEGORY).toEqual({
-			portfolio: 450,
+			portfolio: 300,
 			saas: 450,
-			shopping: 800,
+			shopping: 600,
 		});
 		expect(OPENING_COMMERCIAL_STUB).toEqual(commercialTermsForCategory("saas"));
 		expect(PAYG_ONLY_COMMERCIAL_STUB).toEqual({

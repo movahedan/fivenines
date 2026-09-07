@@ -109,7 +109,7 @@ Prod-shaped file: `bun run container --prod up`. Extra compose flags after `--`:
 ### Troubleshooting
 
 - **Docker** — `bun run container compose -- ps`
-- **Postgres 17 volume after 18** — Compose uses `postgres:18-alpine`. A volume created by Postgres 17 will not start on 18. Reset it (`bun run container cleanup`) or dump/restore; there is no in-place upgrade on that named volume.
+- **Postgres 18 volume** — Compose mounts `postgres_data` at `/var/lib/postgresql`. A volume from 17 (`.../data`) will not start. Reset (`bun run container cleanup`) or dump/restore.
 - **Hosts** — `play.fivenines.com` / `auth.fivenines.com` / `api.fivenines.com` in `/etc/hosts` ([CHEATSHEET](docs/CHEATSHEET.md))
 - **Container deps** — `bun run container install` after new packages (named `node_modules` volume; `up --build` does not refresh it)
 - **Deps** — `bun run local cleanup` + `bun install`, or `bun run nuke`

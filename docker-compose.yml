@@ -10,7 +10,7 @@ volumes:
 
 services:
   postgres:
-    # Postgres 18 cannot use a data directory from 17. Reset postgres_data or dump/restore.
+    # Postgres 18 stores data under /var/lib/postgresql (not .../data). A 17 volume will not start; reset or dump/restore.
     image: postgres:18-alpine
     networks:
       - prod-network
@@ -21,7 +21,7 @@ services:
     ports:
       - "15432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fivenines} -d ${POSTGRES_DB:-fivenines}"]
       interval: 10s

@@ -89,7 +89,7 @@ Then open `http://play.fivenines.com:3000` (Play), login at `http://auth.fivenin
 | `bun run container up -- --profile auth` | Postgres + `@apps/auth` :3001 (migrate + seed) |
 | `bun run container up -- --profile auth --profile nestjs` | Both services + Postgres (host dev: set Nest `AUTH_*` in `.env`) |
 
-Compose Postgres is **18**. If the `postgres_data` volume was created by **17**, the 18 container will refuse to start. Reset the volume (`bun run container cleanup`) or dump/restore. Do not expect an in-place catalog upgrade.
+Compose Postgres is **18**. Mount is `/var/lib/postgresql` (18+ image layout). A **17** `postgres_data` volume (old `/var/lib/postgresql/data` path) will not start. Reset (`bun run container cleanup`) or dump/restore.
 
 Process-up probe (JSON): `curl -sf -H 'Accept: application/json' http://localhost:3000/` (web), `:3001/status` (auth), `:3002/status` (nest), `:9000/status` (Storybook). Compose HEALTHCHECK and `bun run container check` use the same contract (`"ok":true`, 3 retries).
 

@@ -6,6 +6,6 @@ There is **no** Dependabot equivalent for Renovate’s biome.json `$schema` cust
 
 After merge: uninstall the **Mend Renovate** GitHub App (or disable it on this repo) so you do not get duplicate PRs. Keep one updater.
 
-Postgres image majors (17 → 18) need a **volume reset or dump/restore**. The 18 server will not start on a 17 data directory.
+Postgres image majors (17 → 18) need a **volume reset or dump/restore**, and 18 compose mounts `/var/lib/postgresql` (not `/var/lib/postgresql/data`). The 18 server will not start on a 17 data directory.
 
 No extra Actions secrets. Dependabot uses GitHub’s own token.

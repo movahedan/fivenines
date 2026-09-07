@@ -36,7 +36,7 @@ Runtime: `@packages/shared/units`, `@packages/shared/ids`. Integers only at the 
 
 ## Clock and RNG
 
-`hourIndex` starts at `0`. Each `tick()` uses the **current** hour for demand, rolls physics metrics, attributes per-project SLA, charges opex, accrues PAYG, may trip jail, then `hourIndex += 1`. Derived: `hourOfDay = hourIndex % 24`, `dayIndex = floor(hourIndex / 24)`. `dispatch` does not change the clock, does not charge hourly opex, does not accrue PAYG, and does not rewrite SLA ring slots.
+`hourIndex` starts at `0`. Each `tick()` uses the **current** hour for demand, rolls physics metrics, attributes per-project SLA, charges opex, accrues PAYG, may trip jail, then `hourIndex += 1`. If `hourIndex % BILLING_PERIOD_HOURS === 0`, week close runs. Derived: `hourOfDay = hourIndex % 24`, `dayIndex = floor(hourIndex / 24)`. `dispatch` does not change the clock, does not charge hourly opex, does not accrue PAYG, does not close the week, and does not rewrite SLA ring slots.
 
 `new Game(initial, { random?: RandomSource })`. Default wraps `Math.random`. Demand code calls `random.nextUnit()` only.
 
@@ -85,7 +85,18 @@ Commercial tunables live in `src/catalog/commercial-policy.ts`. Every project mu
 
 Opening fixtures use `OPENING_COMMERCIAL_STUB` (1 / 2_000 / 990_000 / 100_000). Overload fixtures use PAYG 1 + recurring 0.
 
-After opex, served projects accrue `handled * commercial.paygCentsPerHandled` into `cashCents` and period buckets (`game.commercial.ts`). Emit-0: no PAYG and no period handled/emitted; still increment `hoursServedInPeriod`. Offered/declined: no PAYG. Jailed games still accrue. Week close and SLA credits are **not** this slice (`BILLING_PERIOD_HOURS` / `SETTLEMENT_HISTORY_K` are reserved).
+After opex, served projects accrue `handled * commercial.paygCentsPerHandled` into `cashCents` and period buckets (`game.commercial.ts`). Emit-0: no PAYG and no period handled/emitted; still increment `hoursServedInPeriod`. Offered/declined: no PAYG. Jailed games still accrue.
+
+After `hourIndex += 1`, if `hourIndex % BILLING_PERIOD_HOURS === 0` (168), close each project with `hoursServedInPeriod > 0`:
+
+```
+recurring = floor(recurringCentsPerPeriod * hoursServedInPeriod / 168)
+periodPpm = slaAvailabilityPpm(periodHandled, periodEmitted)  // Z2; not windowAvailabilityPpm
+credit    = periodPpm === null || periodPpm >= targetPpm ? 0
+          : min(periodRevenue, floor(periodRevenue * creditPpm / 1_000_000))
+```
+
+`periodRevenue = periodPaygCents + recurring`. Cash += recurring − credit. Push a settlement (`periodIndex = hourIndex / 168`); keep `SETTLEMENT_HISTORY_K` (8). Reset period buckets. Offered/declined skip. Jail still closes.
 
 ## `dispatch`
 

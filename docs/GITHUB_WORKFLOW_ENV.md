@@ -4,6 +4,8 @@ Set these on the **repository** (Settings → Secrets and variables → Actions)
 
 **Check** is a single job: resolve affected compose services, then build and probe those **production** images on the same runner. Lint, typecheck, unit tests, and package builds run locally: Lefthook **pre-push** runs `bun run overall -- --quiet`.
 
+**CodeQL** (`.github/workflows/codeql.yml`) scans Actions + JS/TS with `security-extended`. It needs no extra secrets or variables.
+
 Compose probes use image HEALTHCHECKs and `.env.sample` / compose `${VAR:-default}` values. You do **not** need to copy `POSTGRES_*`, ports, or `VITE_*` into GitHub for that job.
 
 ## Required for remote Turbo cache
@@ -17,7 +19,7 @@ Compose probes use image HEALTHCHECKs and `.env.sample` / compose `${VAR:-defaul
 
 | Name | Kind | Used by | Notes |
 |------|------|---------|--------|
-| `GITHUB_TOKEN` | Secret | Check, Main, Version | Automatic. Checkout and `bun run release ci` use it. Do not paste a PAT here unless you intentionally override the default. |
+| `GITHUB_TOKEN` | Secret | Check, Main, Version, CodeQL | Automatic. Checkout, `bun run release ci`, and CodeQL SARIF upload use it. Do not paste a PAT here unless you intentionally override the default. |
 
 ## Not used yet (commented in Main)
 

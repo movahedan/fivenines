@@ -1,9 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 
 import { useAuth } from "@packages/auth/react";
 
 import { useGameClock } from "../clock/use-game-clock";
+
+const HubSession = lazy(async () => {
+	const module = await import("../hub/hub-session");
+	return { default: module.HubSession };
+});
 
 export const Route = createFileRoute("/hub")({
 	component: HubPage,
@@ -41,11 +46,14 @@ export function HubPage() {
 	}
 
 	return (
-		<main>
-			<h1>Hub</h1>
-			<p>
-				{clock.at ? <time dateTime={clock.at}>{clock.at}</time> : <span>Connecting to clock</span>}
-			</p>
-		</main>
+		<Suspense
+			fallback={
+				<main>
+					<p>Loading...</p>
+				</main>
+			}
+		>
+			<HubSession />
+		</Suspense>
 	);
 }

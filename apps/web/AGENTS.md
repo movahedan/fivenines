@@ -6,8 +6,8 @@
 
 - **Port:** 3000 (`WEB_PORT`)
 - **Stack:** Vite + `@tanstack/react-start` + `@tanstack/react-router` file routes
-- Production routes must not construct `Game` or `tick()` in the browser.
-- **`/lab` exception:** `src/lab/` constructs `@packages/fivenines-engine` `Game` on the client (Opening Shift). Nest is the future production caller.
+- Production routes must not construct `Game` or `tick()` in the browser, except the temporary `/hub` and `/lab` clients below.
+- **`/hub` and `/lab` exceptions:** `src/hub/` and `src/lab/` construct `@packages/fivenines-engine` `Game` on the client (Opening Shift). Nest campaign/SSE is the future production caller. Clock SSE on `/hub` is session health (unauthenticated → login), not the sim clock.
 - Nest reads in loaders go through `createServerFn` + `@packages/nestjs-sdk/server` (loaders are isomorphic; keep private I/O in server functions).
 - Pin `@tanstack/react-router` to the version `@tanstack/react-start` depends on (currently `1.170.32`). Do not reuse `@packages/shared-tanstack`'s older router pin in this app.
 
@@ -20,10 +20,20 @@ Routes live under `src/routes/` (same convention as xpertell product apps):
 | `src/routes/__root.tsx` | Root document, Query + `FetcherSettingsProvider` + `AuthProvider` (`restoreOnMount={false}`) |
 | `src/routes/index.tsx` | `/` — SSR health check against Nest; Play links to `/hub` |
 | `src/routes/status.tsx` | `/status` — process-up HTML page |
-| `src/routes/hub.tsx` | `/hub` — `PlayButton`, `useAuth().wasLoggedIn` / `loginHref({ redirectUri: "/hub" })`; clock SSE with cookies |
-| `src/routes/lab.tsx` | `/lab` — session-gated engine harness (`LabSession`) |
+| `src/routes/hub.tsx` | `/hub` — session gate + clock-SSE health; renders `HubSession` (ops floor) |
+| `src/routes/lab.tsx` | `/lab` — session-gated verbose engine harness (`LabSession`) |
 
 `src/router.tsx` exports `getRouter()` (required by Start). Use `trailingSlash: "never"`. `src/routeTree.gen.ts` is generated on Vite build/dev — do not hand-edit.
+
+## Hub
+
+`src/hub/` is the player ops console: HUD + incoming / active+fleet / market + event log, composed from `@packages/ui/molecules`. `use-hub-game.ts` owns `Game(openingInitial)`, interval `tick()` (skipped while paused), and `dispatch`. HUD time is `game.hourIndex`, not SSE `at`. Account chrome is `useAuth()` in web (sign-out slot). Molecules stay engine-agnostic.
+
+Decline on offer cards logs only — the kernel has no decline command. Sparkline comes from `project.slaHours` (empty → warming). Buy gates match lab (`jailed` or cash below `SKU_ECONOMY`).
+
+```bash
+bun test apps/web/src/routes/hub.test.tsx
+```
 
 ## Lab
 

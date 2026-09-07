@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, mock } from "bun:test";
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { AuthProvider } from "@packages/auth/react";
 
@@ -26,6 +26,12 @@ function renderHub(): ReturnType<typeof render> {
 	);
 }
 
+async function waitForOpsFloor(): Promise<void> {
+	await waitFor(() => {
+		expect(screen.getByRole("button", { name: "Pause" })).toBeTruthy();
+	});
+}
+
 describe("HubPage - session gate", () => {
 	afterEach(() => {
 		mock.restore();
@@ -47,7 +53,7 @@ describe("HubPage - session gate", () => {
 		expect(String(calls[0]?.[0] ?? "")).toContain("state=%2Fhub");
 	});
 
-	it("shows the hub when the public hint cookie is set", async () => {
+	it("shows the ops floor when the public hint cookie is set", async () => {
 		stubLoggedInHint(true);
 		globalThis.fetch = mock(async () =>
 			Promise.resolve(new Response(null, { status: 401 })),
@@ -55,8 +61,75 @@ describe("HubPage - session gate", () => {
 
 		renderHub();
 
+		await waitForOpsFloor();
+		expect(screen.getByRole("region", { name: "Incoming queue" })).toBeTruthy();
+		expect(screen.getByRole("region", { name: "Server market" })).toBeTruthy();
+		expect(screen.getByText("Incoming (10)")).toBeTruthy();
+		expect(screen.getByText("Fleet (0)")).toBeTruthy();
+	});
+});
+
+describe("HubPage - ops landmarks", () => {
+	afterEach(() => {
+		mock.restore();
+		Reflect.deleteProperty(document, "cookie");
+	});
+
+	it("toggles pause without changing the incoming queue count", async () => {
+		stubLoggedInHint(true);
+		globalThis.fetch = mock(async () =>
+			Promise.resolve(new Response(null, { status: 401 })),
+		) as unknown as typeof fetch;
+
+		renderHub();
+
+		await waitForOpsFloor();
+		fireEvent.click(screen.getByRole("button", { name: "Pause" }));
+		expect(screen.getByRole("button", { name: "Resume" })).toBeTruthy();
+		expect(screen.getByText("Incoming (10)")).toBeTruthy();
+	});
+
+	it("moves a bought Bronze into the fleet panel", async () => {
+		stubLoggedInHint(true);
+		globalThis.fetch = mock(async () =>
+			Promise.resolve(new Response(null, { status: 401 })),
+		) as unknown as typeof fetch;
+
+		renderHub();
+
+		await waitForOpsFloor();
+		const buyBronze = screen.getAllByRole("button", { name: "BUY" })[0];
+		if (buyBronze === undefined) {
+			throw new Error("expected a market BUY button");
+		}
+		fireEvent.click(buyBronze);
+
 		await waitFor(() => {
-			expect(screen.getByRole("heading", { name: "Hub" })).toBeTruthy();
+			expect(screen.getByText("Fleet (1)")).toBeTruthy();
+		});
+		expect(screen.getByLabelText("CPU 0 percent")).toBeTruthy();
+		expect(screen.getByLabelText("NET 0 percent")).toBeTruthy();
+		expect(screen.getByLabelText("RAM 0 percent")).toBeTruthy();
+	});
+
+	it("moves an accepted offer into the active panel", async () => {
+		stubLoggedInHint(true);
+		globalThis.fetch = mock(async () =>
+			Promise.resolve(new Response(null, { status: 401 })),
+		) as unknown as typeof fetch;
+
+		renderHub();
+
+		await waitForOpsFloor();
+		const accept = screen.getAllByRole("button", { name: "ACCEPT" })[0];
+		if (accept === undefined) {
+			throw new Error("expected an offer ACCEPT button");
+		}
+		fireEvent.click(accept);
+
+		await waitFor(() => {
+			expect(screen.getByText("Active (1)")).toBeTruthy();
+			expect(screen.getByText("Incoming (9)")).toBeTruthy();
 		});
 	});
 });

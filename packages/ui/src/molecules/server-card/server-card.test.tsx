@@ -10,19 +10,31 @@ describe("ServerCard", () => {
 
 		render(
 			<ServerCard
-				cpuLabel="CPU 2/8"
+				cpuLabel="1000 cu"
+				cpuPercent={40}
 				idLabel="#A1F2"
 				label="m5.large"
+				netLabel="1000000 B/h"
+				netPercent={10}
 				onSell={onSell}
 				opexLabel="opex -$4/hr"
-				utilPercent={40}
+				ramLabel="4096 MiB"
+				ramPercent={6}
 				variant="fleet"
 			/>,
 		);
 
 		expect(screen.getByText("m5.large")).toBeInTheDocument();
 		expect(screen.getByText("#A1F2")).toBeInTheDocument();
-		expect(screen.getByText("CPU 2/8")).toBeInTheDocument();
+		expect(screen.getByText("CPU")).toBeInTheDocument();
+		expect(screen.getByText("NET")).toBeInTheDocument();
+		expect(screen.getByText("RAM")).toBeInTheDocument();
+		expect(screen.getByText("1000 cu")).toBeInTheDocument();
+		expect(screen.getByText("1000000 B/h")).toBeInTheDocument();
+		expect(screen.getByText("4096 MiB")).toBeInTheDocument();
+		expect(screen.getByText("40%")).toBeInTheDocument();
+		expect(screen.getByText("10%")).toBeInTheDocument();
+		expect(screen.getByText("6%")).toBeInTheDocument();
 		expect(screen.getByText("opex -$4/hr")).toBeInTheDocument();
 
 		fireEvent.click(screen.getByRole("button", { name: "SELL" }));

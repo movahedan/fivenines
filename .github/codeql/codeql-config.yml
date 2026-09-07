@@ -1,0 +1,14 @@
+name: fivenines
+queries:
+  - uses: security-extended
+paths:
+  - apps
+  - packages
+  - tools
+  - .github
+paths-ignore:
+  - '**/node_modules/**'
+  - '**/dist/**'
+  - '**/.turbo/**'
+  - '**/coverage/**'
+  - 'packages/nestjs-sdk/src/gen/**'

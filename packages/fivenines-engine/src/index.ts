@@ -1,4 +1,12 @@
 export { CAPACITY_POLICY } from "./catalog/capacity-policy";
+export type { CommercialTerms } from "./catalog/commercial-policy";
+export {
+	BILLING_PERIOD_HOURS,
+	OPENING_COMMERCIAL_STUB,
+	PAYG_ONLY_COMMERCIAL_STUB,
+	parseCommercialTerms,
+	SETTLEMENT_HISTORY_K,
+} from "./catalog/commercial-policy";
 export {
 	DEBT_LIMIT_CENTS,
 	SALVAGE_PERCENT,

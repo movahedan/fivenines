@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
+import { PAYG_ONLY_COMMERCIAL_STUB } from "./catalog/commercial-policy";
 import type { GameInitial } from "./game";
 import { Game } from "./game";
 import type { ProjectInitial } from "./project";
@@ -14,6 +15,7 @@ function shoppingServedProject(region: ProjectInitial["region"]): ProjectInitial
 		category: "shopping",
 		region,
 		campaignProne: false,
+		...PAYG_ONLY_COMMERCIAL_STUB,
 	};
 }
 

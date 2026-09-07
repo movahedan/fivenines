@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
+import { PAYG_ONLY_COMMERCIAL_STUB } from "./catalog/commercial-policy";
 import { type RegionId, regions } from "./catalog/regions";
 import { constantProject, oneBronzeInitial, twoBronzeInitial } from "./fixtures";
 import type { GameInitial } from "./game";
@@ -21,6 +22,7 @@ function servedProject(
 		category,
 		region,
 		campaignProne: false,
+		...PAYG_ONLY_COMMERCIAL_STUB,
 	};
 }
 

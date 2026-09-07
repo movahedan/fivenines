@@ -90,7 +90,9 @@ describe("Game - opex", () => {
 		game.tick();
 
 		expect(game.metrics.handledRequests + game.metrics.droppedRequests).toBe(1400);
-		expect(game.cashCents).toBe(STARTING_CASH_CENTS - game.finance.opexCents);
+		expect(game.cashCents).toBe(
+			STARTING_CASH_CENTS - game.finance.opexCents + game.metrics.handledRequests,
+		);
 		expect(game.finance.opexCents).toBeGreaterThan(0);
 	});
 });

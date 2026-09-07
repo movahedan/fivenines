@@ -1,5 +1,6 @@
 import { units } from "@packages/shared/units";
 
+import { type CommercialTerms, parseCommercialTerms } from "./catalog/commercial-policy";
 import { type RegionId, regions } from "./catalog/regions";
 import { SLA_WINDOW_HOURS, slaAvailabilityPpm } from "./catalog/sla-policy";
 import { TRAFFIC_POLICY } from "./catalog/traffic-policy";
@@ -25,7 +26,7 @@ export interface CampaignWindow {
 	durationHours: number;
 }
 
-export interface ProjectInitial {
+export interface ProjectInitial extends CommercialTerms {
 	id: string;
 	estimatedRequestsPerHour: number;
 	status: ProjectStatus;
@@ -59,10 +60,18 @@ export class Project {
 	readonly region: RegionId;
 	readonly campaignProne: boolean;
 	readonly campaign: CampaignWindow | undefined;
+	readonly paygCentsPerHandled: number;
+	readonly recurringCentsPerPeriod: number;
+	readonly targetPpm: number;
+	readonly creditPpm: number;
 	readonly #status: ProjectStatus;
 	readonly #demandModel: DemandModel;
 	#metrics: ProjectTickMetrics = EMPTY_PROJECT_TICK_METRICS;
 	#slaHours: SlaHourSample[] = [];
+	#hoursServedInPeriod = 0;
+	#periodPaygCents = 0;
+	#periodHandled = 0;
+	#periodEmitted = 0;
 
 	constructor(initial: ProjectInitial) {
 		this.id = initial.id;
@@ -81,6 +90,13 @@ export class Project {
 		this.region = regions.parseRegionId(initial.region);
 		this.campaignProne = initial.campaignProne;
 		this.campaign = initial.campaign === undefined ? undefined : parseCampaign(initial.campaign);
+
+		const terms = parseCommercialTerms(initial);
+
+		this.paygCentsPerHandled = terms.paygCentsPerHandled;
+		this.recurringCentsPerPeriod = terms.recurringCentsPerPeriod;
+		this.targetPpm = terms.targetPpm;
+		this.creditPpm = terms.creditPpm;
 		this.#demandModel =
 			initial.demand === "constant"
 				? new ConstantDemand(this.estimatedRequestsPerHour)
@@ -105,6 +121,22 @@ export class Project {
 		return this.#slaHours;
 	}
 
+	get hoursServedInPeriod(): number {
+		return this.#hoursServedInPeriod;
+	}
+
+	get periodPaygCents(): number {
+		return this.#periodPaygCents;
+	}
+
+	get periodHandled(): number {
+		return this.#periodHandled;
+	}
+
+	get periodEmitted(): number {
+		return this.#periodEmitted;
+	}
+
 	asServed(): Project {
 		if (this.#status !== "offered") {
 			throw new Error(`project is not offered: ${this.id}`);
@@ -118,13 +150,41 @@ export class Project {
 			category: this.category,
 			region: this.region,
 			campaignProne: this.campaignProne,
+			paygCentsPerHandled: this.paygCentsPerHandled,
+			recurringCentsPerPeriod: this.recurringCentsPerPeriod,
+			targetPpm: this.targetPpm,
+			creditPpm: this.creditPpm,
 			...(this.campaign === undefined ? {} : { campaign: this.campaign }),
 		});
 
 		served.#slaHours = this.#slaHours.slice();
 		served.#metrics = this.#metrics;
+		served.#hoursServedInPeriod = this.#hoursServedInPeriod;
+		served.#periodPaygCents = this.#periodPaygCents;
+		served.#periodHandled = this.#periodHandled;
+		served.#periodEmitted = this.#periodEmitted;
 
 		return served;
+	}
+
+	accrueServedPayg(): number {
+		if (this.#status !== "served") {
+			return 0;
+		}
+
+		this.#hoursServedInPeriod += 1;
+
+		if (this.#metrics.emittedRequests === 0) {
+			return 0;
+		}
+
+		const paygCents = this.#metrics.handledRequests * this.paygCentsPerHandled;
+
+		this.#periodPaygCents += paygCents;
+		this.#periodHandled += this.#metrics.handledRequests;
+		this.#periodEmitted += this.#metrics.emittedRequests;
+
+		return paygCents;
 	}
 
 	recordSlaHour(hour: ProjectSlaHour): void {

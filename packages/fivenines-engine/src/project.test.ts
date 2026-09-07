@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
+import { OPENING_COMMERCIAL_STUB } from "./catalog/commercial-policy";
 import { Project, type ProjectInitial } from "./project";
 import { FixedRandomSource, SequenceRandomSource } from "./traffic/random-source";
 
@@ -12,6 +13,7 @@ function shapedInitial(overrides: Partial<ProjectInitial> = {}): ProjectInitial 
 		category: "shopping",
 		region: "utc+0",
 		campaignProne: false,
+		...OPENING_COMMERCIAL_STUB,
 		...overrides,
 	};
 }
@@ -61,5 +63,37 @@ describe("Project - construction", () => {
 					}),
 				),
 		).toThrow("unknown project category: shop");
+	});
+
+	it("throws when PAYG and recurring are both 0", () => {
+		expect(
+			() =>
+				new Project(
+					shapedInitial({
+						paygCentsPerHandled: 0,
+						recurringCentsPerPeriod: 0,
+					}),
+				),
+		).toThrow("at least one of paygCentsPerHandled or recurringCentsPerPeriod must be positive");
+	});
+});
+
+describe("Project - asServed", () => {
+	it("copies existing commercial terms without inventing a catalog card", () => {
+		const offered = new Project(
+			shapedInitial({
+				paygCentsPerHandled: 3,
+				recurringCentsPerPeriod: 4_000,
+				targetPpm: 950_000,
+				creditPpm: 50_000,
+			}),
+		);
+		const served = offered.asServed();
+
+		expect(served.status).toBe("served");
+		expect(served.paygCentsPerHandled).toBe(3);
+		expect(served.recurringCentsPerPeriod).toBe(4_000);
+		expect(served.targetPpm).toBe(950_000);
+		expect(served.creditPpm).toBe(50_000);
 	});
 });

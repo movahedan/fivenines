@@ -29,7 +29,7 @@ Run from repo root. Filters use workspace `name` (`@apps/nestjs`, `@packages/ui`
 | `bun run precommit` | Branch / message / staged checks |
 | Lefthook pre-push | Branch + staged + `bun run overall -- --quiet` |
 
-GitHub Actions secrets/variables: [GITHUB_WORKFLOW_ENV.md](GITHUB_WORKFLOW_ENV.md). CI **Overall** (`bun install` + `bun run overall`) is the required quality check; **Check** is production compose. Coverage for the GitHub Code Quality ruleset is uploaded from that Overall job (Bun lcov → Cobertura). Line thresholds stay at 10% in `bunfig.toml` and on the ruleset until the uploaded number is honest enough to raise.
+GitHub Actions secrets/variables: [GITHUB_WORKFLOW_ENV.md](GITHUB_WORKFLOW_ENV.md). CI **Overall** (`bun install` + `bun run overall`) is the required quality check; **Check** is production compose. Native GitHub coverage upload needs Code Quality (Team/Enterprise org). On this user-owned repo the upload 404s; Overall still produces Cobertura and does not fail the job.
 
 ## Dev (host)
 

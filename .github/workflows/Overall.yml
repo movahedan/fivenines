@@ -63,5 +63,6 @@ jobs:
         uses: actions/upload-code-coverage@v1.4.2
         with:
           file: coverage/cobertura.xml
-          language: TypeScript
+          language: JavaScript
           label: code-coverage/bun
+          fail-on-error: false

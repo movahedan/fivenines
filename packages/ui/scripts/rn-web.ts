@@ -605,6 +605,13 @@ export const rnWebExtensions = [
 	".json",
 ];
 
+export function rnWebGlobalDefines(mode: "development" | "production"): Record<string, string> {
+	return {
+		__DEV__: JSON.stringify(mode === "development"),
+		"process.env.NODE_ENV": JSON.stringify(mode),
+	};
+}
+
 export function rnWebOptimizeDeps(): NonNullable<UserConfig["optimizeDeps"]> {
 	return {
 		include: [
@@ -652,6 +659,7 @@ export function rnWebOptimizeDeps(): NonNullable<UserConfig["optimizeDeps"]> {
 			"@rn-primitives/toggle-group",
 			"@rn-primitives/tooltip",
 			"react-native-css",
+			"react-native-reanimated",
 		],
 	};
 }
@@ -731,6 +739,11 @@ export function rewriteReactNativeCssImports(): Plugin {
 }
 
 export function applyRnWebVite(viteConfig: UserConfig): UserConfig {
+	const mode = viteConfig.mode === "production" ? "production" : "development";
+	viteConfig.define = {
+		...rnWebGlobalDefines(mode),
+		...viteConfig.define,
+	};
 	viteConfig.plugins = [
 		shareSingleReact(),
 		preferNodeModuleEsmPlugin(),

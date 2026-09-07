@@ -40,3 +40,12 @@ describe("preferNodeModuleEsm", () => {
 		expect(pluginAt).toBeLessThan(jsxAt);
 	});
 });
+
+describe("rnWebGlobalDefines - RN globals", () => {
+	it("defines __DEV__ for applyRnWebVite and web Vite", () => {
+		expect(rnWebVite.includes('__DEV__: JSON.stringify(mode === "development")')).toBe(true);
+		expect(rnWebVite.includes("viteConfig.define = {")).toBe(true);
+		expect(rnWebVite.includes("...rnWebGlobalDefines(mode)")).toBe(true);
+		expect(rnWebVite.includes('"react-native-reanimated"')).toBe(true);
+	});
+});

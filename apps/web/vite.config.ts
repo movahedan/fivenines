@@ -9,11 +9,13 @@ import { defineConfig, type PreviewServer, type ViteDevServer } from "vite";
 
 import {
 	esmifyReactNativeSvgTransform,
+	preferNodeModuleEsmPlugin,
 	resolveStyleqStubs,
 	rewriteReactNativeCssImports,
 	rewriteRnWebStyleqImports,
 	rnWebAliases,
 	rnWebExtensions,
+	rnWebGlobalDefines,
 	rnWebOptimizeDeps,
 	rnWebSsrNoExternal,
 	shareSingleReact,
@@ -91,6 +93,7 @@ export default defineConfig(({ command }) => {
 		preview: {
 			port: webPort,
 		},
+		define: rnWebGlobalDefines(command === "build" ? "production" : "development"),
 		resolve: {
 			alias: {
 				...rnWebAliases(),
@@ -118,6 +121,7 @@ export default defineConfig(({ command }) => {
 		},
 		plugins: [
 			...(shareReact ? [shareSingleReact()] : []),
+			preferNodeModuleEsmPlugin(),
 			rewriteReactNativeCssImports(),
 			esmifyReactNativeSvgTransform(),
 			rewriteRnWebStyleqImports(),

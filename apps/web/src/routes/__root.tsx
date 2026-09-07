@@ -1,5 +1,11 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { createRootRouteWithContext, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
+import {
+	createRootRouteWithContext,
+	type ErrorComponentProps,
+	HeadContent,
+	Outlet,
+	Scripts,
+} from "@tanstack/react-router";
 import type { ReactElement } from "react";
 
 import { createAuthFetcherBindings } from "@packages/auth";
@@ -15,15 +21,24 @@ import "@packages/ui/style.css";
 
 const authFetch = createAuthFetcherBindings(playerAuthSession);
 
+function RootError({ error }: ErrorComponentProps) {
+	return (
+		<main className="min-h-screen bg-background p-8 font-sans text-foreground">
+			<h1 className="text-lg font-semibold">Something went wrong</h1>
+			<p className="mt-4 font-mono text-sm text-destructive">{error.message}</p>
+		</main>
+	);
+}
+
 function RootDocument(): ReactElement {
 	const { queryClient } = Route.useRouteContext();
 
 	return (
-		<html lang="en">
+		<html lang="en" className="h-full bg-background">
 			<head>
 				<HeadContent />
 			</head>
-			<body>
+			<body className="min-h-full bg-background font-sans text-foreground">
 				<QueryClientProvider client={queryClient}>
 					<AuthProvider
 						session={playerAuthSession}
@@ -63,5 +78,6 @@ export const Route = createRootRouteWithContext<WebRouterContext>()({
 		],
 	}),
 	component: RootDocument,
+	errorComponent: RootError,
 	notFoundComponent: () => <p>Not found</p>,
 });

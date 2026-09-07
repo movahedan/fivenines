@@ -25,6 +25,7 @@ import { Hud } from "@/molecules/hud/hud";
 import { PanelHeader } from "@/molecules/panel-header/panel-header";
 import { ProjectOfferCard } from "@/molecules/project-offer-card/project-offer-card";
 import { ServerCard } from "@/molecules/server-card/server-card";
+import { beginReturnHomeAfterLogout, POST_LOGOUT_PATH } from "../auth/after-logout";
 import {
 	axisPercent,
 	commandLogTone,
@@ -129,7 +130,10 @@ export function HubSession() {
 				account={
 					<Button
 						onClick={() => {
-							void logout();
+							beginReturnHomeAfterLogout();
+							void logout().then(() => {
+								window.location.replace(POST_LOGOUT_PATH);
+							});
 						}}
 						size="sm"
 						variant="ghost"

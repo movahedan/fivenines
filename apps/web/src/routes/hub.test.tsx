@@ -4,6 +4,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { AuthProvider } from "@packages/auth/react";
 
+import { resetReturnHomeAfterLogout } from "../auth/after-logout";
 import { HubPage, PlayButton } from "./hub";
 
 function stubLoggedInHint(present: boolean): void {
@@ -34,6 +35,7 @@ async function waitForOpsFloor(): Promise<void> {
 
 describe("HubPage - session gate", () => {
 	afterEach(() => {
+		resetReturnHomeAfterLogout();
 		mock.restore();
 		Reflect.deleteProperty(document, "cookie");
 	});
@@ -74,6 +76,7 @@ describe("HubPage - session gate", () => {
 
 describe("HubPage - ops landmarks", () => {
 	afterEach(() => {
+		resetReturnHomeAfterLogout();
 		mock.restore();
 		Reflect.deleteProperty(document, "cookie");
 	});
@@ -158,6 +161,33 @@ describe("HubPage - ops landmarks", () => {
 			expect(screen.getByText("Active (0)")).toBeTruthy();
 		});
 		expect(screen.queryByText(/not a kernel command/)).toBeNull();
+	});
+
+	it("replaces the location with home after Sign out and does not open auth login", async () => {
+		stubLoggedInHint(true);
+		const replace = mock(() => undefined);
+		const assign = mock(() => undefined);
+		window.location.replace = replace as typeof window.location.replace;
+		window.location.assign = assign as typeof window.location.assign;
+		globalThis.fetch = mock(async () =>
+			Promise.resolve(
+				new Response(JSON.stringify({ result: { data: {} } }), {
+					status: 200,
+					headers: { "content-type": "application/json" },
+				}),
+			),
+		) as unknown as typeof fetch;
+
+		renderHub();
+
+		await waitForOpsFloor();
+		fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+
+		await waitFor(() => {
+			expect(replace).toHaveBeenCalledWith("/");
+		});
+		const assignCalls = assign.mock.calls as unknown as ReadonlyArray<ReadonlyArray<unknown>>;
+		expect(assignCalls.every((call) => !String(call[0] ?? "").includes("/login"))).toBe(true);
 	});
 });
 

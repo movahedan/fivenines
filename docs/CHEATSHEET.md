@@ -19,6 +19,7 @@ Run from repo root. Filters use workspace `name` (`@apps/nestjs`, `@packages/ui`
 |---------|-------------|
 | `bun run overall` | Lint (write), affected typecheck/test/build, `bun test packages tools`, NestJS tests |
 | `bun run overall -- --quiet` | Same, no Ink (lefthook pre-push uses this) |
+| `bun run overall -- --quiet --coverage` | Same, packages/tools tests write `coverage/lcov.info` (GitHub Overall) |
 | `bun run lint` | Biome check |
 | `bun run lint -- --write` | Biome fix |
 | `bun run typecheck` | Turbo typecheck |
@@ -29,7 +30,7 @@ Run from repo root. Filters use workspace `name` (`@apps/nestjs`, `@packages/ui`
 | `bun run precommit` | Branch / message / staged checks |
 | Lefthook pre-push | Branch + staged + `bun run overall -- --quiet` |
 
-GitHub Actions secrets/variables: [GITHUB_WORKFLOW_ENV.md](GITHUB_WORKFLOW_ENV.md). CI **Overall** (`bun install` + `bun run overall`) is the required quality check; **Check** is production compose. Native GitHub coverage upload needs Code Quality (Team/Enterprise org). On this user-owned repo the upload 404s; Overall still produces Cobertura and does not fail the job.
+GitHub Actions secrets/variables: [GITHUB_WORKFLOW_ENV.md](GITHUB_WORKFLOW_ENV.md). CI **Overall** (`bun install` + `bun run overall --quiet --coverage`) is the required quality check; **Check** is production compose. Native GitHub coverage upload needs Code Quality (Team/Enterprise org). On this user-owned repo the upload 404s; Overall still produces Cobertura and does not fail the job.
 
 ## Dev (host)
 

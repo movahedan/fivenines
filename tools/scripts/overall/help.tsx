@@ -28,10 +28,14 @@ function HelpApp({ errorMessage }: { readonly errorMessage?: string }) {
 				<Text color="green">--quiet</Text> / <Text color="green">-q</Text> — run steps without Ink
 				(pre-push / scripts)
 			</Text>
+			<Text>
+				<Text color="green">--coverage</Text> — packages/tools tests write lcov (GitHub Overall)
+			</Text>
 			<Text> </Text>
 			<Text bold>Examples</Text>
 			<Text dimColor>bun run overall</Text>
 			<Text dimColor>bun run overall --quiet</Text>
+			<Text dimColor>bun run overall --quiet --coverage</Text>
 		</Box>
 	);
 }

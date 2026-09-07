@@ -10,6 +10,6 @@ When performing a code review on GitHub Actions:
 - Least privilege: default `contents: read`; add `security-events: write` only for SARIF upload; add `code-quality: write` only for coverage upload.
 - Do not introduce `POSTGRES_*` or compose ports as Actions secrets. Check uses `.env.sample` defaults.
 - Bun version must match root `packageManager`. Do not use `bun install --frozen-lockfile` in this monorepo.
-- The **overall** job is the GitHub quality gate (`bun install` + `bun run overall`). Check remains production compose.
+- The **overall** job is the GitHub quality gate (`bun install` + `bun run overall --quiet --coverage`). Check remains production compose.
 - Do not add Default Setup CodeQL next to `.github/workflows/codeql.yml` (Advanced).
 - Copilot coding agent must run `bun run overall` before commit (Lefthook does not run on GitHub-authored Copilot commits). Setup: `.github/workflows/copilot-setup-steps.yml`.

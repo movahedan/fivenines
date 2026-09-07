@@ -49,11 +49,10 @@ jobs:
         run: bun install
 
       - name: Quality gate
-        run: bun run overall
+        run: bun run overall -- --quiet --coverage
 
       - name: Convert lcov to Cobertura
         run: |
-          bun test packages tools --coverage --coverage-reporter=lcov
           python3 -m pip install --user lcov_cobertura
           export PATH="$HOME/.local/bin:$PATH"
           lcov_cobertura coverage/lcov.info -o coverage/cobertura.xml

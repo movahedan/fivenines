@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: c2
     content: "C2 SLA lab — sla plan Phase 2"
-    status: pending
+    status: completed
   - id: b1
     content: "B1 PAYG — fivenines-engine-billing.plan.md Phase 1"
     status: pending
@@ -145,6 +145,7 @@ _(Master appends here. Newest last.)_
 - 2026-09-07: **A1** engine wallet/opex/jail shipped in `@packages/fivenines-engine` (checkup PASS, engine AGENTS synced). Next: **A2** lab HUD after this PR is approved.
 - 2026-09-07: **A2** `/lab` finance HUD (cash, jailed, opex split, buy/accept disable). Next: **C1** SLA engine.
 - 2026-09-07: **C1** per-project attribution + 168h availability ring. Next: **C2** lab SLA digits.
+- 2026-09-07: **C2** `/lab` served-row this-hour and window ppm. Next: **B1** PAYG.
 
 ---
 

@@ -26,7 +26,7 @@ export interface CampaignWindow {
 	durationHours: number;
 }
 
-export interface ProjectInitial extends CommercialTerms {
+export interface ProjectInitial {
 	id: string;
 	estimatedRequestsPerHour: number;
 	status: ProjectStatus;
@@ -35,6 +35,7 @@ export interface ProjectInitial extends CommercialTerms {
 	region: RegionId;
 	campaignProne: boolean;
 	campaign?: CampaignWindow;
+	commercial: CommercialTerms;
 }
 
 function isProjectCategory(value: string): value is ProjectCategory {
@@ -60,10 +61,7 @@ export class Project {
 	readonly region: RegionId;
 	readonly campaignProne: boolean;
 	readonly campaign: CampaignWindow | undefined;
-	readonly paygCentsPerHandled: number;
-	readonly recurringCentsPerPeriod: number;
-	readonly targetPpm: number;
-	readonly creditPpm: number;
+	readonly commercial: CommercialTerms;
 	readonly #status: ProjectStatus;
 	readonly #demandModel: DemandModel;
 	#metrics: ProjectTickMetrics = EMPTY_PROJECT_TICK_METRICS;
@@ -90,13 +88,7 @@ export class Project {
 		this.region = regions.parseRegionId(initial.region);
 		this.campaignProne = initial.campaignProne;
 		this.campaign = initial.campaign === undefined ? undefined : parseCampaign(initial.campaign);
-
-		const terms = parseCommercialTerms(initial);
-
-		this.paygCentsPerHandled = terms.paygCentsPerHandled;
-		this.recurringCentsPerPeriod = terms.recurringCentsPerPeriod;
-		this.targetPpm = terms.targetPpm;
-		this.creditPpm = terms.creditPpm;
+		this.commercial = parseCommercialTerms(initial.commercial);
 		this.#demandModel =
 			initial.demand === "constant"
 				? new ConstantDemand(this.estimatedRequestsPerHour)
@@ -150,10 +142,7 @@ export class Project {
 			category: this.category,
 			region: this.region,
 			campaignProne: this.campaignProne,
-			paygCentsPerHandled: this.paygCentsPerHandled,
-			recurringCentsPerPeriod: this.recurringCentsPerPeriod,
-			targetPpm: this.targetPpm,
-			creditPpm: this.creditPpm,
+			commercial: this.commercial,
 			...(this.campaign === undefined ? {} : { campaign: this.campaign }),
 		});
 
@@ -178,7 +167,7 @@ export class Project {
 			return 0;
 		}
 
-		const paygCents = this.#metrics.handledRequests * this.paygCentsPerHandled;
+		const paygCents = this.#metrics.handledRequests * this.commercial.paygCentsPerHandled;
 
 		this.#periodPaygCents += paygCents;
 		this.#periodHandled += this.#metrics.handledRequests;

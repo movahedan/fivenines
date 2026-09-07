@@ -13,7 +13,7 @@ function shapedInitial(overrides: Partial<ProjectInitial> = {}): ProjectInitial 
 		category: "shopping",
 		region: "utc+0",
 		campaignProne: false,
-		...OPENING_COMMERCIAL_STUB,
+		commercial: OPENING_COMMERCIAL_STUB,
 		...overrides,
 	};
 }
@@ -70,8 +70,12 @@ describe("Project - construction", () => {
 			() =>
 				new Project(
 					shapedInitial({
-						paygCentsPerHandled: 0,
-						recurringCentsPerPeriod: 0,
+						commercial: {
+							paygCentsPerHandled: 0,
+							recurringCentsPerPeriod: 0,
+							targetPpm: OPENING_COMMERCIAL_STUB.targetPpm,
+							creditPpm: OPENING_COMMERCIAL_STUB.creditPpm,
+						},
 					}),
 				),
 		).toThrow("at least one of paygCentsPerHandled or recurringCentsPerPeriod must be positive");
@@ -82,18 +86,22 @@ describe("Project - asServed", () => {
 	it("copies existing commercial terms without inventing a catalog card", () => {
 		const offered = new Project(
 			shapedInitial({
-				paygCentsPerHandled: 3,
-				recurringCentsPerPeriod: 4_000,
-				targetPpm: 950_000,
-				creditPpm: 50_000,
+				commercial: {
+					paygCentsPerHandled: 3,
+					recurringCentsPerPeriod: 4_000,
+					targetPpm: 950_000,
+					creditPpm: 50_000,
+				},
 			}),
 		);
 		const served = offered.asServed();
 
 		expect(served.status).toBe("served");
-		expect(served.paygCentsPerHandled).toBe(3);
-		expect(served.recurringCentsPerPeriod).toBe(4_000);
-		expect(served.targetPpm).toBe(950_000);
-		expect(served.creditPpm).toBe(50_000);
+		expect(served.commercial).toEqual({
+			paygCentsPerHandled: 3,
+			recurringCentsPerPeriod: 4_000,
+			targetPpm: 950_000,
+			creditPpm: 50_000,
+		});
 	});
 });

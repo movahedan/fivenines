@@ -15,7 +15,7 @@ function shoppingServedProject(region: ProjectInitial["region"]): ProjectInitial
 		category: "shopping",
 		region,
 		campaignProne: false,
-		...PAYG_ONLY_COMMERCIAL_STUB,
+		commercial: PAYG_ONLY_COMMERCIAL_STUB,
 	};
 }
 

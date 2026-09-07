@@ -16,7 +16,7 @@ export function constantProject(
 		category: "saas",
 		region: "utc+0",
 		campaignProne: false,
-		...PAYG_ONLY_COMMERCIAL_STUB,
+		commercial: PAYG_ONLY_COMMERCIAL_STUB,
 	};
 }
 
@@ -36,7 +36,7 @@ function shapedProject(
 		category,
 		region,
 		campaignProne,
-		...OPENING_COMMERCIAL_STUB,
+		commercial: OPENING_COMMERCIAL_STUB,
 		...(campaign === undefined ? {} : { campaign }),
 	};
 }

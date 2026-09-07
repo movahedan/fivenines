@@ -22,7 +22,7 @@ function servedProject(
 		category,
 		region,
 		campaignProne: false,
-		...PAYG_ONLY_COMMERCIAL_STUB,
+		commercial: PAYG_ONLY_COMMERCIAL_STUB,
 	};
 }
 

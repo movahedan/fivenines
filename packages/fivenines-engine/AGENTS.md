@@ -44,7 +44,7 @@ Runtime: `@packages/shared/units`, `@packages/shared/ids`. Integers only at the 
 
 `estimatedRequestsPerHour` is the **baseline**. `demand: "constant"` returns that baseline when served (overload proofs). `demand: "shaped"` uses category rhythm + timezone + optional campaign window + spikes + jitter from `src/catalog/traffic-policy.ts`. Offered / declined return `0` and must not consume RNG.
 
-`ProjectInitial` also requires `category` (`shopping` \| `saas` \| `portfolio`), `region` (`REGION_IDS` in `src/catalog/regions.ts`; unknown id throws), `campaignProne`, optional `campaign: { startHour, durationHours }` (`durationHours >= 1`), and **commercial terms** (`paygCentsPerHandled`, `recurringCentsPerPeriod`, `targetPpm`, `creditPpm`). Shaped demand uses `regions.offsetHoursFor(region)` for `localHour`. Lab buy default is `DEFAULT_REGION` (`utc+0`).
+`ProjectInitial` also requires `category` (`shopping` \| `saas` \| `portfolio`), `region` (`REGION_IDS` in `src/catalog/regions.ts`; unknown id throws), `campaignProne`, optional `campaign: { startHour, durationHours }` (`durationHours >= 1`), and `commercial: CommercialTerms`. Shaped demand uses `regions.offsetHoursFor(region)` for `localHour`. Lab buy default is `DEFAULT_REGION` (`utc+0`).
 
 ## Constructor
 
@@ -81,11 +81,11 @@ Idle boxes still pay maintenance + idle power. Overload bills **max** power, not
 
 ## Billing (PAYG)
 
-Commercial tunables live in `src/catalog/commercial-policy.ts`. Every project must have terms: `paygCentsPerHandled` and `recurringCentsPerPeriod` ≥ 0 integers; at least one > 0; `targetPpm` / `creditPpm` finite integers. Construct throws otherwise. `acceptProject` copies existing terms (`asServed`); it does not invent a catalog card.
+Commercial tunables live in `src/catalog/commercial-policy.ts`. Every project must have `commercial: { paygCentsPerHandled, recurringCentsPerPeriod, targetPpm, creditPpm }`. PAYG and recurring ≥ 0 integers; at least one > 0; `targetPpm` / `creditPpm` finite integers. Construct throws otherwise. `acceptProject` copies `commercial` (`asServed`); it does not invent a catalog card. Player–customer MSA (multipliers) is a **different** contract noun later — not fields on `Project`.
 
 Opening fixtures use `OPENING_COMMERCIAL_STUB` (1 / 2_000 / 990_000 / 100_000). Overload fixtures use PAYG 1 + recurring 0.
 
-After opex, served projects accrue `handled * paygCentsPerHandled` into `cashCents` and period buckets (`game.commercial.ts`). Emit-0: no PAYG and no period handled/emitted; still increment `hoursServedInPeriod`. Offered/declined: no PAYG. Jailed games still accrue. Week close and SLA credits are **not** this slice (`BILLING_PERIOD_HOURS` / `SETTLEMENT_HISTORY_K` are reserved).
+After opex, served projects accrue `handled * commercial.paygCentsPerHandled` into `cashCents` and period buckets (`game.commercial.ts`). Emit-0: no PAYG and no period handled/emitted; still increment `hoursServedInPeriod`. Offered/declined: no PAYG. Jailed games still accrue. Week close and SLA credits are **not** this slice (`BILLING_PERIOD_HOURS` / `SETTLEMENT_HISTORY_K` are reserved).
 
 ## `dispatch`
 

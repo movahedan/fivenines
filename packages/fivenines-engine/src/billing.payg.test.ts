@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
-import { OPENING_COMMERCIAL_STUB } from "./catalog/commercial-policy";
+import { OPENING_COMMERCIAL_STUB, PAYG_ONLY_COMMERCIAL_STUB } from "./catalog/commercial-policy";
 import { SKU_ECONOMY, STARTING_CASH_CENTS } from "./catalog/economy-policy";
 import { constantProject, oneBronzeInitial, openingInitial, twoBronzeInitial } from "./fixtures";
 import type { GameInitial } from "./game";
@@ -27,7 +27,7 @@ describe("Game - PAYG", () => {
 					projects: [
 						{
 							...constantProject("project-1", 100, "served"),
-							paygCentsPerHandled: 7,
+							commercial: { ...PAYG_ONLY_COMMERCIAL_STUB, paygCentsPerHandled: 7 },
 						},
 					],
 				},
@@ -88,7 +88,8 @@ describe("Game - PAYG", () => {
 			cashCents: 0,
 		}).tick();
 		const paygCents = allProjects(game).reduce(
-			(sum, project) => sum + project.metrics.handledRequests * project.paygCentsPerHandled,
+			(sum, project) =>
+				sum + project.metrics.handledRequests * project.commercial.paygCentsPerHandled,
 			0,
 		);
 
@@ -101,10 +102,7 @@ describe("Game - PAYG", () => {
 		const game = new Game(openingInitial);
 
 		for (const project of allProjects(game)) {
-			expect(project.paygCentsPerHandled).toBe(OPENING_COMMERCIAL_STUB.paygCentsPerHandled);
-			expect(project.recurringCentsPerPeriod).toBe(OPENING_COMMERCIAL_STUB.recurringCentsPerPeriod);
-			expect(project.targetPpm).toBe(OPENING_COMMERCIAL_STUB.targetPpm);
-			expect(project.creditPpm).toBe(OPENING_COMMERCIAL_STUB.creditPpm);
+			expect(project.commercial).toEqual(OPENING_COMMERCIAL_STUB);
 		}
 	});
 

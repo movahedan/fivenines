@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { rewriteExternalRequires, rnWebAliases } from "../scripts/rn-web";
+
 const rnWebVite = readFileSync(
 	path.join(path.dirname(fileURLToPath(import.meta.url)), "../scripts/rn-web.ts"),
 	"utf8",
@@ -44,8 +46,54 @@ describe("preferNodeModuleEsm", () => {
 describe("rnWebGlobalDefines - RN globals", () => {
 	it("defines __DEV__ for applyRnWebVite and web Vite", () => {
 		expect(rnWebVite.includes('__DEV__: JSON.stringify(mode === "development")')).toBe(true);
+		expect(rnWebVite.includes('global: "globalThis"')).toBe(true);
 		expect(rnWebVite.includes("viteConfig.define = {")).toBe(true);
 		expect(rnWebVite.includes("...rnWebGlobalDefines(mode)")).toBe(true);
 		expect(rnWebVite.includes('"react-native-reanimated"')).toBe(true);
+	});
+});
+
+describe("rnWebAliases - reanimated webUtils CJS imports", () => {
+	it("points react-native-web dist/cjs StyleSheet helpers at the ESM dist", () => {
+		const aliases = rnWebAliases();
+		const createStyle =
+			aliases["react-native-web/dist/cjs/exports/StyleSheet/compiler/createReactDOMStyle.js"];
+		const preprocess = aliases["react-native-web/dist/cjs/exports/StyleSheet/preprocess.js"];
+
+		expect(createStyle?.split("\\").join("/")).toMatch(
+			/react-native-web\/dist\/exports\/StyleSheet\/compiler\/createReactDOMStyle\.js$/u,
+		);
+		expect(preprocess?.split("\\").join("/")).toMatch(
+			/react-native-web\/dist\/exports\/StyleSheet\/preprocess\.js$/u,
+		);
+	});
+});
+
+describe("rewriteExternalRequires - CJS default interop", () => {
+	it("unwraps default when replacing esbuild __require calls", () => {
+		const rewritten = rewriteExternalRequires(
+			'const semverSatisfies = __require("semver/functions/satisfies");',
+		);
+
+		expect(rewritten).toContain('import * as __ext0 from "semver/functions/satisfies";');
+		expect(rewritten).toContain("(__ext0.default ?? __ext0)");
+	});
+});
+
+describe("stubReanimatedWorkletsVersionCheck", () => {
+	it("is wired into applyRnWebVite before CJS transpile", () => {
+		expect(rnWebVite.includes("stubReanimatedWorkletsVersionCheck()")).toBe(true);
+		const applyAt = rnWebVite.indexOf("export function applyRnWebVite");
+		const stubAt = rnWebVite.indexOf("stubReanimatedWorkletsVersionCheck()", applyAt);
+		const cjsAt = rnWebVite.indexOf("transpileCjsNodeModules()", applyAt);
+		expect(stubAt).toBeGreaterThan(-1);
+		expect(cjsAt).toBeGreaterThan(-1);
+		expect(stubAt).toBeLessThan(cjsAt);
+	});
+});
+
+describe("rewriteReanimatedBrowserGlobals", () => {
+	it("is wired into applyRnWebVite", () => {
+		expect(rnWebVite.includes("rewriteReanimatedBrowserGlobals()")).toBe(true);
 	});
 });

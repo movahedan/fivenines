@@ -1,0 +1,70 @@
+name: Overall
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: overall-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  code-quality: write
+
+jobs:
+  overall:
+    name: overall
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TURBO_SCM_HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha || 'HEAD' }}
+      TURBO_SCM_BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before || 'HEAD~1' }}
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version: 1.4.2
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v6.1.0
+        with:
+          path: |
+            ~/.bun/install/cache
+            **/node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Quality gate
+        run: bun run overall -- --quiet --coverage
+
+      - name: Convert lcov to Cobertura
+        run: |
+          python3 -m pip install --user lcov_cobertura
+          export PATH="$HOME/.local/bin:$PATH"
+          lcov_cobertura coverage/lcov.info -o coverage/cobertura.xml
+
+      - name: Upload coverage report
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/upload-code-coverage@v1.4.2
+        with:
+          file: coverage/cobertura.xml
+          language: JavaScript
+          label: code-coverage/bun
+          fail-on-error: false

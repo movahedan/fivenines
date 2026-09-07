@@ -7,6 +7,7 @@ import { StepProgressApp, type StepProgressStep } from "../shared/step-progress"
 
 export interface OverallOptions {
 	readonly quiet: boolean;
+	readonly coverage: boolean;
 }
 
 interface ShellResult {
@@ -32,7 +33,7 @@ function assertShellOk(phase: string, result: ShellResult): void {
 	throw new Error(`${phase} failed (exit ${result.exitCode ?? "unknown"})${detail}`);
 }
 
-function getOverallSteps(): readonly StepProgressStep[] {
+function getOverallSteps(options: OverallOptions): readonly StepProgressStep[] {
 	return [
 		{
 			label: "Lint (write)",
@@ -52,7 +53,10 @@ function getOverallSteps(): readonly StepProgressStep[] {
 		{
 			label: "Test (packages and tools)",
 			run: async () => {
-				assertShellOk("Test packages/tools", await $`bun test packages tools`.nothrow().quiet());
+				const result = options.coverage
+					? await $`bun test packages tools --coverage --coverage-reporter=lcov`.nothrow().quiet()
+					: await $`bun test packages tools`.nothrow().quiet();
+				assertShellOk("Test packages/tools", result);
 			},
 		},
 		{
@@ -76,8 +80,8 @@ function getOverallSteps(): readonly StepProgressStep[] {
 	];
 }
 
-function OverallApp(): ReactNode {
-	const resolveSteps = useCallback(() => getOverallSteps(), []);
+function OverallApp({ coverage }: { readonly coverage: boolean }): ReactNode {
+	const resolveSteps = useCallback(() => getOverallSteps({ quiet: false, coverage }), [coverage]);
 	return (
 		<StepProgressApp
 			completedHeading="Overall quality gate completed"
@@ -88,8 +92,8 @@ function OverallApp(): ReactNode {
 
 export async function runOverall(options: OverallOptions): Promise<void> {
 	if (options.quiet) {
-		for (const step of getOverallSteps()) await step.run();
+		for (const step of getOverallSteps(options)) await step.run();
 		return;
 	}
-	await renderAndExit(<OverallApp />);
+	await renderAndExit(<OverallApp coverage={options.coverage} />);
 }

@@ -44,7 +44,7 @@ Setup: [README.md](README.md#quick-start) · Commands: [docs/CHEATSHEET.md](docs
 
 **Turborepo** monorepo, **Bun** package manager and runtime.
 
-**Prerequisites:** Git, [Bun](https://bun.sh/) 1.3.x, [Docker](https://docs.docker.com/desktop/) (full stack), Node **≥ 25**, ~8GB+ RAM.
+**Prerequisites:** Git, [Bun](https://bun.sh/) **1.4.2** (see root `packageManager`), [Docker](https://docs.docker.com/desktop/) (full stack), Node **≥ 26**, ~8GB+ RAM.
 
 **Day-to-day:** dev stack on the host with `bun run container …` — `docker-compose.dev.yml` at repo root ([Docker Compose](#docker-compose-host)).
 
@@ -109,6 +109,7 @@ Prod-shaped file: `bun run container --prod up`. Extra compose flags after `--`:
 ### Troubleshooting
 
 - **Docker** — `bun run container compose -- ps`
+- **Postgres 18 volume** — Compose mounts `postgres_data` at `/var/lib/postgresql` with `PGDATA=/var/lib/postgresql/18/docker`. A volume from 17 (`.../data`) will not start. Reset (`bun run container cleanup`) or dump/restore.
 - **Hosts** — `play.fivenines.com` / `auth.fivenines.com` / `api.fivenines.com` in `/etc/hosts` ([CHEATSHEET](docs/CHEATSHEET.md))
 - **Container deps** — `bun run container install` after new packages (named `node_modules` volume; `up --build` does not refresh it)
 - **Deps** — `bun run local cleanup` + `bun install`, or `bun run nuke`
@@ -124,4 +125,4 @@ React 19, TanStack Start, NestJS, Orval, Tailwind, Biome, Lefthook, Docker Compo
 
 Read the **nested `AGENTS.md`** for the area you touch before editing.
 
-When working with this codebase, run **`bun run overall`** before committing unless a narrower plan gate applies. Push runs it again via Lefthook. GitHub **Check** is production compose for affected services, not this gate.
+When working with this codebase, run **`bun run overall`** before committing unless a narrower plan gate applies. Push runs it again via Lefthook. GitHub **Overall** is the same gate on Actions (required on `main`). GitHub **Check** is production compose for affected services, not that gate.

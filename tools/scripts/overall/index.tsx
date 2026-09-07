@@ -13,6 +13,7 @@ async function main(): Promise<void> {
 			args: [...argv],
 			options: {
 				quiet: { type: "boolean", short: "q", default: false },
+				coverage: { type: "boolean", default: false },
 				help: { type: "boolean", short: "h", default: false },
 			},
 			allowPositionals: true,
@@ -27,7 +28,7 @@ async function main(): Promise<void> {
 			await printOverallHelpAndExit();
 		}
 
-		await runOverall({ quiet: values.quiet === true });
+		await runOverall({ quiet: values.quiet === true, coverage: values.coverage === true });
 	} catch (error) {
 		printOverallHelpAndExit(error instanceof Error ? error.message : String(error));
 		process.exit(1);

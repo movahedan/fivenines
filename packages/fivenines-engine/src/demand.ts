@@ -9,6 +9,7 @@ export function placeProjectDemand(
 	demandRequests: number,
 	region: RegionId,
 	category: ProjectCategory,
+	projectId: string,
 ): number {
 	const demand = units.asNonNegativeInteger(demandRequests, "demandRequests");
 
@@ -18,9 +19,9 @@ export function placeProjectDemand(
 
 	const local = servers.filter((server) => server.region === region);
 	const remote = servers.filter((server) => server.region !== region);
-	const localAssigned = assignToPool(local, demand, category, region);
+	const localAssigned = assignToPool(local, demand, category, region, projectId);
 	const remainder = demand - localAssigned;
-	const remoteAssigned = assignToPool(remote, remainder, category, region);
+	const remoteAssigned = assignToPool(remote, remainder, category, region, projectId);
 
 	return remainder - remoteAssigned;
 }
@@ -30,6 +31,7 @@ function assignToPool(
 	demand: number,
 	category: ProjectCategory,
 	sourceRegion: RegionId,
+	projectId: string,
 ): number {
 	if (demand === 0) {
 		return 0;
@@ -53,7 +55,7 @@ function assignToPool(
 			continue;
 		}
 
-		server.assignSlice({ category, requests: take, sourceRegion });
+		server.assignSlice({ category, requests: take, sourceRegion, projectId });
 		placed += take;
 	}
 
@@ -70,7 +72,7 @@ function assignToPool(
 			continue;
 		}
 
-		server.assignSlice({ category, requests: take, sourceRegion });
+		server.assignSlice({ category, requests: take, sourceRegion, projectId });
 		leftover -= take;
 		placed += take;
 	}

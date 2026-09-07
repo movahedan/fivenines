@@ -10,6 +10,7 @@ export type { ServerCatalogId } from "./catalog/kernel";
 export { SERVER_CATALOG, SERVER_CATALOG_IDS, SERVER_TIER_LABEL } from "./catalog/kernel";
 export type { RegionId } from "./catalog/regions";
 export { DEFAULT_REGION, REGION_IDS, regions } from "./catalog/regions";
+export { SLA_WINDOW_HOURS, slaAvailabilityPpm } from "./catalog/sla-policy";
 export type { CustomerInitial } from "./customer";
 export { Customer } from "./customer";
 export { oneBronzeInitial, openingInitial, twoBronzeInitial } from "./fixtures";
@@ -30,7 +31,7 @@ export type {
 	ProjectStatus,
 } from "./project";
 export { Project } from "./project";
-export type { ProjectTickMetrics } from "./project.metrics";
+export type { ProjectTickMetrics, SlaHourSample } from "./project.metrics";
 export type { ServerInitial } from "./server";
 export { Server } from "./server";
 export type { ServerTickMetrics } from "./server.metrics";

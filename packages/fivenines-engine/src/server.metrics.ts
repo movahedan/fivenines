@@ -9,6 +9,7 @@ export interface ServerDemandSlice {
 	category: ProjectCategory;
 	requests: number;
 	sourceRegion: RegionId;
+	projectId: string;
 }
 
 export interface ServerTickMetrics {

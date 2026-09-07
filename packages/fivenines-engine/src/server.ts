@@ -2,11 +2,11 @@ import { units } from "@packages/shared/units";
 
 import { SERVER_CATALOG, type ServerCatalogId } from "./catalog/kernel";
 import { type RegionId, regions } from "./catalog/regions";
-import type { ProjectCategory } from "./project";
 import {
 	cpuLoadFromSlices,
 	EMPTY_SERVER_TICK_METRICS,
 	measureServerTick,
+	type ServerDemandSlice,
 	type ServerTickMetrics,
 } from "./server.metrics";
 
@@ -18,10 +18,7 @@ export interface ServerInitial {
 	region: RegionId;
 }
 
-export interface DemandSlice {
-	category: ProjectCategory;
-	requests: number;
-	sourceRegion: RegionId;
+export interface DemandSlice extends ServerDemandSlice {
 	remote: boolean;
 }
 
@@ -83,6 +80,7 @@ export class Server {
 			category: slice.category,
 			requests,
 			sourceRegion: slice.sourceRegion,
+			projectId: slice.projectId,
 			remote: slice.sourceRegion !== this.region,
 		});
 	}

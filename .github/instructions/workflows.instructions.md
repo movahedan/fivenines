@@ -11,3 +11,4 @@ When performing a code review on GitHub Actions:
 - Do not introduce `POSTGRES_*` or compose ports as Actions secrets. Check uses `.env.sample` defaults.
 - Bun version should stay aligned with the root `packageManager` field.
 - Do not add Default Setup CodeQL next to `.github/workflows/codeql.yml` (Advanced).
+- Copilot coding agent must run `bun run overall` before commit (Lefthook does not run on GitHub-authored Copilot commits). Setup: `.github/workflows/copilot-setup-steps.yml`.

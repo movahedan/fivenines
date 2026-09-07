@@ -1,6 +1,20 @@
-# Copilot code review (GitHub) — also Cursor
+# Copilot + Cursor — review and coding-agent rubric
 
-Shared **review rubric** for GitHub Copilot code review and Cursor agents. Implementation maps stay in nested `AGENTS.md`; do not copy formulas here.
+Shared with GitHub Copilot (code review **and** coding agent) and Cursor. Implementation maps stay in nested `AGENTS.md`; do not copy formulas here.
+
+## Before you commit
+
+Lefthook runs `bun run overall -- --quiet` on **pre-push**, not on every commit. GitHub Copilot’s commits go through GitHub and **do not run Lefthook**.
+
+Before `git commit` or `git push`:
+
+1. Run `bun run overall` (or `bun run overall -- --quiet`).
+2. Wait for a zero exit. If it fails, fix the failure; do not commit red.
+3. Never `git commit --no-verify`, `git push --no-verify`, or `--no-gpg-sign` to skip gates.
+
+When performing a code review, flag Copilot/bot commits that skipped this gate.
+
+## When performing a code review
 
 When performing a code review, prefer **bugs, security, and contract lies** over style. Biome and TypeScript already enforce formatting, `noExplicitAny`, and unused locals. Do not nag about import order, kebab-case filenames, or missing JSDoc.
 

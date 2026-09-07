@@ -9,8 +9,8 @@ export class Customer {
 	readonly id: string;
 	readonly projects: readonly Project[];
 
-	constructor(initial: CustomerInitial) {
+	constructor(initial: CustomerInitial, liveProjects?: readonly Project[]) {
 		this.id = initial.id;
-		this.projects = initial.projects.map((project) => new Project(project));
+		this.projects = liveProjects ?? initial.projects.map((project) => new Project(project));
 	}
 }

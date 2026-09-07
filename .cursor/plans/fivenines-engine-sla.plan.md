@@ -4,13 +4,13 @@ overview: "Two PRs: per-project attribution + 168h availability ring; then /lab 
 todos:
   - id: phase-1-engine
     content: "Phase 1: projectId slices, attribute handled/misses, hourly ppm + 168h ring, tests"
-    status: pending
+    status: completed
   - id: phase-1-verify
     content: "Phase 1 gate: bun test packages/fivenines-engine && bun run turbo run typecheck --filter=@packages/fivenines-engine"
-    status: pending
+    status: completed
   - id: phase-1-docs
     content: "Phase 1: documentation-sync (engine AGENTS.md) after build, before PR"
-    status: pending
+    status: completed
   - id: phase-2-lab
     content: "Phase 2: /lab served-project this-hour and window ppm"
     status: pending

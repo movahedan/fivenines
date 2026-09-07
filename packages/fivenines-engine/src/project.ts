@@ -1,11 +1,15 @@
 import { units } from "@packages/shared/units";
 
 import { type RegionId, regions } from "./catalog/regions";
+import { SLA_WINDOW_HOURS, slaAvailabilityPpm } from "./catalog/sla-policy";
 import { TRAFFIC_POLICY } from "./catalog/traffic-policy";
 import {
 	EMPTY_PROJECT_TICK_METRICS,
 	measureProjectTick,
+	type ProjectSlaHour,
 	type ProjectTickMetrics,
+	type SlaHourSample,
+	windowAvailabilityPpm,
 } from "./project.metrics";
 import { ConstantDemand, type DemandModel, ProjectDemand } from "./traffic/project-demand";
 import type { RandomSource } from "./traffic/random-source";
@@ -58,6 +62,7 @@ export class Project {
 	readonly #status: ProjectStatus;
 	readonly #demandModel: DemandModel;
 	#metrics: ProjectTickMetrics = EMPTY_PROJECT_TICK_METRICS;
+	#slaHours: SlaHourSample[] = [];
 
 	constructor(initial: ProjectInitial) {
 		this.id = initial.id;
@@ -94,6 +99,51 @@ export class Project {
 
 	get metrics(): ProjectTickMetrics {
 		return this.#metrics;
+	}
+
+	get slaHours(): readonly SlaHourSample[] {
+		return this.#slaHours;
+	}
+
+	asServed(): Project {
+		if (this.#status !== "offered") {
+			throw new Error(`project is not offered: ${this.id}`);
+		}
+
+		const served = new Project({
+			id: this.id,
+			estimatedRequestsPerHour: this.estimatedRequestsPerHour,
+			status: "served",
+			demand: this.demand,
+			category: this.category,
+			region: this.region,
+			campaignProne: this.campaignProne,
+			...(this.campaign === undefined ? {} : { campaign: this.campaign }),
+		});
+
+		served.#slaHours = this.#slaHours.slice();
+		served.#metrics = this.#metrics;
+
+		return served;
+	}
+
+	recordSlaHour(hour: ProjectSlaHour): void {
+		if (hour.emittedRequests > 0) {
+			this.#slaHours.push({ handled: hour.handledRequests, emitted: hour.emittedRequests });
+
+			if (this.#slaHours.length > SLA_WINDOW_HOURS) {
+				this.#slaHours.shift();
+			}
+		}
+
+		this.#metrics = {
+			emittedRequests: hour.emittedRequests,
+			handledRequests: hour.handledRequests,
+			unroutableRequests: hour.unroutableRequests,
+			capacityDropRequests: hour.capacityDropRequests,
+			availabilityPpm: slaAvailabilityPpm(hour.handledRequests, hour.emittedRequests),
+			windowAvailabilityPpm: windowAvailabilityPpm(this.#slaHours),
+		};
 	}
 
 	tick(hourIndex: number, random: RandomSource): number {

@@ -26,7 +26,7 @@ Package scripts: `typecheck` (`tsc --noEmit`), `test` (re-roots to repo `bun tes
 
 Ids are unique per game (`customer.id`, `project.id` global, `asset.id`) via `@packages/shared/ids`. Construct throws on duplicates.
 
-Tick walks each served project: `placeProjectDemand` fills **local** boxes first (`server.region === project.region`), then **other-region** overflow, then leftover is **unroutable** `droppedRequests`. Slices are `{ category, requests, sourceRegion, remote }`. Split among a pool uses `computeUnitsPerHour` (floor + remainder) capped by remaining compute headroom. Extra p95 on a box is `|offsetHours| × PLACEMENT_POLICY.latencyMsPerOffsetHour` (v1: `5` in `src/catalog/placement-policy.ts`), mixed by slice request counts (`regions.remoteLatencyMs`).
+Tick walks each served project: `placeProjectDemand` fills **local** boxes first (`server.region === project.region`), then **other-region** overflow, then leftover is **unroutable** `droppedRequests`. Slices are `{ category, requests, sourceRegion, remote, projectId }`. Split among a pool uses `computeUnitsPerHour` (floor + remainder) capped by remaining compute headroom. Extra p95 on a box is `|offsetHours| × PLACEMENT_POLICY.latencyMsPerOffsetHour` (v1: `5` in `src/catalog/placement-policy.ts`), mixed by slice request counts (`regions.remoteLatencyMs`).
 
 On each box, `server.tick` converts slices via `CAPACITY_POLICY` (`src/catalog/capacity-policy.ts`): v1 `cpuPerRequest = 1` for all categories; shopping/saas/portfolio differ on `bytesPerRequest` (40/10/20) and `memPerInflight` (2/4/1). `cpuLoad` / `netLoad` are per assigned request this hour. `inFlight = floor(assigned × inflightPerThousandRequests / 1000)` (v1: 10). `memOcc = baseMemoryMiB + inFlight ×` request-weighted `memPerInflight`. Handled scales by the **min** finite cap/load ratio (floor) across CPU/net/RAM; leftover on that box is dropped. Utilization is the **tightest** axis.
 
@@ -36,7 +36,7 @@ Runtime: `@packages/shared/units`, `@packages/shared/ids`. Integers only at the 
 
 ## Clock and RNG
 
-`hourIndex` starts at `0`. Each `tick()` uses the **current** hour for demand, rolls physics metrics, charges opex, may trip jail, then `hourIndex += 1`. Derived: `hourOfDay = hourIndex % 24`, `dayIndex = floor(hourIndex / 24)`. `dispatch` does not change the clock and does not charge hourly opex.
+`hourIndex` starts at `0`. Each `tick()` uses the **current** hour for demand, rolls physics metrics, attributes per-project SLA, charges opex, may trip jail, then `hourIndex += 1`. Derived: `hourOfDay = hourIndex % 24`, `dayIndex = floor(hourIndex / 24)`. `dispatch` does not change the clock, does not charge hourly opex, and does not rewrite SLA ring slots.
 
 `new Game(initial, { random?: RandomSource })`. Default wraps `Math.random`. Demand code calls `random.nextUnit()` only.
 
@@ -57,7 +57,13 @@ const healthy = new Game(twoBronzeInitial).tick();
 
 `GameInitial`: `{ customers, assets, cashCents?, jailed? }`. Empty `assets` is valid. Defaults: `cashCents = STARTING_CASH_CENTS` (40_000), `jailed = false` (`src/catalog/economy-policy.ts`). Cash is signed integer cents.
 
-After `tick()`, `game.metrics` (`src/game.metrics.ts`), each `server.metrics` (`src/server.metrics.ts`), and each `project.metrics` (`src/project.metrics.ts`) hold that hour’s physics snapshot. `game.finance` (`src/game.finance.ts`) is the last-hour money snapshot: `cashCents`, `jailed`, fleet totals `opexCents` / `maintenanceCents` / `powerCents`.
+After `tick()`, `game.metrics` (`src/game.metrics.ts`), each `server.metrics` (`src/server.metrics.ts`), and each `project.metrics` (`src/project.metrics.ts`) hold that hour’s snapshot. `game.finance` (`src/game.finance.ts`) is the last-hour money snapshot: `cashCents`, `jailed`, fleet totals `opexCents` / `maintenanceCents` / `powerCents`.
+
+## SLA measurement
+
+After `server.tick`, `applyProjectSla` (`src/game.sla.ts`) attributes each project’s **handled** vs misses. Unroutable leftover is a miss. Capacity drops on a box split in proportion to that project’s `requests` on the box (floor + remainder). Conservation: `handled + unroutable + capacityDrop = emitted`. Game `handledRequests` / `droppedRequests` / `errorPpm` stay physics (N1); they are not the SLA scalar.
+
+This-hour `availabilityPpm = floor(handled * 1_000_000 / emitted)` when `emitted > 0`, else `null`. Each `Project` keeps a ring of `{ handled, emitted }` up to `SLA_WINDOW_HOURS` (168 in `src/catalog/sla-policy.ts`). Emit-0 hours (offered / declined / zero demand) are **not** appended. `windowAvailabilityPpm` is the same floor over ring sums; `null` if `sumEmitted === 0`. Partial windows are valid. No SLA target % and no credits in this slice.
 
 ## Wallet and opex
 
@@ -94,6 +100,7 @@ Implementation: `applyCommand` in `src/game.utils.ts`.
 
 ## Related
 
+- SLA: `.cursor/plans/fivenines-engine-sla.plan.md` — spec `.cursor/plans/fivenines-engine-sla.design.md`
 - Opex / cash: `.cursor/plans/fivenines-engine-opex.plan.md` — spec `.cursor/plans/fivenines-engine-opex.design.md`
 - Plan: `.cursor/plans/fivenines-engine-capacity.plan.md` (region / placement; traffic: `.cursor/plans/fivenines-engine-traffic.plan.md`)
 - Spec: `.cursor/plans/fivenines-engine-capacity.design.md`

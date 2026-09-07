@@ -2,7 +2,7 @@ import { SKU_ECONOMY, salvageCents } from "./catalog/economy-policy";
 import type { ServerCatalogId } from "./catalog/kernel";
 import type { RegionId } from "./catalog/regions";
 import { Customer } from "./customer";
-import type { Project, ProjectInitial } from "./project";
+import type { Project } from "./project";
 import { Server } from "./server";
 
 export type AssetInitial = {
@@ -89,14 +89,10 @@ function acceptProject(customers: readonly Customer[], projectId: string): reado
 			return customer;
 		}
 
-		return new Customer({
-			id: customer.id,
-			projects: customer.projects.map((project) =>
-				project.id === projectId
-					? { ...projectSnapshot(project), status: "served" }
-					: projectSnapshot(project),
-			),
-		});
+		return new Customer(
+			{ id: customer.id, projects: [] },
+			customer.projects.map((project) => (project.id === projectId ? project.asServed() : project)),
+		);
 	});
 }
 
@@ -128,19 +124,6 @@ function findProject(customers: readonly Customer[], projectId: string): Project
 	}
 
 	throw new Error(`unknown project id: ${projectId}`);
-}
-
-function projectSnapshot(project: Project): ProjectInitial {
-	return {
-		id: project.id,
-		estimatedRequestsPerHour: project.estimatedRequestsPerHour,
-		status: project.status,
-		demand: project.demand,
-		category: project.category,
-		region: project.region,
-		campaignProne: project.campaignProne,
-		...(project.campaign === undefined ? {} : { campaign: project.campaign }),
-	};
 }
 
 function nextAssetId(prefix: string, assets: readonly GameAsset[]): string {

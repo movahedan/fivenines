@@ -12,7 +12,7 @@ function tickBox(
 ): Server {
 	const server = new Server({ id: "server-1", catalogId, region: "utc+0" });
 
-	server.assignSlice({ category, requests, sourceRegion: "utc+0" });
+	server.assignSlice({ category, requests, sourceRegion: "utc+0", projectId: "project-1" });
 	server.tick();
 
 	return server;

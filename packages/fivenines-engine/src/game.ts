@@ -11,6 +11,7 @@ import {
 	measureGameOpex,
 } from "./game.finance";
 import { EMPTY_GAME_TICK_METRICS, type GameTickMetrics, measureGameTick } from "./game.metrics";
+import { applyProjectSla } from "./game.sla";
 import {
 	type AssetInitial,
 	applyCommand,
@@ -157,13 +158,23 @@ export class Game {
 					continue;
 				}
 
-				unroutableDemand += placeProjectDemand(servers, demand, project.region, project.category);
+				unroutableDemand += placeProjectDemand(
+					servers,
+					demand,
+					project.region,
+					project.category,
+					project.id,
+				);
 			}
 		}
 
 		for (const server of this.#serversById.values()) {
 			server.tick();
 		}
+
+		const projects = this.customers.flatMap((customer) => customer.projects);
+
+		applyProjectSla(projects, servers);
 
 		this.#metrics = measureGameTick(
 			servers.map((server) => server.metrics),

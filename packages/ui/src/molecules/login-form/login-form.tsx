@@ -126,8 +126,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 			</CardHeader>
 			<CardContent>
 				<form onSubmit={handleSubmit} className="space-y-4">
-					{/* Email Field */}
-					<div className="space-y-2">
+					<div className="flex flex-col gap-1.5">
 						<Label htmlFor={emailId}>Email</Label>
 						<Input
 							id={emailId}
@@ -147,7 +146,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 					</div>
 
 					{/* Password Field */}
-					<div className="space-y-2">
+					<div className="flex flex-col gap-1.5">
 						<Label htmlFor={passwordId}>Password</Label>
 						<div className="relative">
 							<Input

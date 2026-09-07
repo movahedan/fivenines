@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -269,6 +270,45 @@ export function shareSingleReact(): Plugin {
 	};
 }
 
+export function preferNodeModuleEsm(id: string): string | undefined {
+	const filePath = id.split("?")[0] ?? id;
+	const posix = filePath.replaceAll("\\", "/");
+	const isRnPrimitives = posix.includes("/node_modules/@rn-primitives/");
+	const isRadix = posix.includes("/node_modules/@radix-ui/");
+	if (!isRnPrimitives && !isRadix) {
+		return;
+	}
+
+	let candidate: string | undefined;
+	if (posix.endsWith(".web.js")) {
+		candidate = `${filePath.slice(0, -".web.js".length)}.web.mjs`;
+	} else if (posix.endsWith(".js") && !posix.endsWith(".mjs")) {
+		candidate = `${filePath.slice(0, -".js".length)}.mjs`;
+	}
+
+	if (candidate !== undefined && existsSync(candidate)) {
+		return candidate;
+	}
+}
+
+export function preferNodeModuleEsmPlugin(): Plugin {
+	return {
+		name: "prefer-node-module-esm",
+		enforce: "pre",
+		async resolveId(source, importer, options) {
+			const resolved = await this.resolve(source, importer, { ...options, skipSelf: true });
+			if (!resolved) {
+				return;
+			}
+			const esmId = preferNodeModuleEsm(resolved.id);
+			if (esmId === undefined || esmId === resolved.id) {
+				return resolved;
+			}
+			return { ...resolved, id: esmId };
+		},
+	};
+}
+
 export function transpileRnPrimitivesJsx(): Plugin {
 	return {
 		name: "transpile-rn-primitives-jsx",
@@ -286,6 +326,9 @@ export function transpileRnPrimitivesJsx(): Plugin {
 				jsx: "automatic",
 				sourcefile: filePath,
 			});
+			if (filePath.endsWith(".mjs")) {
+				return { code: result.code, map: result.map || undefined };
+			}
 			const bundled = await esbuildBuild({
 				stdin: {
 					contents: result.code,
@@ -690,6 +733,7 @@ export function rewriteReactNativeCssImports(): Plugin {
 export function applyRnWebVite(viteConfig: UserConfig): UserConfig {
 	viteConfig.plugins = [
 		shareSingleReact(),
+		preferNodeModuleEsmPlugin(),
 		rewriteReactNativeCssImports(),
 		esmifyReactNativeSvgTransform(),
 		rewriteRnWebStyleqImports(),

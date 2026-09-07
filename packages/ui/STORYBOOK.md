@@ -14,6 +14,8 @@ URL: **http://localhost:9000**. `dev-storybook.ts` launches the Storybook CLI wi
 
 Preview CSS: `.storybook/preview.tsx` imports `../src/style.css` (ops navy canvas, Inter + JetBrains Mono). Default Storybook background is **ops** (`#050912`); the decorator uses `bg-background font-sans text-foreground`. Do not import `react-native` or `@rn-primitives` in preview (the Node CLI loads that file without Vite aliases). There is no light theme toggle.
 
+Ops chrome lives under **Components**: Hud, PanelHeader, MetricStat, ProjectOfferCard, ActiveProjectCard, ServerCard, EventLog (same glob as other molecules).
+
 ## RN-web + NativeWind
 
 Shared Vite config: `scripts/rn-web.ts` (Storybook and `@apps/web`).
@@ -40,6 +42,6 @@ Shared Vite config: `scripts/rn-web.ts` (Storybook and `@apps/web`).
 | Unstyled canvas / RN-web `.css-view-*` wins | Utilities must be unlayered in `src/style.css` |
 | `Can't resolve nativewind/dist/module/plugin.js` | Do not `@plugin` that path; NativeWind v5 uses `react-native-css` |
 | Flow parse errors | Storybook must run under Node, not Bun |
-| LoginForm / lucide SVG CJS errors | SVG stubs + aliases in `scripts/rn-web.ts` |
+| LoginForm / Label `Dynamic require of "@radix-ui/react-label"` | RN-web must resolve `@rn-primitives` / `@radix-ui` `*.mjs` (see `preferNodeModuleEsm` in `scripts/rn-web.ts`); restart Storybook after Vite cache |
 | `react-native-svg` / `ReactNativeSVG.web.js` missing | Keep `react-native-svg` in `@packages/ui` dependencies; Storybook resolves it via `package.json` |
 | Docker `InvalidLockfile` / ignored `bun.lock` | Overlay the repo `bun.lock` after `turbo prune` (pruned lock drops nested `signal-exit`) |

@@ -46,7 +46,11 @@ packages/ui/
 | `@packages/ui/style.css` | `src/style.css` |
 | `@packages/ui/theme.ts` | `src/theme.ts` |
 
-Molecules map web `onClick` → atom `onPress`. Icons in generated atoms: `lucide-react-native` (declare `react-native-svg`). CSS `@import "tailwindcss-safe-area"` needs that package declared. UI Docker installer copies the repo `bun.lock` over prune output so Bun does not ignore a broken nested lock.
+Molecules map web `onClick` → atom `onPress`. Stack label+control with `flex flex-col gap-*` — `space-y-*` on a DOM wrapper does not apply to RN-web Label/Input. Icons in generated atoms: `lucide-react-native` (declare `react-native-svg`). CSS `@import "tailwindcss-safe-area"` needs that package declared. UI Docker installer copies the repo `bun.lock` over prune output so Bun does not ignore a broken nested lock.
+
+**Ops chrome** (engine-agnostic display props + callbacks; no `@packages/fivenines-engine` / `@packages/auth`): `Hud`, `PanelHeader`, `MetricStat`, `ProjectOfferCard`, `ActiveProjectCard` (`slaPercent` 0–100, `sparkline` 0–1), `ServerCard` (`variant`: `fleet` | `market`), `EventLog`. Pass region color via token `className` (`text-info`, …), not hex. Barrel: `@packages/ui/molecules`.
+
+`test-rn-preload.ts` stubs `react-native` → RN-web, lucide, `@rn-primitives/progress`, and `react-native-reanimated` for molecule tests.
 
 ## Tokens
 
@@ -57,5 +61,6 @@ To add a semantic color: set `--name` on `:root` and `.dark`, add `--color-name:
 ## Storybook
 
 - Framework: `@storybook/react-vite`, glob `src/molecules/**/*.stories.*` only.
+- Ops chrome: **Components / Hud**, PanelHeader, MetricStat, ProjectOfferCard, ActiveProjectCard, ServerCard, EventLog.
 - Preview imports `src/style.css`. Do not import `react-native` / `@rn-primitives` in `preview.tsx` (Node CLI, no Vite aliases).
 - RN-web + NativeWind: `scripts/rn-web.ts` (single React, CSS component rewrite, SVG stubs). Storybook and `@apps/web` both import it.

@@ -10,7 +10,7 @@ const idleBronzeInitial: GameInitial = {
 };
 
 describe("Game - construct wallet", () => {
-	it("starts at 40000 cents and not jailed when GameInitial omits cash", () => {
+	it("starts at 25000 cents and not jailed when GameInitial omits cash", () => {
 		const game = new Game(oneBronzeInitial);
 
 		expect(game.cashCents).toBe(STARTING_CASH_CENTS);

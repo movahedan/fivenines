@@ -1,4 +1,4 @@
-import { OPENING_COMMERCIAL_STUB, PAYG_ONLY_COMMERCIAL_STUB } from "./catalog/commercial-policy";
+import { commercialTermsForCategory, PAYG_ONLY_COMMERCIAL_STUB } from "./catalog/commercial-policy";
 import type { RegionId } from "./catalog/regions";
 import type { GameInitial } from "./game";
 import type { CampaignWindow, ProjectCategory, ProjectInitial, ProjectStatus } from "./project";
@@ -36,7 +36,7 @@ function shapedProject(
 		category,
 		region,
 		campaignProne,
-		commercial: OPENING_COMMERCIAL_STUB,
+		commercial: commercialTermsForCategory(category),
 		...(campaign === undefined ? {} : { campaign }),
 	};
 }
@@ -69,7 +69,7 @@ export const openingInitial: GameInitial = {
 		{
 			id: "acme",
 			projects: [
-				shapedProject("acme-web", 400, "shopping", "utc+0", true, {
+				shapedProject("acme-web", 2_000, "shopping", "utc+0", true, {
 					startHour: 24,
 					durationHours: 48,
 				}),

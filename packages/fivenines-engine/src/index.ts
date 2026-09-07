@@ -1,10 +1,13 @@
 export { CAPACITY_POLICY } from "./catalog/capacity-policy";
-export type { CommercialTerms } from "./catalog/commercial-policy";
+export type { CommercialCategory, CommercialTerms } from "./catalog/commercial-policy";
 export {
 	BILLING_PERIOD_HOURS,
+	commercialTermsForCategory,
 	OPENING_COMMERCIAL_STUB,
+	PAYG_CENTS_PER_THOUSAND_BY_CATEGORY,
 	PAYG_ONLY_COMMERCIAL_STUB,
 	parseCommercialTerms,
+	paygCentsForHandled,
 	SETTLEMENT_HISTORY_K,
 } from "./catalog/commercial-policy";
 export {

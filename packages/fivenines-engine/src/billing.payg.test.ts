@@ -1,6 +1,10 @@
 import { describe, expect, it } from "bun:test";
 
-import { OPENING_COMMERCIAL_STUB, PAYG_ONLY_COMMERCIAL_STUB } from "./catalog/commercial-policy";
+import {
+	commercialTermsForCategory,
+	PAYG_ONLY_COMMERCIAL_STUB,
+	paygCentsForHandled,
+} from "./catalog/commercial-policy";
 import { SKU_ECONOMY, STARTING_CASH_CENTS } from "./catalog/economy-policy";
 import { constantProject, oneBronzeInitial, openingInitial, twoBronzeInitial } from "./fixtures";
 import type { GameInitial } from "./game";
@@ -19,7 +23,7 @@ function emptyFleetInitial(projects: GameInitial["customers"][number]["projects"
 }
 
 describe("Game - PAYG", () => {
-	it("credits handled times paygCentsPerHandled after opex and buckets the hour", () => {
+	it("credits floor of handled times paygCentsPerThousandHandled over 1000 after opex and buckets the hour", () => {
 		const game = new Game({
 			customers: [
 				{
@@ -27,7 +31,7 @@ describe("Game - PAYG", () => {
 					projects: [
 						{
 							...constantProject("project-1", 100, "served"),
-							commercial: { ...PAYG_ONLY_COMMERCIAL_STUB, paygCentsPerHandled: 7 },
+							commercial: { ...PAYG_ONLY_COMMERCIAL_STUB, paygCentsPerThousandHandled: 7_000 },
 						},
 					],
 				},
@@ -36,7 +40,7 @@ describe("Game - PAYG", () => {
 			cashCents: 10_000,
 		}).tick();
 		const project = allProjects(game)[0];
-		const paygCents = (project?.metrics.handledRequests ?? 0) * 7;
+		const paygCents = paygCentsForHandled(project?.metrics.handledRequests ?? 0, 7_000);
 
 		expect(project?.metrics.handledRequests).toBe(100);
 		expect(project?.hoursServedInPeriod).toBe(1);
@@ -89,7 +93,11 @@ describe("Game - PAYG", () => {
 		}).tick();
 		const paygCents = allProjects(game).reduce(
 			(sum, project) =>
-				sum + project.metrics.handledRequests * project.commercial.paygCentsPerHandled,
+				sum +
+				paygCentsForHandled(
+					project.metrics.handledRequests,
+					project.commercial.paygCentsPerThousandHandled,
+				),
 			0,
 		);
 
@@ -98,11 +106,11 @@ describe("Game - PAYG", () => {
 		expect(game.cashCents).toBe(0 - game.finance.opexCents + paygCents);
 	});
 
-	it("puts the opening stub on every opening project", () => {
+	it("puts category commercial terms on every opening project", () => {
 		const game = new Game(openingInitial);
 
 		for (const project of allProjects(game)) {
-			expect(project.commercial).toEqual(OPENING_COMMERCIAL_STUB);
+			expect(project.commercial).toEqual(commercialTermsForCategory(project.category));
 		}
 	});
 

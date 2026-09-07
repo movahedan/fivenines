@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
+import { SKU_ECONOMY } from "./catalog/economy-policy";
 import { constantProject } from "./fixtures";
 import type { EngineCommand, GameInitial } from "./index";
 import { Game, oneBronzeInitial } from "./index";
@@ -32,7 +33,12 @@ describe("Game - dispatch", () => {
 	it("drops requests on one Bronze and clears drops with lower p95 when offered projects are accepted and Bronze servers are bought", () => {
 		const overloaded = acceptBothProjects(new Game(offeredInitial(1))).tick();
 
-		const healthy = acceptBothProjects(new Game(offeredInitial(0)))
+		const healthy = acceptBothProjects(
+			new Game({
+				...offeredInitial(0),
+				cashCents: SKU_ECONOMY.bronze.purchaseCents * 2,
+			}),
+		)
 			.dispatch({ type: "buyServer", payload: { serverType: "bronze", region: "utc+0" } })
 			.dispatch({ type: "buyServer", payload: { serverType: "bronze", region: "utc+0" } })
 			.tick();
@@ -49,7 +55,12 @@ describe("Game - dispatch", () => {
 	});
 
 	it("leaves metrics empty until tick after accept and buy", () => {
-		const game = acceptBothProjects(new Game(offeredInitial(1))).dispatch({
+		const game = acceptBothProjects(
+			new Game({
+				...offeredInitial(1),
+				cashCents: SKU_ECONOMY.bronze.purchaseCents * 2,
+			}),
+		).dispatch({
 			type: "buyServer",
 			payload: { serverType: "bronze", region: "utc+0" },
 		});

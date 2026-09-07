@@ -71,14 +71,16 @@ describe("Project - construction", () => {
 				new Project(
 					shapedInitial({
 						commercial: {
-							paygCentsPerHandled: 0,
+							paygCentsPerThousandHandled: 0,
 							recurringCentsPerPeriod: 0,
 							targetPpm: OPENING_COMMERCIAL_STUB.targetPpm,
 							creditPpm: OPENING_COMMERCIAL_STUB.creditPpm,
 						},
 					}),
 				),
-		).toThrow("at least one of paygCentsPerHandled or recurringCentsPerPeriod must be positive");
+		).toThrow(
+			"at least one of paygCentsPerThousandHandled or recurringCentsPerPeriod must be positive",
+		);
 	});
 });
 
@@ -87,7 +89,7 @@ describe("Project - asServed", () => {
 		const offered = new Project(
 			shapedInitial({
 				commercial: {
-					paygCentsPerHandled: 3,
+					paygCentsPerThousandHandled: 3,
 					recurringCentsPerPeriod: 4_000,
 					targetPpm: 950_000,
 					creditPpm: 50_000,
@@ -98,7 +100,7 @@ describe("Project - asServed", () => {
 
 		expect(served.status).toBe("served");
 		expect(served.commercial).toEqual({
-			paygCentsPerHandled: 3,
+			paygCentsPerThousandHandled: 3,
 			recurringCentsPerPeriod: 4_000,
 			targetPpm: 950_000,
 			creditPpm: 50_000,

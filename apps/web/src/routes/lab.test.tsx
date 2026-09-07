@@ -5,6 +5,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { AuthProvider } from "@packages/auth/react";
 import {
 	OPENING_COMMERCIAL_STUB,
+	paygCentsForHandled,
 	SKU_ECONOMY,
 	STARTING_CASH_CENTS,
 } from "@packages/fivenines-engine";
@@ -222,7 +223,10 @@ describe("LabPage - tick metrics", () => {
 		const handled = Number(
 			within(screen.getByRole("row", { name: /handledRequests/ })).getByRole("cell").textContent,
 		);
-		const paygCents = handled * OPENING_COMMERCIAL_STUB.paygCentsPerHandled;
+		const paygCents = paygCentsForHandled(
+			handled,
+			OPENING_COMMERCIAL_STUB.paygCentsPerThousandHandled,
+		);
 
 		expect(paygCents).toBeGreaterThan(0);
 		expect(within(served).getByText(`this-period PAYG ${paygCents}`)).toBeTruthy();
@@ -293,7 +297,7 @@ describe("LabPage - tick metrics", () => {
 
 		await waitForLab();
 
-		fireEvent.click(screen.getByRole("button", { name: "Buy Silver" }));
+		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
 		fireEvent.click(screen.getByRole("button", { name: "Delete server-1" }));
 
 		expect(screen.getByText("No servers")).toBeTruthy();

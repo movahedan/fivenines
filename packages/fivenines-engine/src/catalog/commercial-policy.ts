@@ -3,31 +3,59 @@ import { units } from "@packages/shared/units";
 export const BILLING_PERIOD_HOURS = 168;
 export const SETTLEMENT_HISTORY_K = 8;
 
+export type CommercialCategory = "shopping" | "saas" | "portfolio";
+
 export interface CommercialTerms {
-	paygCentsPerHandled: number;
+	paygCentsPerThousandHandled: number;
 	recurringCentsPerPeriod: number;
 	targetPpm: number;
 	creditPpm: number;
 }
 
-export const OPENING_COMMERCIAL_STUB: CommercialTerms = {
-	paygCentsPerHandled: 1,
-	recurringCentsPerPeriod: 2_000,
-	targetPpm: 990_000,
-	creditPpm: 100_000,
+export const PAYG_CENTS_PER_THOUSAND_BY_CATEGORY: Record<CommercialCategory, number> = {
+	portfolio: 330,
+	saas: 450,
+	shopping: 650,
 };
+
+export const RECURRING_CENTS_PER_PERIOD_BY_CATEGORY: Record<CommercialCategory, number> = {
+	portfolio: 800,
+	saas: 1_500,
+	shopping: 2_500,
+};
+
+export const OPENING_SLA_TARGET_PPM = 990_000;
+export const OPENING_SLA_CREDIT_PPM = 1_000_000;
+
+export function commercialTermsForCategory(category: CommercialCategory): CommercialTerms {
+	return {
+		paygCentsPerThousandHandled: PAYG_CENTS_PER_THOUSAND_BY_CATEGORY[category],
+		recurringCentsPerPeriod: RECURRING_CENTS_PER_PERIOD_BY_CATEGORY[category],
+		targetPpm: OPENING_SLA_TARGET_PPM,
+		creditPpm: OPENING_SLA_CREDIT_PPM,
+	};
+}
+
+export const OPENING_COMMERCIAL_STUB: CommercialTerms = commercialTermsForCategory("saas");
 
 export const PAYG_ONLY_COMMERCIAL_STUB: CommercialTerms = {
-	paygCentsPerHandled: 1,
+	paygCentsPerThousandHandled: 1_000,
 	recurringCentsPerPeriod: 0,
-	targetPpm: OPENING_COMMERCIAL_STUB.targetPpm,
-	creditPpm: OPENING_COMMERCIAL_STUB.creditPpm,
+	targetPpm: OPENING_SLA_TARGET_PPM,
+	creditPpm: OPENING_SLA_CREDIT_PPM,
 };
 
+export function paygCentsForHandled(
+	handledRequests: number,
+	paygCentsPerThousandHandled: number,
+): number {
+	return Math.floor((handledRequests * paygCentsPerThousandHandled) / 1_000);
+}
+
 export function parseCommercialTerms(input: CommercialTerms): CommercialTerms {
-	const paygCentsPerHandled = units.asNonNegativeInteger(
-		input.paygCentsPerHandled,
-		"paygCentsPerHandled",
+	const paygCentsPerThousandHandled = units.asNonNegativeInteger(
+		input.paygCentsPerThousandHandled,
+		"paygCentsPerThousandHandled",
 	);
 	const recurringCentsPerPeriod = units.asNonNegativeInteger(
 		input.recurringCentsPerPeriod,
@@ -36,14 +64,14 @@ export function parseCommercialTerms(input: CommercialTerms): CommercialTerms {
 	const targetPpm = units.asFiniteInteger(input.targetPpm, "targetPpm");
 	const creditPpm = units.asFiniteInteger(input.creditPpm, "creditPpm");
 
-	if (paygCentsPerHandled === 0 && recurringCentsPerPeriod === 0) {
+	if (paygCentsPerThousandHandled === 0 && recurringCentsPerPeriod === 0) {
 		throw new Error(
-			"at least one of paygCentsPerHandled or recurringCentsPerPeriod must be positive",
+			"at least one of paygCentsPerThousandHandled or recurringCentsPerPeriod must be positive",
 		);
 	}
 
 	return {
-		paygCentsPerHandled,
+		paygCentsPerThousandHandled,
 		recurringCentsPerPeriod,
 		targetPpm,
 		creditPpm,

@@ -30,7 +30,7 @@ Tick walks each served project: `placeProjectDemand` fills **local** boxes first
 
 On each box, `server.tick` converts slices via `CAPACITY_POLICY` (`src/catalog/capacity-policy.ts`): v1 `cpuPerRequest = 1` for all categories; shopping/saas/portfolio differ on `bytesPerRequest` (40/10/20) and `memPerInflight` (2/4/1). `cpuLoad` / `netLoad` are per assigned request this hour. `inFlight = floor(assigned × inflightPerThousandRequests / 1000)` (v1: 10). `memOcc = baseMemoryMiB + inFlight ×` request-weighted `memPerInflight`. Handled scales by the **min** finite cap/load ratio (floor) across CPU/net/RAM; leftover on that box is dropped. Utilization is the **tightest** axis.
 
-Catalog: Bronze–Diamond plus teaching `thin-ram` (`SERVER_CATALOG`). Bronze = compute **1000**, net **1_000_000**, memory **4096**, base **256**. Overload fixtures `oneBronzeInitial` / `twoBronzeInitial`: two **constant** served projects at 700+700 (exact **1400**, CPU-bound on one Bronze). `openingInitial`: 4 customers, 10 **shaped** offered projects, `assets: []`.
+Catalog: Bronze–Diamond plus teaching `thin-ram` (`SERVER_CATALOG`). Bronze = compute **1000**, net **1_000_000**, memory **4096**, base **256**. Overload fixtures `oneBronzeInitial` / `twoBronzeInitial`: two **constant** served projects at 700+700 (exact **1400**, CPU-bound on one Bronze). `openingInitial`: 4 customers, 10 **shaped** offered projects, `assets: []`. Opening `acme-web` baseline is **2000** shopping so a single Bronze cannot 99% an accept-all hog.
 
 Runtime: `@packages/shared/units`, `@packages/shared/ids`. Integers only at the demand boundary. `1 tick() = 1` simulated hour.
 
@@ -55,7 +55,7 @@ const overloaded = new Game(oneBronzeInitial).tick();
 const healthy = new Game(twoBronzeInitial).tick();
 ```
 
-`GameInitial`: `{ customers, assets, cashCents?, jailed? }`. Empty `assets` is valid. Defaults: `cashCents = STARTING_CASH_CENTS` (40_000), `jailed = false` (`src/catalog/economy-policy.ts`). Cash is signed integer cents.
+`GameInitial`: `{ customers, assets, cashCents?, jailed? }`. Empty `assets` is valid. Defaults: `cashCents = STARTING_CASH_CENTS` (25_000), `jailed = false` (`src/catalog/economy-policy.ts`). Cash is signed integer cents. Opening cash buys one Bronze (18_000) with runway; Silver and above stay out of reach at start.
 
 After `tick()`, `game.metrics` (`src/game.metrics.ts`), each `server.metrics` (`src/server.metrics.ts`), and each `project.metrics` (`src/project.metrics.ts`) hold that hour’s snapshot. `game.finance` (`src/game.finance.ts`) is the last-hour money snapshot: `cashCents`, `jailed`, fleet totals `opexCents` / `maintenanceCents` / `powerCents`.
 
@@ -67,7 +67,7 @@ This-hour `availabilityPpm = floor(handled * 1_000_000 / emitted)` when `emitted
 
 ## Wallet and opex
 
-Money tunables live in `src/catalog/economy-policy.ts` (not `SERVER_CATALOG`). Salvage is `floor(purchaseCents * SALVAGE_PERCENT / 100)` (`SALVAGE_PERCENT = 70`). Better SKUs pay **less** maintenance per hour; power still scales up with size; `thin-ram` is a high-maint trap. Jail is sticky: `cashCents <= -DEBT_LIMIT_CENTS` (20_000) sets `jailed`; this slice never clears it. Negative cash is allowed; buy still requires `cashCents >= purchaseCents`.
+Money tunables live in `src/catalog/economy-policy.ts` (not `SERVER_CATALOG`). Salvage is `floor(purchaseCents * SALVAGE_PERCENT / 100)` (`SALVAGE_PERCENT = 70`). Bigger SKUs pay **more** maintenance in absolute cents; maintenance per compute unit still falls; power still scales up with size; `thin-ram` is a high-maint trap. Jail is sticky: `cashCents <= -DEBT_LIMIT_CENTS` (20_000) sets `jailed`; this slice never clears it. Negative cash is allowed; buy still requires `cashCents >= purchaseCents`.
 
 Opex runs **after** `server.tick` / `measureGameTick`, **before** `hourIndex += 1`. Per box, using this hour’s `server.metrics.utilization` (tightest axis; 0 when `assignedRequests === 0`; may exceed 100):
 
@@ -81,11 +81,11 @@ Idle boxes still pay maintenance + idle power. Overload bills **max** power, not
 
 ## Billing (PAYG)
 
-Commercial tunables live in `src/catalog/commercial-policy.ts`. Every project must have `commercial: { paygCentsPerHandled, recurringCentsPerPeriod, targetPpm, creditPpm }`. PAYG and recurring ≥ 0 integers; at least one > 0; `targetPpm` / `creditPpm` finite integers. Construct throws otherwise. `acceptProject` copies `commercial` (`asServed`); it does not invent a catalog card. Player–customer MSA (multipliers) is a **different** contract noun later — not fields on `Project`.
+Commercial tunables live in `src/catalog/commercial-policy.ts`. Every project must have `commercial: { paygCentsPerThousandHandled, recurringCentsPerPeriod, targetPpm, creditPpm }`. PAYG and recurring ≥ 0 integers; at least one > 0; `targetPpm` / `creditPpm` finite integers. Construct throws otherwise. `acceptProject` copies `commercial` (`asServed`); it does not invent a catalog card. Player–customer MSA (multipliers) is a **different** contract noun later — not fields on `Project`.
 
-Opening fixtures use `OPENING_COMMERCIAL_STUB` (1 / 2_000 / 990_000 / 100_000). Overload fixtures use PAYG 1 + recurring 0.
+Opening cards come from `commercialTermsForCategory` (portfolio 330 / saas 450 / shopping 650 cents per thousand handled; recurring 800 / 1_500 / 2_500; target 990_000; credit 1_000_000). `OPENING_COMMERCIAL_STUB` is the saas card. Overload fixtures use `PAYG_ONLY_COMMERCIAL_STUB` (1000 cents per thousand so PAYG equals handled count).
 
-After opex, served projects accrue `handled * commercial.paygCentsPerHandled` into `cashCents` and period buckets (`game.commercial.ts`). Emit-0: no PAYG and no period handled/emitted; still increment `hoursServedInPeriod`. Offered/declined: no PAYG. Jailed games still accrue.
+After opex, served projects accrue `paygCentsForHandled(handled, paygCentsPerThousandHandled)` (`floor(handled * rate / 1000)`) into `cashCents` and period buckets (`game.commercial.ts`). Emit-0: no PAYG and no period handled/emitted; still increment `hoursServedInPeriod`. Offered/declined: no PAYG. Jailed games still accrue.
 
 After `hourIndex += 1`, if `hourIndex % BILLING_PERIOD_HOURS === 0` (168), close each project with `hoursServedInPeriod > 0`:
 
@@ -120,6 +120,7 @@ Implementation: `applyCommand` in `src/game.utils.ts`.
 ## Related
 
 - Billing / PAYG: `.cursor/plans/fivenines-engine-billing.plan.md` — spec `.cursor/plans/fivenines-engine-billing.design.md`
+- Balance harness: `src/economy.balance.test.ts` — plan `.cursor/plans/fivenines-engine-balance.plan.md`
 - SLA: `.cursor/plans/fivenines-engine-sla.plan.md` — spec `.cursor/plans/fivenines-engine-sla.design.md`
 - Opex / cash: `.cursor/plans/fivenines-engine-opex.plan.md` — spec `.cursor/plans/fivenines-engine-opex.design.md`
 - Plan: `.cursor/plans/fivenines-engine-capacity.plan.md` (region / placement; traffic: `.cursor/plans/fivenines-engine-traffic.plan.md`)

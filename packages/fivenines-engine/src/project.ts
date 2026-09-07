@@ -4,6 +4,7 @@ import {
 	BILLING_PERIOD_HOURS,
 	type CommercialTerms,
 	parseCommercialTerms,
+	paygCentsForHandled,
 	SETTLEMENT_HISTORY_K,
 } from "./catalog/commercial-policy";
 import { type RegionId, regions } from "./catalog/regions";
@@ -188,7 +189,10 @@ export class Project {
 			return 0;
 		}
 
-		const paygCents = this.#metrics.handledRequests * this.commercial.paygCentsPerHandled;
+		const paygCents = paygCentsForHandled(
+			this.#metrics.handledRequests,
+			this.commercial.paygCentsPerThousandHandled,
+		);
 
 		this.#periodPaygCents += paygCents;
 		this.#periodHandled += this.#metrics.handledRequests;

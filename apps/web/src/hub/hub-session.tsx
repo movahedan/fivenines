@@ -75,7 +75,7 @@ function collectServed(customers: Game["customers"]): readonly ServedRow[] {
 }
 
 export function HubSession() {
-	const { user, logout } = useAuth();
+	const { user, logoutHref } = useAuth();
 	const { game, lastError, running, toggleRunning, dispatch, reset } = useHubGame();
 	const [buyRegion, setBuyRegion] = useState<RegionId>(DEFAULT_REGION);
 	const [entries, setEntries] = useState<readonly EventLogEntry[]>([]);
@@ -129,7 +129,7 @@ export function HubSession() {
 				account={
 					<Button
 						onClick={() => {
-							void logout();
+							window.location.assign(logoutHref({ redirectUri: "/" }));
 						}}
 						size="sm"
 						variant="ghost"

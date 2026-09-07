@@ -8,7 +8,11 @@ import {
 	useSyncExternalStore,
 } from "react";
 
-import { loginHref as buildLoginHref, type LoginHrefOptions } from "../login-href";
+import {
+	loginHref as buildLoginHref,
+	logoutHref as buildLogoutHref,
+	type LoginHrefOptions,
+} from "../login-href";
 import {
 	type AuthSession,
 	type AuthSessionStatus,
@@ -27,6 +31,7 @@ export type AuthContextValue = {
 	readonly login: (email: string, password: string) => Promise<void>;
 	readonly logout: () => Promise<void>;
 	readonly loginHref: (options: LoginHrefOptions) => string;
+	readonly logoutHref: (options: LoginHrefOptions) => string;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -87,6 +92,16 @@ export function AuthProvider({
 		[appOrigin, authOrigin, loginPath],
 	);
 
+	const logoutHref = useCallback(
+		(options: LoginHrefOptions): string =>
+			buildLogoutHref({
+				authOrigin,
+				appOrigin,
+				redirectUri: options.redirectUri,
+			}),
+		[appOrigin, authOrigin],
+	);
+
 	const wasLoggedIn = hasWasLoggedInCookie();
 
 	const value = useMemo<AuthContextValue>(
@@ -100,6 +115,7 @@ export function AuthProvider({
 			login,
 			logout,
 			loginHref,
+			logoutHref,
 		}),
 		[
 			session,
@@ -110,6 +126,7 @@ export function AuthProvider({
 			login,
 			logout,
 			loginHref,
+			logoutHref,
 		],
 	);
 

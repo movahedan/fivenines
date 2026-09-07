@@ -35,4 +35,10 @@ describe("EventLog", () => {
 		expect(container).toBeInTheDocument();
 		expect(screen.queryByText("Offer accepted")).not.toBeInTheDocument();
 	});
+
+	it("exposes a scroller test id for a bounded parent", () => {
+		render(<EventLog entries={ENTRIES} />);
+
+		expect(screen.getByTestId("event-log-scroller")).toBeInTheDocument();
+	});
 });

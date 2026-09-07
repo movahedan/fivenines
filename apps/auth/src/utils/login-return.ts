@@ -45,6 +45,24 @@ export function loginReturnLocation(ret: LoginReturn): string {
 	return ret.path;
 }
 
+export function logoutReturnLocation(
+	req: Request,
+	allowedOrigins: readonly string[] = authConfig.redirectOrigins,
+): string | null {
+	const url = new URL(req.url);
+	const external = safeRedirectUri(url.searchParams.get("redirect_uri"), allowedOrigins);
+	if (external) {
+		return external;
+	}
+
+	const nextRaw = url.searchParams.get("next");
+	if (nextRaw != null && nextRaw.length > 0) {
+		return safeNextPath(nextRaw);
+	}
+
+	return null;
+}
+
 function nonempty(value: string | undefined): string | undefined {
 	if (value === undefined || value.length === 0) {
 		return undefined;

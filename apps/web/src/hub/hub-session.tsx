@@ -30,6 +30,8 @@ import {
 	commandLogTone,
 	engineEventMessage,
 	engineEventTone,
+	evaluateOpeningShift,
+	openingShiftResultCopy,
 	REGION_CLASS,
 	recoveryEtaLabel,
 	skuCostLabel,
@@ -73,8 +75,8 @@ function collectServed(customers: Game["customers"]): readonly ServedRow[] {
 }
 
 export function HubSession() {
-	const { user, logout } = useAuth();
-	const { game, lastError, running, toggleRunning, dispatch } = useHubGame();
+	const { user, logoutHref } = useAuth();
+	const { game, lastError, running, toggleRunning, dispatch, reset } = useHubGame();
 	const [buyRegion, setBuyRegion] = useState<RegionId>(DEFAULT_REGION);
 	const [entries, setEntries] = useState<readonly EventLogEntry[]>([]);
 	const regionSelectId = useId();
@@ -116,16 +118,18 @@ export function HubSession() {
 
 	const offers = collectOffers(game.customers);
 	const served = collectServed(game.customers);
+	const shiftOutcome = evaluateOpeningShift(game);
+	const shiftCopy = openingShiftResultCopy(shiftOutcome);
 	const localCount = (region: RegionId): number =>
 		game.assets.filter((asset) => asset.region === region).length;
 
 	return (
-		<div className="flex h-screen min-w-[1280px] flex-col overflow-hidden bg-background text-foreground">
+		<div className="relative flex h-screen min-w-[1280px] flex-col overflow-hidden bg-background text-foreground">
 			<Hud
 				account={
 					<Button
 						onClick={() => {
-							void logout();
+							window.location.assign(logoutHref({ redirectUri: "/" }));
 						}}
 						size="sm"
 						variant="ghost"
@@ -315,9 +319,32 @@ export function HubSession() {
 					</div>
 				</section>
 			</main>
-			<section aria-label="Event log" className="h-40 shrink-0 border-t border-border">
-				<EventLog entries={entries} />
+			<section
+				aria-label="Event log"
+				className="flex h-40 min-h-0 shrink-0 flex-col overflow-hidden border-t border-border"
+			>
+				<EventLog className="min-h-0 flex-1" entries={entries} />
 			</section>
+			{shiftOutcome.status !== "in_progress" ? (
+				<div
+					aria-label="Opening Shift result"
+					className="absolute inset-0 z-10 flex items-center justify-center bg-background/80"
+					role="dialog"
+				>
+					<div className="flex max-w-lg flex-col gap-3 border border-border bg-card p-6">
+						<p className="font-mono text-lg font-semibold text-foreground">{shiftCopy.title}</p>
+						<p className="font-mono text-sm text-muted-foreground">{shiftCopy.body}</p>
+						<Button
+							onClick={() => {
+								setEntries([]);
+								reset();
+							}}
+						>
+							Reset
+						</Button>
+					</div>
+				</div>
+			) : null}
 		</div>
 	);
 }

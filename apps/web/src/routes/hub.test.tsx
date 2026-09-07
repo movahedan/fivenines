@@ -66,6 +66,9 @@ describe("HubPage - session gate", () => {
 		expect(screen.getByRole("region", { name: "Server market" })).toBeTruthy();
 		expect(screen.getByText("Incoming (10)")).toBeTruthy();
 		expect(screen.getByText("Fleet (0)")).toBeTruthy();
+		expect(screen.getByRole("region", { name: "Event log" }).className).toContain(
+			"overflow-hidden",
+		);
 	});
 });
 
@@ -73,6 +76,29 @@ describe("HubPage - ops landmarks", () => {
 	afterEach(() => {
 		mock.restore();
 		Reflect.deleteProperty(document, "cookie");
+	});
+
+	it("sends the browser to auth logout with home as redirect_uri", async () => {
+		stubLoggedInHint(true);
+		globalThis.fetch = mock(async () =>
+			Promise.resolve(new Response(null, { status: 401 })),
+		) as unknown as typeof fetch;
+
+		renderHub();
+
+		await waitForOpsFloor();
+		const assign = mock(() => undefined);
+		window.location.assign = assign as typeof window.location.assign;
+
+		fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+
+		expect(assign).toHaveBeenCalled();
+		const href = String(
+			(assign.mock.calls as unknown as ReadonlyArray<ReadonlyArray<unknown>>)[0]?.[0] ?? "",
+		);
+		expect(href).toContain("/logout?");
+		expect(href).toContain("redirect_uri=http%3A%2F%2Fplay.fivenines.com%3A3000%2F");
+		expect(href).not.toContain("/login?");
 	});
 
 	it("toggles pause without changing the incoming queue count", async () => {

@@ -1,5 +1,19 @@
-import type { EngineEvent, Project, RegionId, ServerCatalogId } from "@packages/fivenines-engine";
-import { SERVER_CATALOG, SKU_ECONOMY, slaRecoveryHours } from "@packages/fivenines-engine";
+import type {
+	EngineEvent,
+	Game,
+	OpeningShiftFailReason,
+	OpeningShiftOutcome,
+	OpeningShiftSnapshot,
+	Project,
+	RegionId,
+	ServerCatalogId,
+} from "@packages/fivenines-engine";
+import {
+	openingShiftOutcome,
+	SERVER_CATALOG,
+	SKU_ECONOMY,
+	slaRecoveryHours,
+} from "@packages/fivenines-engine";
 import { formatters } from "@packages/shared/formatters";
 import { units } from "@packages/shared/units";
 
@@ -167,4 +181,55 @@ export function engineEventMessage(event: EngineEvent): string {
 		case "cashLow":
 			return `Cash low ${formatters.cents(event.cashCents)}`;
 	}
+}
+
+export function openingShiftSnapshot(game: Game): OpeningShiftSnapshot {
+	return {
+		hourIndex: game.hourIndex,
+		cashCents: game.cashCents,
+		jailed: game.jailed,
+		projects: game.customers.flatMap((customer) =>
+			customer.projects.map((project) => ({
+				status: project.status,
+				windowAvailabilityPpm: project.metrics.windowAvailabilityPpm,
+				targetPpm: project.commercial.targetPpm,
+				settlements: project.settlements.map((settlement) => ({
+					periodRevenueCents: settlement.periodRevenueCents,
+					creditCents: settlement.creditCents,
+				})),
+			})),
+		),
+	};
+}
+
+export function evaluateOpeningShift(game: Game): OpeningShiftOutcome {
+	return openingShiftOutcome(openingShiftSnapshot(game));
+}
+
+const OPENING_SHIFT_FAIL_COPY: Record<OpeningShiftFailReason, string> = {
+	jailed: "The shift ended in jail.",
+	cash: "Cash was not positive.",
+	contracts: "Fewer than two contracts met their SLA target.",
+	catastrophe: "A billing period took a 100% SLA credit.",
+};
+
+export function openingShiftResultCopy(outcome: OpeningShiftOutcome): {
+	readonly title: string;
+	readonly body: string;
+} {
+	if (outcome.status === "in_progress") {
+		return { title: "", body: "" };
+	}
+
+	if (outcome.status === "won") {
+		return {
+			title: "Opening Shift complete",
+			body: "Positive cash, two healthy contracts, and no catastrophic settlement.",
+		};
+	}
+
+	return {
+		title: "Opening Shift failed",
+		body: outcome.failed.map((reason) => OPENING_SHIFT_FAIL_COPY[reason]).join(" "),
+	};
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
-import { loginHref, redirectState } from "./login-href";
+import { loginHref, logoutHref, redirectState } from "./login-href";
 
 describe("loginHref - configured origins", () => {
 	it("builds login URL and state from a relative redirectUri", () => {
@@ -12,6 +12,20 @@ describe("loginHref - configured origins", () => {
 			}),
 		).toBe(
 			"http://auth.fivenines.com:3001/login?redirect_uri=http%3A%2F%2Fplay.fivenines.com%3A3000%2Fhub&state=%2Fhub",
+		);
+	});
+});
+
+describe("logoutHref - configured origins", () => {
+	it("builds logout URL with the same redirect_uri contract as login", () => {
+		expect(
+			logoutHref({
+				authOrigin: "http://auth.fivenines.com:3001",
+				appOrigin: "http://play.fivenines.com:3000",
+				redirectUri: "/",
+			}),
+		).toBe(
+			"http://auth.fivenines.com:3001/logout?redirect_uri=http%3A%2F%2Fplay.fivenines.com%3A3000%2F&state=%2F",
 		);
 	});
 });

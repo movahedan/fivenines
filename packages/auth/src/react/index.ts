@@ -1,4 +1,4 @@
-export type { LoginHrefOptions } from "../login-href";
+export type { LoginHrefOptions, LogoutHrefInput } from "../login-href";
 export {
 	type AuthContextValue,
 	AuthProvider,

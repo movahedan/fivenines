@@ -37,3 +37,18 @@ export function loginHref(input: LoginHrefInput): string {
 	url.searchParams.set("state", redirectState(input.redirectUri));
 	return url.toString();
 }
+
+export type LogoutHrefInput = {
+	readonly authOrigin: string;
+	readonly appOrigin: string;
+	readonly redirectUri: string;
+};
+
+export function logoutHref(input: LogoutHrefInput): string {
+	return loginHref({
+		authOrigin: input.authOrigin,
+		appOrigin: input.appOrigin,
+		redirectUri: input.redirectUri,
+		loginPath: "/logout",
+	});
+}

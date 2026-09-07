@@ -41,7 +41,7 @@ bun run container up -- --profile auth
 curl -sf -H 'Accept: application/json' http://localhost:3001/status
 ```
 
-Login/register/OTP **302** to the allowlisted `redirect_uri` (or relative `next`) and set HttpOnly `auth_access` plus public `was_logged_in` on `AUTH_COOKIE_DOMAIN` (default `.fivenines.com`). Local HTTP: `AUTH_COOKIE_SECURE=false`. Names: `play.fivenines.com`, `auth.fivenines.com`, `api.fivenines.com` (see [CHEATSHEET](../../docs/CHEATSHEET.md)).
+Login/register/OTP **302** to the allowlisted `redirect_uri` (or relative `next`) and set HttpOnly `auth_access` plus public `was_logged_in` on `AUTH_COOKIE_DOMAIN` (default `.fivenines.com`). `GET /logout` clears cookies, then **302** to the same allowlisted `redirect_uri` (or relative `next`); with no return params it renders the signed-out HTML page. Local HTTP: `AUTH_COOKIE_SECURE=false`. Names: `play.fivenines.com`, `auth.fivenines.com`, `api.fivenines.com` (see [CHEATSHEET](../../docs/CHEATSHEET.md)).
 
 Copy `apps/auth/.env.sample` → `apps/auth/.env` for host `bun run` (`--env-file=.env`, `AUTH_DATABASE_URL` → localhost). Dev compose sets `AUTH_DATABASE_URL` itself (`postgres` hostname + root `POSTGRES_*`). See [README.md](README.md) for JWT flows and Nest integration.
 

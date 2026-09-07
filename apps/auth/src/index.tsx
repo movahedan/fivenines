@@ -24,6 +24,7 @@ import {
 	loginReturnFieldProps,
 	loginReturnFromRequest,
 	loginReturnLocation,
+	logoutReturnLocation,
 } from "./utils/login-return";
 import { renderPage } from "./utils/render-page";
 
@@ -282,6 +283,13 @@ async function handleLogoutGet(req: Request): Promise<Response> {
 	if (ctx.sessionId) {
 		await createCaller(ctx).auth.logout();
 	}
+
+	const location = logoutReturnLocation(req);
+	if (location) {
+		const headers = appendClearedAuthCookies(new Headers({ location }));
+		return new Response(null, { status: 302, headers });
+	}
+
 	const headers = appendClearedAuthCookies(
 		new Headers({ "content-type": "text/html; charset=utf-8" }),
 	);

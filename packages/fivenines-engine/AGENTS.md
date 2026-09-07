@@ -40,6 +40,8 @@ Runtime: `@packages/shared/units`, `@packages/shared/ids`. Integers only at the 
 
 `new Game(initial, { random?: RandomSource })`. Default wraps `Math.random`. Demand code calls `random.nextUnit()` only.
 
+Opening Shift lasts `OPENING_SHIFT_HOURS` (336 = 14×24) in `src/catalog/opening-shift-policy.ts`. `openingShiftOutcome(snapshot)` is **in_progress** until `hourIndex >= 336`. After that it is **won** only if cash `> 0`, `jailed` is false, at least two **served** projects have `windowAvailabilityPpm >= targetPpm`, and no settlement has `creditCents === periodRevenueCents` with `periodRevenueCents > 0`. Otherwise **lost** (failed reasons: `jailed` / `cash` / `contracts` / `catastrophe`). Pure helper — do not tick 336 hours in tests.
+
 ## Project demand
 
 `estimatedRequestsPerHour` is the **baseline**. `demand: "constant"` returns that baseline when served (overload proofs). `demand: "shaped"` uses category rhythm + timezone + optional campaign window + spikes + jitter from `src/catalog/traffic-policy.ts`. Offered / declined return `0` and must not consume RNG.

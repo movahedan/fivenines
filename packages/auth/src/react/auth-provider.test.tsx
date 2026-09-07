@@ -14,10 +14,11 @@ function stubLoggedInHint(present: boolean): void {
 }
 
 function Probe(): ReactElement {
-	const { loginHref, wasLoggedIn } = useAuth();
+	const { loginHref, logoutHref, wasLoggedIn } = useAuth();
 	return (
 		<div>
 			<a href={loginHref({ redirectUri: "/hub" })}>Sign in</a>
+			<a href={logoutHref({ redirectUri: "/" })}>Sign out</a>
 			<span>{wasLoggedIn ? "hint" : "no-hint"}</span>
 		</div>
 	);
@@ -28,7 +29,7 @@ describe("AuthProvider - consumer tools", () => {
 		Reflect.deleteProperty(document, "cookie");
 	});
 
-	it("exposes loginHref that uses provider origins and derives state", () => {
+	it("exposes loginHref and logoutHref that use provider origins and derive state", () => {
 		stubLoggedInHint(false);
 		render(
 			<AuthProvider
@@ -42,6 +43,9 @@ describe("AuthProvider - consumer tools", () => {
 
 		expect(screen.getByRole("link", { name: "Sign in" }).getAttribute("href")).toBe(
 			"http://auth.fivenines.com:3001/login?redirect_uri=http%3A%2F%2Fplay.fivenines.com%3A3000%2Fhub&state=%2Fhub",
+		);
+		expect(screen.getByRole("link", { name: "Sign out" }).getAttribute("href")).toBe(
+			"http://auth.fivenines.com:3001/logout?redirect_uri=http%3A%2F%2Fplay.fivenines.com%3A3000%2F&state=%2F",
 		);
 		expect(screen.getByText("no-hint")).toBeTruthy();
 	});

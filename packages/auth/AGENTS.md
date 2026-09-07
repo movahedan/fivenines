@@ -8,7 +8,7 @@
 |--------|----------|
 | `@packages/auth` | `AuthSession`, `authSession`, `restore()`, `createAuthFetcherBindings`, login/refresh helpers, contract re-exports |
 | `@packages/auth/contract` | Scopes / JWT claim types only (server-safe; prefer this from Nest / auth service) |
-| `@packages/auth/react` | `AuthProvider` (`authOrigin` / `appOrigin` from env + `restoreOnMount`), `useAuth` (`loginHref`, `wasLoggedIn`) |
+| `@packages/auth/react` | `AuthProvider` (`authOrigin` / `appOrigin` from env + `restoreOnMount`), `useAuth` (`loginHref`, `logoutHref`, `wasLoggedIn`) |
 
 **Not included:** `FetcherSettingsProvider` — compose that in the app with `@packages/http/react`.
 
@@ -25,7 +25,7 @@
 - **Session / refresh** — HttpOnly cookies; `POST /api/refresh` with `credentials: "include"` rotates them. JSON may be `{ ok: true }` with no tokens.
 - Play home sets `AuthProvider` `restoreOnMount={false}`. Guarded `/hub` owns login/refresh.
 
-Play navigates to `/hub`. Hub sends the browser to `@apps/auth` `/login` when the hint cookie is missing (`loginHref({ redirectUri: "/hub" })`). Auth 302s to the allowlisted `redirect_uri`. Do not proxy `/auth` through Vite.
+Play navigates to `/hub`. Hub sends the browser to `@apps/auth` `/login` when the hint cookie is missing (`loginHref({ redirectUri: "/hub" })`). Sign out uses `logoutHref({ redirectUri: "/" })` so auth `/logout` 302s to the allowlisted `redirect_uri`. Do not proxy `/auth` through Vite.
 
 ## App wiring
 

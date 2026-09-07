@@ -2,6 +2,8 @@
 
 Guidance for agents working in this monorepo. **Map and pointers** — standards in rules; procedures in skills; human setup in [README.md](README.md#quick-start); commands in [docs/CHEATSHEET.md](docs/CHEATSHEET.md). Human product pitch and how-to-play: [wiki](https://github.com/movahedan/fivenines/wiki). Do not copy kernel formulas, ports, or cheatsheet tables into the wiki; do not treat the wiki as tick/economy truth.
 
+**GitHub Copilot code review** (not Cursor) reads [`.github/copilot-instructions.md`](.github/copilot-instructions.md) and [`.github/instructions/*.instructions.md`](.github/instructions/). Enable “Use custom instructions” at [Copilot code review settings](https://github.com/movahedan/fivenines/settings/copilot/code_review). Cursor still uses `.cursor/rules/` and nested `AGENTS.md`; do not paste those into Copilot files.
+
 ## Standards (`.cursor/rules/`)
 
 | Rule | When |
@@ -113,7 +115,7 @@ Prod-shaped file: `bun run container --prod up`. Extra compose flags after `--`:
 - **Filters** — workspace `name` from `package.json`, not folder name alone
 - **Lint/types** — `bun run lint -- --write`, `bun run typecheck`
 
-Renovate: [renovate.json](renovate.json).
+Dependabot: [`.github/dependabot.yml`](.github/dependabot.yml) · [docs/DEPENDABOT.md](docs/DEPENDABOT.md).
 
 ### Stack notes
 

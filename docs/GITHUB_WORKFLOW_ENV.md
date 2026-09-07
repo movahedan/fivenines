@@ -6,6 +6,8 @@ Set these on the **repository** (Settings → Secrets and variables → Actions)
 
 **CodeQL** (`.github/workflows/codeql.yml`) scans Actions + JS/TS with `security-extended`. It needs no extra secrets or variables.
 
+**Dependabot** (`.github/dependabot.yml`) opens version-update PRs. No extra secrets. Enable Dependabot **security** updates in Settings → Code security. Uninstall Mend Renovate on this repo after merge so PRs are not duplicated. Notes: [DEPENDABOT.md](DEPENDABOT.md).
+
 Compose probes use image HEALTHCHECKs and `.env.sample` / compose `${VAR:-default}` values. You do **not** need to copy `POSTGRES_*`, ports, or `VITE_*` into GitHub for that job.
 
 ## Required for remote Turbo cache

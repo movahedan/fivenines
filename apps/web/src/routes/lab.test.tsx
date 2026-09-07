@@ -178,6 +178,44 @@ describe("LabPage - tick metrics", () => {
 		expect(screen.getByRole("button", { name: "Buy Gold" })).toBeDisabled();
 	});
 
+	it("shows 0 this-hour ppm on a served project after accept and Tick with an empty fleet", async () => {
+		stubLoggedInHint(true);
+
+		renderLab();
+
+		await waitForLab();
+
+		fireEvent.click(screen.getByRole("button", { name: "Accept globex-portal" }));
+		fireEvent.click(screen.getByRole("button", { name: "Tick" }));
+
+		const served = screen.getByText(/globex-portal served/).closest("li");
+		expect(served instanceof HTMLElement).toBe(true);
+		if (!(served instanceof HTMLElement)) {
+			return;
+		}
+
+		expect(within(served).getByText("this-hour 0 ppm")).toBeTruthy();
+		expect(within(served).getByText("window 0 ppm")).toBeTruthy();
+	});
+
+	it("does not show SLA ppm digits on offered project rows", async () => {
+		stubLoggedInHint(true);
+
+		renderLab();
+
+		await waitForLab();
+
+		const offered = screen.getByText(/globex-portal offered/).closest("li");
+		expect(offered instanceof HTMLElement).toBe(true);
+		if (!(offered instanceof HTMLElement)) {
+			return;
+		}
+
+		expect(within(offered).queryByText(/this-hour/)).toBeNull();
+		expect(within(offered).queryByText(/window/)).toBeNull();
+		expect(within(offered).queryByText(/ppm/)).toBeNull();
+	});
+
 	it("removes a server when Delete is clicked", async () => {
 		stubLoggedInHint(true);
 

@@ -29,6 +29,8 @@ Routes live under `src/routes/` (same convention as xpertell product apps):
 
 `src/lab/lab-session.tsx` reads the engine wallet; it does **not** subtract cash. Finance strip: `game.finance` cash, jailed, last-hour maintenance vs power. Buy disabled when `jailed` or `cashCents < SKU_ECONOMY[sku].purchaseCents`. Accept disabled when jailed. Sell/Delete stays enabled if a server exists. Reset constructs a new `Game(openingInitial)` (starting cash, not jailed). Region picker uses `REGION_IDS` / `DEFAULT_REGION` from the engine.
 
+Served project rows show this-hour and window `availabilityPpm` from `project.metrics` (`—` when `null`). Offered and declined rows show no SLA digits. No sparkline.
+
 ```bash
 bun test apps/web/src/routes/lab.test.tsx
 ```

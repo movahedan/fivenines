@@ -21,6 +21,10 @@ const METRIC_KEYS = [
 	"errorPpm",
 ] as const;
 
+function formatSlaPpm(value: number | null): string {
+	return value === null ? "—" : String(value);
+}
+
 export function LabSession() {
 	const { game, lastError, tick, dispatch, reset } = useLabGame();
 	const [region, setRegion] = useState<RegionId>(DEFAULT_REGION);
@@ -120,6 +124,12 @@ export function LabSession() {
 								{customer.projects.map((project) => (
 									<li key={project.id}>
 										{project.id} {project.status}
+										{project.status === "served" ? (
+											<>
+												<p>this-hour {formatSlaPpm(project.metrics.availabilityPpm)} ppm</p>
+												<p>window {formatSlaPpm(project.metrics.windowAvailabilityPpm)} ppm</p>
+											</>
+										) : null}
 										{project.status === "offered" ? (
 											<AcceptButton projectId={project.id} jailed={jailed} onDispatch={dispatch} />
 										) : null}

@@ -1,13 +1,16 @@
 import { useState } from "react";
 
 import type { EngineCommand, RegionId, ServerCatalogId } from "@packages/fivenines-engine";
-import { regions, SERVER_CATALOG_IDS, SERVER_TIER_LABEL } from "@packages/fivenines-engine";
+import {
+	DEFAULT_REGION,
+	REGION_IDS,
+	regions,
+	SERVER_CATALOG_IDS,
+	SERVER_TIER_LABEL,
+} from "@packages/fivenines-engine";
 import { Button } from "@packages/ui/molecules/button";
 
 import { useLabGame } from "./use-lab-game";
-
-const REGION_IDS = Object.keys(regions.byId).filter(regions.isRegionId);
-const DEFAULT_REGION: RegionId = "utc+0";
 
 const METRIC_KEYS = [
 	"handledRequests",

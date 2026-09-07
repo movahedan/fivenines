@@ -29,7 +29,7 @@ Routes live under `src/routes/` (same convention as xpertell product apps):
 
 `src/hub/` is the player ops console: HUD + incoming / active+fleet / market + event log, composed from `@packages/ui/molecules`. `use-hub-game.ts` owns `Game(openingInitial)`, interval `tick()` (skipped while paused), and `dispatch`. HUD time is `game.hourIndex`, not SSE `at`. Account chrome is `useAuth()` in web (sign-out slot). Molecules stay engine-agnostic.
 
-Decline on offer cards logs only — the kernel has no decline command. Sparkline comes from `project.slaHours` (empty → warming). Buy gates match lab (`jailed` or cash below `SKU_ECONOMY`).
+Decline dispatches `declineProject` (offer leaves Incoming; allowed while jailed). Accept stays disabled when jailed. Active cards show current-hour vs rolling 168h vs target vs recovery ETA (`slaRecoveryHours`); status/tone still use window vs `targetPpm`. Sparkline bars color vs `targetPpm/1e6` (empty → warming). HUD: **CASH**, **Receivable today** (`accountsReceivableCents`), **OPEX / hour**. Active green digit is **WTD revenue** (`periodPaygCents`). Event log: Hub command lines plus `game.events` after each tick (SLA, PAYG settle, weekly credit, saturation, cash low). Root layout is `h-screen overflow-hidden` so the event log stays in viewport. Buy gates match lab (`jailed` or cash below `SKU_ECONOMY`).
 
 ```bash
 bun test apps/web/src/routes/hub.test.tsx

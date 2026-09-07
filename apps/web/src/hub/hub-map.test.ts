@@ -2,11 +2,14 @@ import { describe, expect, it } from "bun:test";
 
 import {
 	axisPercent,
+	engineEventMessage,
 	skuCostLabel,
 	skuCpuLabel,
 	skuNetLabel,
 	slaPercent,
+	slaShareLabel,
 	slaStatusLabel,
+	sparklineTargetFromPpm,
 } from "./hub-map";
 
 describe("hub-map - sla and sku labels", () => {
@@ -29,5 +32,18 @@ describe("hub-map - sla and sku labels", () => {
 		expect(axisPercent(0, 1000)).toBe(0);
 		expect(axisPercent(400, 1000)).toBe(40);
 		expect(axisPercent(256, 4096)).toBe(6);
+	});
+
+	it("formats availability ppm as a percent share", () => {
+		expect(slaShareLabel(null)).toBe("—");
+		expect(slaShareLabel(1_000_000)).toBe("100%");
+		expect(slaShareLabel(822_700)).toBe("82.27%");
+		expect(sparklineTargetFromPpm(990_000)).toBe(0.99);
+	});
+
+	it("formats a PAYG settle event as a log line", () => {
+		expect(engineEventMessage({ type: "paygSettled", hourIndex: 24, cents: 100 })).toBe(
+			"PAYG settled $1.00",
+		);
 	});
 });

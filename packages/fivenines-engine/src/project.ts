@@ -179,6 +179,34 @@ export class Project {
 		return served;
 	}
 
+	asDeclined(): Project {
+		if (this.#status !== "offered") {
+			throw new Error(`project is not offered: ${this.id}`);
+		}
+
+		const declined = new Project({
+			id: this.id,
+			estimatedRequestsPerHour: this.estimatedRequestsPerHour,
+			status: "declined",
+			demand: this.demand,
+			category: this.category,
+			region: this.region,
+			campaignProne: this.campaignProne,
+			commercial: this.commercial,
+			...(this.campaign === undefined ? {} : { campaign: this.campaign }),
+		});
+
+		declined.#slaHours = this.#slaHours.slice();
+		declined.#metrics = this.#metrics;
+		declined.#hoursServedInPeriod = this.#hoursServedInPeriod;
+		declined.#periodPaygCents = this.#periodPaygCents;
+		declined.#periodHandled = this.#periodHandled;
+		declined.#periodEmitted = this.#periodEmitted;
+		declined.#settlements = this.#settlements.slice();
+
+		return declined;
+	}
+
 	accrueServedPayg(): number {
 		if (this.#status !== "served") {
 			return 0;

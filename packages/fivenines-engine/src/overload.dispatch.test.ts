@@ -94,6 +94,46 @@ describe("Game - dispatch", () => {
 		).toThrow();
 	});
 
+	it("sets an offered project to declined without changing cash", () => {
+		const game = new Game(offeredInitial(0));
+		const cashCents = game.cashCents;
+
+		game.dispatch({ type: "declineProject", payload: { projectId: "project-1" } });
+
+		expect(game.customers[0]?.projects[0]?.status).toBe("declined");
+		expect(game.customers[0]?.projects[1]?.status).toBe("offered");
+		expect(game.cashCents).toBe(cashCents);
+		expect(game.hourIndex).toBe(0);
+	});
+
+	it("throws when declining an unknown project", () => {
+		const game = new Game(offeredInitial(0));
+
+		expect(() =>
+			game.dispatch({ type: "declineProject", payload: { projectId: "missing-project" } }),
+		).toThrow("unknown project id: missing-project");
+	});
+
+	it("throws when declining a project that is not offered", () => {
+		const game = new Game(oneBronzeInitial);
+
+		expect(() =>
+			game.dispatch({ type: "declineProject", payload: { projectId: "project-1" } }),
+		).toThrow("project is not offered: project-1");
+	});
+
+	it("declines an offered project while jailed", () => {
+		const game = new Game({
+			...offeredInitial(0),
+			jailed: true,
+		});
+
+		game.dispatch({ type: "declineProject", payload: { projectId: "project-1" } });
+
+		expect(game.customers[0]?.projects[0]?.status).toBe("declined");
+		expect(game.jailed).toBe(true);
+	});
+
 	it("removes a bought server when sellServer is dispatched", () => {
 		const game = new Game(offeredInitial(0)).dispatch({
 			type: "buyServer",

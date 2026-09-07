@@ -107,3 +107,36 @@ describe("Project - asServed", () => {
 		});
 	});
 });
+
+describe("Project - asDeclined", () => {
+	it("copies existing commercial terms and period fields without inventing a catalog card", () => {
+		const offered = new Project(
+			shapedInitial({
+				commercial: {
+					paygCentsPerThousandHandled: 3,
+					recurringCentsPerPeriod: 4_000,
+					targetPpm: 950_000,
+					creditPpm: 50_000,
+				},
+			}),
+		);
+		const declined = offered.asDeclined();
+
+		expect(declined.status).toBe("declined");
+		expect(declined.commercial).toEqual({
+			paygCentsPerThousandHandled: 3,
+			recurringCentsPerPeriod: 4_000,
+			targetPpm: 950_000,
+			creditPpm: 50_000,
+		});
+		expect(declined.slaHours).toEqual(offered.slaHours);
+		expect(declined.settlements).toEqual(offered.settlements);
+		expect(declined.hoursServedInPeriod).toBe(offered.hoursServedInPeriod);
+	});
+
+	it("throws when the project is not offered", () => {
+		const served = new Project(shapedInitial({ status: "served" }));
+
+		expect(() => served.asDeclined()).toThrow("project is not offered: project-1");
+	});
+});

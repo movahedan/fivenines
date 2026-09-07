@@ -16,6 +16,7 @@ export type GameAsset = Server;
 
 export type EngineCommand =
 	| { type: "acceptProject"; payload: { projectId: string } }
+	| { type: "declineProject"; payload: { projectId: string } }
 	| { type: "buyServer"; payload: { serverType: ServerCatalogId; region: RegionId } }
 	| { type: "sellServer"; payload: { serverId: string } };
 
@@ -36,6 +37,11 @@ export function applyCommand(graph: GameGraph, command: EngineCommand): GameGrap
 			return {
 				...graph,
 				customers: acceptProject(graph.customers, command.payload.projectId),
+			};
+		case "declineProject":
+			return {
+				...graph,
+				customers: declineProject(graph.customers, command.payload.projectId),
 			};
 		case "buyServer": {
 			if (graph.jailed) {
@@ -78,6 +84,18 @@ export function createAsset(initial: AssetInitial): GameAsset {
 }
 
 function acceptProject(customers: readonly Customer[], projectId: string): readonly Customer[] {
+	return mapOfferedProject(customers, projectId, (project) => project.asServed());
+}
+
+function declineProject(customers: readonly Customer[], projectId: string): readonly Customer[] {
+	return mapOfferedProject(customers, projectId, (project) => project.asDeclined());
+}
+
+function mapOfferedProject(
+	customers: readonly Customer[],
+	projectId: string,
+	nextProject: (project: Project) => Project,
+): readonly Customer[] {
 	const current = findProject(customers, projectId);
 
 	if (current.status !== "offered") {
@@ -91,7 +109,9 @@ function acceptProject(customers: readonly Customer[], projectId: string): reado
 
 		return new Customer(
 			{ id: customer.id, projects: [] },
-			customer.projects.map((project) => (project.id === projectId ? project.asServed() : project)),
+			customer.projects.map((project) =>
+				project.id === projectId ? nextProject(project) : project,
+			),
 		);
 	});
 }

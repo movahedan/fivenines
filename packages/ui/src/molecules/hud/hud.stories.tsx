@@ -24,9 +24,8 @@ const meta: Meta<typeof Hud> = {
 		clockLabel: "00:12:00",
 		metrics: [
 			{ label: "CASH", value: "$12,400", tone: "primary" },
-			{ label: "AR", value: "$800", tone: "info" },
-			{ label: "SLA", value: "99.95%", tone: "warning" },
-			{ label: "PPM", value: "4.1", tone: "default" },
+			{ label: "Receivable today", value: "$800", tone: "info" },
+			{ label: "OPEX / hour", value: "$42", tone: "default" },
 		],
 		running: true,
 		onToggleRunning: () => undefined,

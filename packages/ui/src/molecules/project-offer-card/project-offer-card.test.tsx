@@ -44,4 +44,17 @@ describe("ProjectOfferCard", () => {
 
 		expect(onDecline).toHaveBeenCalledTimes(1);
 	});
+
+	it("keeps DECLINE enabled when ACCEPT is disabled", () => {
+		const onDecline = mock();
+
+		render(<ProjectOfferCard {...OFFER} disabled onAccept={mock()} onDecline={onDecline} />);
+
+		expect(screen.getByRole("button", { name: "ACCEPT" })).toBeDisabled();
+		expect(screen.getByRole("button", { name: "DECLINE" })).toBeEnabled();
+
+		fireEvent.click(screen.getByRole("button", { name: "DECLINE" }));
+
+		expect(onDecline).toHaveBeenCalledTimes(1);
+	});
 });

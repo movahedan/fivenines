@@ -1,4 +1,5 @@
-import { ScrollView, View } from "react-native";
+import { type ComponentRef, useEffect, useRef } from "react";
+import { View } from "react-native";
 
 import { cn } from "@/utils";
 import { Text } from "../../atoms/text";
@@ -29,8 +30,28 @@ function eventToneClass(tone: EventLogTone): string {
 }
 
 function EventLog({ entries, className }: EventLogProps) {
+	const listRef = useRef<ComponentRef<typeof View> | null>(null);
+
+	useEffect(() => {
+		const node = listRef.current as unknown as {
+			scrollTop?: number;
+			scrollHeight?: number;
+		} | null;
+
+		if (node === null || node.scrollTop === undefined || node.scrollHeight === undefined) {
+			return;
+		}
+
+		node.scrollTop = node.scrollHeight;
+	}, []);
+
 	return (
-		<ScrollView className={cn("flex-1 bg-hud font-mono", className)}>
+		<View
+			className={cn("h-full min-h-0 flex-1 bg-hud font-mono", className)}
+			ref={listRef}
+			style={{ overflow: "scroll" }}
+			testID="event-log-scroller"
+		>
 			{entries.map((entry) => {
 				const toneClass = eventToneClass(entry.tone);
 
@@ -42,7 +63,7 @@ function EventLog({ entries, className }: EventLogProps) {
 					</View>
 				);
 			})}
-		</ScrollView>
+		</View>
 	);
 }
 

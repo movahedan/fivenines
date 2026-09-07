@@ -3,6 +3,7 @@ import { describe, expect, it } from "bun:test";
 import {
 	axisPercent,
 	engineEventMessage,
+	openingShiftResultCopy,
 	skuCostLabel,
 	skuCpuLabel,
 	skuNetLabel,
@@ -44,6 +45,16 @@ describe("hub-map - sla and sku labels", () => {
 	it("formats a PAYG settle event as a log line", () => {
 		expect(engineEventMessage({ type: "paygSettled", hourIndex: 24, cents: 100 })).toBe(
 			"PAYG settled $1.00",
+		);
+	});
+
+	it("writes Opening Shift win copy when the outcome is won", () => {
+		expect(openingShiftResultCopy({ status: "won", failed: [] })).toEqual({
+			title: "Opening Shift complete",
+			body: "Positive cash, two healthy contracts, and no catastrophic settlement.",
+		});
+		expect(openingShiftResultCopy({ status: "lost", failed: ["cash", "contracts"] }).title).toBe(
+			"Opening Shift failed",
 		);
 	});
 });

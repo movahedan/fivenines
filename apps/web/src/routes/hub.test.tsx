@@ -66,6 +66,9 @@ describe("HubPage - session gate", () => {
 		expect(screen.getByRole("region", { name: "Server market" })).toBeTruthy();
 		expect(screen.getByText("Incoming (10)")).toBeTruthy();
 		expect(screen.getByText("Fleet (0)")).toBeTruthy();
+		expect(screen.getByRole("region", { name: "Event log" }).className).toContain(
+			"overflow-hidden",
+		);
 	});
 });
 

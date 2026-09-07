@@ -1,6 +1,6 @@
 # Command cheatsheet
 
-Run from repo root. Filters use workspace `name` (`@apps/nestjs`, `@packages/ui`, `@packages/fivenines-engine`, …). CLIs live under `tools/scripts/`. Setup: [README § Quick start](../README.md#quick-start) · Map: [AGENTS.md](../AGENTS.md).
+Run from repo root. Filters use workspace `name` (`@apps/nestjs`, `@packages/ui`, `@packages/fivenines-engine`, …). CLIs live under `tools/scripts/`. Setup: [README § Quick start](../README.md#quick-start) · Map: [AGENTS.md](../AGENTS.md) · Product (humans): [wiki](https://github.com/movahedan/fivenines/wiki).
 
 ## Bootstrap
 

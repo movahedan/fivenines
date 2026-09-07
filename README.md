@@ -10,6 +10,12 @@
 ![Fivenines Banner](https://img.shields.io/badge/Fivenines-Lightning%20Fast%20Monorepo-EF4444?style=for-the-badge&logo=turborepo&logoColor=white)
 </div>
 
+## The game
+
+You take contracts, buy servers, and live through simulated hours: capacity, cash, SLA, and jail. **Opening Shift** is the first playable slice — ops floor at **`/hub`**, debug harness at **`/lab`** (`Game` still ticks in the browser).
+
+Product story, how to play, and the GitHub board legend live on the **[wiki](https://github.com/movahedan/fivenines/wiki)**. Kernel numbers, commands, and phase plans stay in this git tree (`AGENTS.md`, `docs/CHEATSHEET.md`, `.cursor/plans/`). Work board: **[Five Nines](https://github.com/users/movahedan/projects/5)**.
+
 ## 🎯 What Makes This Special
 
 <div align="center">
@@ -69,7 +75,7 @@ Player UI is **TanStack Start** (`@apps/web`) with file-based routing. The contr
 
 > **Developer-first documentation** with **AI assistant optimization**
 
-The repo uses a **four-tier documentation system**: **`.cursor/rules/`** for standards, **`AGENTS.md`** for AI-oriented structure, **`README.md`** for human onboarding, and **`docs/`** for guides — with **[CHEATSHEET.md](./docs/CHEATSHEET.md)** for every root command. [Renovate](./renovate.json) keeps dependencies pinned; quality gates run through Biome, TypeScript, and Bun tests.
+The repo uses **`.cursor/rules/`** for standards, **`AGENTS.md`** for AI-oriented structure, **`README.md`** + **`docs/`** for setup and commands (**[CHEATSHEET.md](./docs/CHEATSHEET.md)**), and the **[wiki](https://github.com/movahedan/fivenines/wiki)** for human product orientation. [Renovate](./renovate.json) keeps dependencies pinned; quality gates run through Biome, TypeScript, and Bun tests.
 
 </div>
 
@@ -101,6 +107,7 @@ Everything you need to build rock-solid applications is right here! We've kept i
 ## 📚 Documentation
 
 ### **🚀 Getting Started**
+[![Wiki (the game)](https://img.shields.io/badge/📖%20Wiki%20(the%20game)-495057?style=for-the-badge)](https://github.com/movahedan/fivenines/wiki)
 [![Quick start](https://img.shields.io/badge/📖%20Quick%20start-495057?style=for-the-badge)](#quick-start)
 [![AGENTS map](https://img.shields.io/badge/🤖%20AGENTS-495057?style=for-the-badge)](./AGENTS.md)
 [![Command cheatsheet](https://img.shields.io/badge/⚡%20Cheatsheet-495057?style=for-the-badge)](./docs/CHEATSHEET.md)

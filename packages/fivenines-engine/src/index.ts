@@ -32,6 +32,7 @@ export { Game } from "./game";
 export type { GameFinanceSnapshot } from "./game.finance";
 export type { GameTickMetrics } from "./game.metrics";
 export type {
+	BillingSettlement,
 	CampaignWindow,
 	DemandKind,
 	ProjectCategory,

@@ -4,7 +4,7 @@ import { units } from "@packages/shared/units";
 import { DEBT_LIMIT_CENTS, STARTING_CASH_CENTS } from "./catalog/economy-policy";
 import { Customer, type CustomerInitial } from "./customer";
 import { placeProjectDemand } from "./demand";
-import { accrueServedPayg } from "./game.commercial";
+import { accrueServedPayg, closeBillingPeriodIfDue } from "./game.commercial";
 import {
 	EMPTY_GAME_OPEX,
 	type GameFinanceSnapshot,
@@ -192,6 +192,7 @@ export class Game {
 		}
 
 		this.#hourIndex += 1;
+		this.#cashCents += closeBillingPeriodIfDue(projects, this.#hourIndex);
 
 		return this;
 	}

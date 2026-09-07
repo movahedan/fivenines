@@ -1,6 +1,11 @@
 import { units } from "@packages/shared/units";
 
-import { type CommercialTerms, parseCommercialTerms } from "./catalog/commercial-policy";
+import {
+	BILLING_PERIOD_HOURS,
+	type CommercialTerms,
+	parseCommercialTerms,
+	SETTLEMENT_HISTORY_K,
+} from "./catalog/commercial-policy";
 import { type RegionId, regions } from "./catalog/regions";
 import { SLA_WINDOW_HOURS, slaAvailabilityPpm } from "./catalog/sla-policy";
 import { TRAFFIC_POLICY } from "./catalog/traffic-policy";
@@ -20,6 +25,16 @@ export type { ProjectTickMetrics } from "./project.metrics";
 export type ProjectStatus = "offered" | "declined" | "served";
 export type ProjectCategory = "shopping" | "saas" | "portfolio";
 export type DemandKind = "constant" | "shaped";
+
+export interface BillingSettlement {
+	periodIndex: number;
+	hoursServedInPeriod: number;
+	paygCents: number;
+	recurringCents: number;
+	creditCents: number;
+	periodPpm: number | null;
+	periodRevenueCents: number;
+}
 
 export interface CampaignWindow {
 	startHour: number;
@@ -70,6 +85,7 @@ export class Project {
 	#periodPaygCents = 0;
 	#periodHandled = 0;
 	#periodEmitted = 0;
+	#settlements: BillingSettlement[] = [];
 
 	constructor(initial: ProjectInitial) {
 		this.id = initial.id;
@@ -129,6 +145,10 @@ export class Project {
 		return this.#periodEmitted;
 	}
 
+	get settlements(): readonly BillingSettlement[] {
+		return this.#settlements;
+	}
+
 	asServed(): Project {
 		if (this.#status !== "offered") {
 			throw new Error(`project is not offered: ${this.id}`);
@@ -152,6 +172,7 @@ export class Project {
 		served.#periodPaygCents = this.#periodPaygCents;
 		served.#periodHandled = this.#periodHandled;
 		served.#periodEmitted = this.#periodEmitted;
+		served.#settlements = this.#settlements.slice();
 
 		return served;
 	}
@@ -174,6 +195,48 @@ export class Project {
 		this.#periodEmitted += this.#metrics.emittedRequests;
 
 		return paygCents;
+	}
+
+	closeBillingPeriod(periodIndex: number): number {
+		if (this.#hoursServedInPeriod === 0) {
+			return 0;
+		}
+
+		const hoursServedInPeriod = this.#hoursServedInPeriod;
+		const paygCents = this.#periodPaygCents;
+		const recurringCents = Math.floor(
+			(this.commercial.recurringCentsPerPeriod * hoursServedInPeriod) / BILLING_PERIOD_HOURS,
+		);
+		const periodRevenueCents = paygCents + recurringCents;
+		const periodPpm = slaAvailabilityPpm(this.#periodHandled, this.#periodEmitted);
+		const creditCents =
+			periodPpm === null || periodPpm >= this.commercial.targetPpm
+				? 0
+				: Math.min(
+						periodRevenueCents,
+						Math.floor((periodRevenueCents * this.commercial.creditPpm) / 1_000_000),
+					);
+
+		this.#settlements.push({
+			periodIndex,
+			hoursServedInPeriod,
+			paygCents,
+			recurringCents,
+			creditCents,
+			periodPpm,
+			periodRevenueCents,
+		});
+
+		if (this.#settlements.length > SETTLEMENT_HISTORY_K) {
+			this.#settlements = this.#settlements.slice(-SETTLEMENT_HISTORY_K);
+		}
+
+		this.#hoursServedInPeriod = 0;
+		this.#periodPaygCents = 0;
+		this.#periodHandled = 0;
+		this.#periodEmitted = 0;
+
+		return recurringCents - creditCents;
 	}
 
 	recordSlaHour(hour: ProjectSlaHour): void {

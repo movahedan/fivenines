@@ -37,6 +37,8 @@ Setup: [README.md](README.md#quick-start) · Commands: [docs/CHEATSHEET.md](docs
 
 ## Architecture overview
 
+**Five Nines** is a cloud tycoon: the kernel (`@packages/fivenines-engine`) owns demand, capacity, wallet/opex/jail, SLA ppm, and PAYG week close. `@apps/web` `/lab` is the browser harness (`Game` in the client for now). Nest campaign/SSE is later.
+
 **Turborepo** monorepo, **Bun** package manager and runtime.
 
 **Prerequisites:** Git, [Bun](https://bun.sh/) 1.3.x, [Docker](https://docs.docker.com/desktop/) (full stack), Node **≥ 25**, ~8GB+ RAM.
@@ -51,7 +53,7 @@ Use each workspace’s `package.json#name` in Turbo `--filter`, compose, and com
 |------|----------|
 | `apps/*` | `@apps/web`, `@apps/nestjs`, `@apps/auth` |
 | `packages/*` | `@packages/ui`, `@packages/shared`, `@packages/shared-react`, `@packages/shared-tanstack` |
-| `packages/*` | `@packages/fivenines-engine` | Simulation kernel |
+| `packages/*` | `@packages/fivenines-engine` | Simulation kernel (physics + money + SLA) |
 | `tools/*` | `@tools/scripts`, `@tools/typescript`, `@tools/tests-preset` |
 
 ### Repo layout
@@ -69,11 +71,11 @@ Nested `AGENTS.md` under each app, package, and tool workspace.
 
 | Path | `name` | Port | Role | Guide |
 |------|--------|------|------|-------|
-| `apps/web` | `@apps/web` | 3000 | Player UI (TanStack Start SSR) | [AGENTS.md](apps/web/AGENTS.md) |
+| `apps/web` | `@apps/web` | 3000 | Player UI (TanStack Start SSR); `/lab` client `Game` harness | [AGENTS.md](apps/web/AGENTS.md) |
 | `apps/nestjs` | `@apps/nestjs` | 3002 | Feature flags control plane (OpenAPI) | [AGENTS.md](apps/nestjs/AGENTS.md) |
 | `apps/auth` | `@apps/auth` | 3001 | Auth (JWT, refresh, M2M) | [AGENTS.md](apps/auth/AGENTS.md) |
 | `packages/ui` | `@packages/ui` | 9000 | React + Storybook | [AGENTS.md](packages/ui/AGENTS.md) |
-| `packages/fivenines-engine` | `@packages/fivenines-engine` | — | Simulation kernel (`Game.tick` / `dispatch`) | [AGENTS.md](packages/fivenines-engine/AGENTS.md) |
+| `packages/fivenines-engine` | `@packages/fivenines-engine` | — | Simulation kernel (`Game.tick` / `dispatch`): physics, wallet/opex/jail, SLA 168h ring, PAYG + week close | [AGENTS.md](packages/fivenines-engine/AGENTS.md) |
 | `packages/shared` | `@packages/shared` | — | Shared utilities | [AGENTS.md](packages/shared/AGENTS.md) |
 | `packages/auth` | `@packages/auth` | — | Auth session, React provider, scopes/JWT contract | [AGENTS.md](packages/auth/AGENTS.md) |
 | `packages/http` | `@packages/http` | — | HTTP fetcher (client / server / static; Orval mutator shape) | [AGENTS.md](packages/http/AGENTS.md) |

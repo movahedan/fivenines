@@ -6,7 +6,7 @@
 
 - **Port:** 3000 (`WEB_PORT`)
 - **Stack:** Vite + `@tanstack/react-start` + `@tanstack/react-router` file routes
-- **Must not** import `@packages/simulation-engine`. Production routes must not construct `Game` or `tick()` in the browser.
+- Production routes must not construct `Game` or `tick()` in the browser.
 - **`/lab` exception:** `src/lab/` constructs `@packages/fivenines-engine` `Game` on the client (Opening Shift). Nest is the future production caller.
 - Nest reads in loaders go through `createServerFn` + `@packages/nestjs-sdk/server` (loaders are isomorphic; keep private I/O in server functions).
 - Pin `@tanstack/react-router` to the version `@tanstack/react-start` depends on (currently `1.170.32`). Do not reuse `@packages/shared-tanstack`'s older router pin in this app.

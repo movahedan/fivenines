@@ -2,6 +2,8 @@
 
 # 🏎️ Fivenines
 
+**Cloud tycoon sim:** customers offer projects, you buy servers, each tick is one simulated hour. `@packages/fivenines-engine` is the authority for physics, cash/opex/jail, SLA ppm, and PAYG billing. Play the Opening Shift harness at **`/lab`** on `@apps/web` (`Game` in the browser for now; Nest campaign/SSE comes later).
+
 <div align="center">
 <img src="https://pbs.twimg.com/media/F6GHgqBWYAAOwUX?format=jpg&name=4096x4096" alt="Fivenines Banner" width="600" />
 
@@ -120,7 +122,9 @@ Everything you need to build rock-solid applications is right here! We've kept i
 
 ## 📦 **What's Inside**
 
-**🎮 web** (`apps/web`) — **Port 3000** - Player UI (TanStack Start SSR, file-based router)
+**🎮 web** (`apps/web`) — **Port 3000** - Player UI (TanStack Start SSR); **`/lab`** is the client engine harness
+
+**⚙️ engine** (`packages/fivenines-engine`) — Simulation kernel (`Game.tick` / `dispatch`): demand, capacity, wallet, SLA, PAYG week close
 
 **🚩 nestjs** (`apps/nestjs`) — **Port 3002** - Feature flags control plane (NestJS, OpenAPI → Orval `@packages/nestjs-sdk`)
 
@@ -156,7 +160,7 @@ bun run container setup
 bun run container up
 ```
 
-Player UI: `bun run container up -- --profile web` then open `http://play.fivenines.com:3000` after adding the `/etc/hosts` line in [docs/CHEATSHEET.md](./docs/CHEATSHEET.md) (starts Postgres + Nest too; login needs the auth profile or `all`).
+Player UI: `bun run container up -- --profile web` then open `http://play.fivenines.com:3000` after adding the `/etc/hosts` line in [docs/CHEATSHEET.md](./docs/CHEATSHEET.md) (starts Postgres + Nest too; login needs the auth profile or `all`). Engine harness: `http://play.fivenines.com:3000/lab`.
 
 Control-plane API only: `bun run container up -- --profile nestjs` then open `http://localhost:3002/api/docs`.
 

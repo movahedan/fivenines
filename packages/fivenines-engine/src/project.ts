@@ -6,6 +6,7 @@ import {
 	parseCommercialTerms,
 	paygCentsForHandled,
 	SETTLEMENT_HISTORY_K,
+	slaCreditPpm,
 } from "./catalog/commercial-policy";
 import { type RegionId, regions } from "./catalog/regions";
 import { SLA_WINDOW_HOURS, slaAvailabilityPpm } from "./catalog/sla-policy";
@@ -213,13 +214,11 @@ export class Project {
 		);
 		const periodRevenueCents = paygCents + recurringCents;
 		const periodPpm = slaAvailabilityPpm(this.#periodHandled, this.#periodEmitted);
+		const creditPpm = slaCreditPpm(periodPpm, this.commercial.targetPpm);
 		const creditCents =
-			periodPpm === null || periodPpm >= this.commercial.targetPpm
+			creditPpm === 0
 				? 0
-				: Math.min(
-						periodRevenueCents,
-						Math.floor((periodRevenueCents * this.commercial.creditPpm) / 1_000_000),
-					);
+				: Math.min(periodRevenueCents, Math.floor((periodRevenueCents * creditPpm) / 1_000_000));
 
 		this.#settlements.push({
 			periodIndex,

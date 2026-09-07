@@ -8,14 +8,17 @@ import {
 	OPENING_SLA_TARGET_PPM,
 	PAYG_CENTS_PER_THOUSAND_BY_CATEGORY,
 	PAYG_ONLY_COMMERCIAL_STUB,
+	PAYG_SETTLE_HOURS,
 	parseCommercialTerms,
 	paygCentsForHandled,
 	SETTLEMENT_HISTORY_K,
+	slaCreditPpm,
 } from "./commercial-policy";
 
 describe("commercial-policy - v1 tables", () => {
-	it("uses a 168-hour billing period, history cap 8, and per-thousand PAYG", () => {
+	it("uses 24-hour PAYG settle and 25/50/100 SLA credit bands", () => {
 		expect(BILLING_PERIOD_HOURS).toBe(168);
+		expect(PAYG_SETTLE_HOURS).toBe(24);
 		expect(SETTLEMENT_HISTORY_K).toBe(8);
 		expect(PAYG_CENTS_PER_THOUSAND_BY_CATEGORY).toEqual({
 			portfolio: 330,
@@ -36,6 +39,14 @@ describe("commercial-policy - v1 tables", () => {
 		expect(paygCentsForHandled(1000, 450)).toBe(450);
 		expect(paygCentsForHandled(1, 450)).toBe(0);
 		expect(paygCentsForHandled(3, 450)).toBe(1);
+	});
+
+	it("bands SLA credits at 25, 50, and 100 percent when period ppm misses target", () => {
+		expect(slaCreditPpm(null, 990_000)).toBe(0);
+		expect(slaCreditPpm(990_000, 990_000)).toBe(0);
+		expect(slaCreditPpm(960_000, 990_000)).toBe(250_000);
+		expect(slaCreditPpm(850_000, 990_000)).toBe(500_000);
+		expect(slaCreditPpm(0, 990_000)).toBe(1_000_000);
 	});
 });
 

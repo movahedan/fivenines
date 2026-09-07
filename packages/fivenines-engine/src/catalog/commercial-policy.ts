@@ -1,7 +1,14 @@
 import { units } from "@packages/shared/units";
 
 export const BILLING_PERIOD_HOURS = 168;
+export const PAYG_SETTLE_HOURS = 24;
 export const SETTLEMENT_HISTORY_K = 8;
+
+export const SLA_CREDIT_MILD_MIN_PPM = 950_000;
+export const SLA_CREDIT_SEVERE_MIN_PPM = 800_000;
+export const SLA_CREDIT_MILD_PPM = 250_000;
+export const SLA_CREDIT_SEVERE_PPM = 500_000;
+export const SLA_CREDIT_CATASTROPHE_PPM = 1_000_000;
 
 export type CommercialCategory = "shopping" | "saas" | "portfolio";
 
@@ -50,6 +57,22 @@ export function paygCentsForHandled(
 	paygCentsPerThousandHandled: number,
 ): number {
 	return Math.floor((handledRequests * paygCentsPerThousandHandled) / 1_000);
+}
+
+export function slaCreditPpm(periodPpm: number | null, targetPpm: number): number {
+	if (periodPpm === null || periodPpm >= targetPpm) {
+		return 0;
+	}
+
+	if (periodPpm >= SLA_CREDIT_MILD_MIN_PPM) {
+		return SLA_CREDIT_MILD_PPM;
+	}
+
+	if (periodPpm >= SLA_CREDIT_SEVERE_MIN_PPM) {
+		return SLA_CREDIT_SEVERE_PPM;
+	}
+
+	return SLA_CREDIT_CATASTROPHE_PPM;
 }
 
 export function parseCommercialTerms(input: CommercialTerms): CommercialTerms {

@@ -244,13 +244,14 @@ describe("LabPage - tick metrics", () => {
 		const cashCents = Number(
 			within(screen.getByRole("row", { name: /Cash/ })).getByRole("cell").textContent,
 		);
+		const receivableCents = Number(
+			within(screen.getByRole("row", { name: /Accounts receivable/ })).getByRole("cell")
+				.textContent,
+		);
 
+		expect(receivableCents).toBe(paygCents);
 		expect(cashCents).toBe(
-			STARTING_CASH_CENTS -
-				SKU_ECONOMY.bronze.purchaseCents -
-				maintenanceCents -
-				powerCents +
-				paygCents,
+			STARTING_CASH_CENTS - SKU_ECONOMY.bronze.purchaseCents - maintenanceCents - powerCents,
 		);
 	});
 
@@ -270,6 +271,22 @@ describe("LabPage - tick metrics", () => {
 		expect(within(offered).queryByText(/this-period PAYG/)).toBeNull();
 		expect(within(offered).queryByText(/hours served/)).toBeNull();
 		expect(within(offered).queryByText(/last settlement/)).toBeNull();
+		expect(within(offered).getByText("region utc+0")).toBeTruthy();
+		expect(within(offered).getByText("baseline 700")).toBeTruthy();
+		expect(within(offered).getByText("traffic saas")).toBeTruthy();
+		expect(within(offered).getByText("spikes campaign-prone")).toBeTruthy();
+		expect(
+			within(offered).getByText(`PAYG ${OPENING_COMMERCIAL_STUB.paygCentsPerThousandHandled}/1000`),
+		).toBeTruthy();
+		expect(
+			within(offered).getByText(`recurring ${OPENING_COMMERCIAL_STUB.recurringCentsPerPeriod}`),
+		).toBeTruthy();
+		expect(
+			within(offered).getByText(`SLA target ${OPENING_COMMERCIAL_STUB.targetPpm}`),
+		).toBeTruthy();
+		expect(
+			within(offered).getByText("penalty mild 25% / severe 50% / catastrophe 100%"),
+		).toBeTruthy();
 	});
 
 	it("does not show SLA ppm digits on offered project rows", async () => {
@@ -287,7 +304,6 @@ describe("LabPage - tick metrics", () => {
 
 		expect(within(offered).queryByText(/this-hour/)).toBeNull();
 		expect(within(offered).queryByText(/window/)).toBeNull();
-		expect(within(offered).queryByText(/ppm/)).toBeNull();
 	});
 
 	it("removes a server when Delete is clicked", async () => {

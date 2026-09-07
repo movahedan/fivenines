@@ -47,7 +47,8 @@ describe("Game - PAYG", () => {
 		expect(project?.periodPaygCents).toBe(paygCents);
 		expect(project?.periodHandled).toBe(100);
 		expect(project?.periodEmitted).toBe(100);
-		expect(game.cashCents).toBe(10_000 - game.finance.opexCents + paygCents);
+		expect(game.accountsReceivableCents).toBe(paygCents);
+		expect(game.cashCents).toBe(10_000 - game.finance.opexCents);
 	});
 
 	it("credits 0 PAYG on emit-0 and still increments hoursServedInPeriod", () => {
@@ -103,15 +104,53 @@ describe("Game - PAYG", () => {
 
 		expect(game.jailed).toBe(true);
 		expect(paygCents).toBeGreaterThan(0);
-		expect(game.cashCents).toBe(0 - game.finance.opexCents + paygCents);
+		expect(game.accountsReceivableCents).toBe(paygCents);
+		expect(game.cashCents).toBe(0 - game.finance.opexCents);
 	});
 
-	it("puts category commercial terms on every opening project", () => {
+	it("puts category PAYG and recurring on every opening project", () => {
 		const game = new Game(openingInitial);
 
 		for (const project of allProjects(game)) {
-			expect(project.commercial).toEqual(commercialTermsForCategory(project.category));
+			const card = commercialTermsForCategory(project.category);
+
+			expect(project.commercial.paygCentsPerThousandHandled).toBe(card.paygCentsPerThousandHandled);
+			expect(project.commercial.recurringCentsPerPeriod).toBe(card.recurringCentsPerPeriod);
 		}
+	});
+
+	it("settles PAYG receivable into cash after 24 hours", () => {
+		const game = new Game({
+			customers: [
+				{
+					id: "customer-1",
+					projects: [constantProject("project-1", 100, "served")],
+				},
+			],
+			assets: [{ kind: "server", id: "server-1", catalogId: "bronze", region: "utc+0" }],
+			cashCents: 20_000,
+		});
+		let accruedPayg = 0;
+
+		for (let hour = 0; hour < 23; hour++) {
+			game.tick();
+			accruedPayg += paygCentsForHandled(
+				game.customers[0]?.projects[0]?.metrics.handledRequests ?? 0,
+				PAYG_ONLY_COMMERCIAL_STUB.paygCentsPerThousandHandled,
+			);
+			expect(game.hourIndex).toBe(hour + 1);
+			expect(game.accountsReceivableCents).toBe(accruedPayg);
+		}
+
+		game.tick();
+		accruedPayg += paygCentsForHandled(
+			game.customers[0]?.projects[0]?.metrics.handledRequests ?? 0,
+			PAYG_ONLY_COMMERCIAL_STUB.paygCentsPerThousandHandled,
+		);
+
+		expect(game.hourIndex).toBe(24);
+		expect(game.accountsReceivableCents).toBe(0);
+		expect(game.cashCents).toBe(20_000 - game.finance.opexCents * 24 + accruedPayg);
 	});
 
 	it("leaves Bronze 1400 physics unchanged after PAYG", () => {

@@ -4,7 +4,11 @@ import { units } from "@packages/shared/units";
 import { DEBT_LIMIT_CENTS, STARTING_CASH_CENTS } from "./catalog/economy-policy";
 import { Customer, type CustomerInitial } from "./customer";
 import { placeProjectDemand } from "./demand";
-import { accrueServedPayg, closeBillingPeriodIfDue } from "./game.commercial";
+import {
+	accrueServedPayg,
+	closeBillingPeriodIfDue,
+	settlePaygReceivableIfDue,
+} from "./game.commercial";
 import {
 	EMPTY_GAME_OPEX,
 	type GameFinanceSnapshot,
@@ -35,6 +39,7 @@ export interface GameInitial {
 	customers: readonly CustomerInitial[];
 	assets: readonly AssetInitial[];
 	cashCents?: number;
+	accountsReceivableCents?: number;
 	jailed?: boolean;
 }
 
@@ -44,6 +49,7 @@ export class Game {
 	#hourIndex = 0;
 	#random: RandomSource;
 	#cashCents: number;
+	#accountsReceivableCents: number;
 	#jailed: boolean;
 	#opex: GameOpexTotals = EMPTY_GAME_OPEX;
 
@@ -65,6 +71,10 @@ export class Game {
 		this.#assets = initial.assets.map((asset) => createAsset(asset));
 		this.#random = options?.random ?? new MathRandomSource();
 		this.#cashCents = units.asFiniteInteger(initial.cashCents ?? STARTING_CASH_CENTS, "cashCents");
+		this.#accountsReceivableCents = units.asNonNegativeInteger(
+			initial.accountsReceivableCents ?? 0,
+			"accountsReceivableCents",
+		);
 		this.#jailed = initial.jailed ?? false;
 		this.#syncDerivedState();
 	}
@@ -89,6 +99,10 @@ export class Game {
 		return this.#cashCents;
 	}
 
+	get accountsReceivableCents(): number {
+		return this.#accountsReceivableCents;
+	}
+
 	get jailed(): boolean {
 		return this.#jailed;
 	}
@@ -96,6 +110,7 @@ export class Game {
 	get finance(): GameFinanceSnapshot {
 		return {
 			cashCents: this.#cashCents,
+			accountsReceivableCents: this.#accountsReceivableCents,
 			jailed: this.#jailed,
 			opexCents: this.#opex.opexCents,
 			maintenanceCents: this.#opex.maintenanceCents,
@@ -185,13 +200,23 @@ export class Game {
 
 		this.#opex = measureGameOpex(servers);
 		this.#cashCents -= this.#opex.opexCents;
-		this.#cashCents += accrueServedPayg(projects);
+		this.#accountsReceivableCents += accrueServedPayg(projects);
 
 		if (this.#cashCents <= -DEBT_LIMIT_CENTS) {
 			this.#jailed = true;
 		}
 
 		this.#hourIndex += 1;
+		const settledPaygCents = settlePaygReceivableIfDue(
+			this.#hourIndex,
+			this.#accountsReceivableCents,
+		);
+		this.#cashCents += settledPaygCents;
+
+		if (settledPaygCents > 0) {
+			this.#accountsReceivableCents = 0;
+		}
+
 		this.#cashCents += closeBillingPeriodIfDue(projects, this.#hourIndex);
 
 		return this;

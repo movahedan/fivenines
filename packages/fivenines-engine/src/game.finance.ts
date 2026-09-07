@@ -9,6 +9,7 @@ export interface GameOpexTotals {
 
 export interface GameFinanceSnapshot extends GameOpexTotals {
 	cashCents: number;
+	accountsReceivableCents: number;
 	jailed: boolean;
 }
 

@@ -1,4 +1,4 @@
-import { BILLING_PERIOD_HOURS } from "./catalog/commercial-policy";
+import { BILLING_PERIOD_HOURS, PAYG_SETTLE_HOURS } from "./catalog/commercial-policy";
 import type { Project } from "./project";
 
 export function accrueServedPayg(projects: readonly Project[]): number {
@@ -9,6 +9,14 @@ export function accrueServedPayg(projects: readonly Project[]): number {
 	}
 
 	return paygCents;
+}
+
+export function settlePaygReceivableIfDue(hourIndex: number, receivableCents: number): number {
+	if (hourIndex % PAYG_SETTLE_HOURS !== 0) {
+		return 0;
+	}
+
+	return receivableCents;
 }
 
 export function closeBillingPeriodIfDue(projects: readonly Project[], hourIndex: number): number {

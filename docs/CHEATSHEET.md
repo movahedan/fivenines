@@ -35,7 +35,7 @@ GitHub Actions secrets/variables: [GITHUB_WORKFLOW_ENV.md](GITHUB_WORKFLOW_ENV.m
 
 | Command | Description |
 |---------|-------------|
-| `bun run turbo run dev --filter=@apps/web` | Player UI :3000 (`/lab` engine harness) |
+| `bun run turbo run dev --filter=@apps/web` | Player UI :3000 (`/hub` ops console, `/lab` debug harness) |
 | `bun run turbo run dev --filter=@apps/nestjs` | Control-plane API :3002 |
 | `bun run turbo run dev --filter=@apps/auth` | Auth service :3001 |
 | `bun run turbo run dev --filter=@packages/ui` | UI / Storybook :9000 (Node CLI; host vs Docker: one listener) |
@@ -50,6 +50,7 @@ GitHub Actions secrets/variables: [GITHUB_WORKFLOW_ENV.md](GITHUB_WORKFLOW_ENV.m
 | `bun run turbo run build:storybook --filter=@packages/ui` | Build Storybook |
 | `bun run build --filter=@packages/ui` | Build one workspace |
 | `bun test packages/fivenines-engine` | Engine kernel tests |
+| `bun test apps/web/src/routes/hub.test.tsx` | `/hub` ops console tests |
 | `bun test apps/web/src/routes/lab.test.tsx` | `/lab` harness tests |
 | `bun run turbo run typecheck --filter=@packages/fivenines-engine` | Typecheck engine (`@package`, singular) |
 | `bun run turbo run test --filter=@packages/fivenines-engine` | Turbo test engine |

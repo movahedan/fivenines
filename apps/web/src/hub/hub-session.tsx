@@ -1,0 +1,292 @@
+import { useCallback, useId, useState } from "react";
+
+import { useAuth } from "@packages/auth/react";
+import type {
+	EngineCommand,
+	Game,
+	Project,
+	RegionId,
+	ServerCatalogId,
+} from "@packages/fivenines-engine";
+import {
+	DEFAULT_REGION,
+	REGION_IDS,
+	regions,
+	SERVER_CATALOG_IDS,
+	SERVER_TIER_LABEL,
+	SKU_ECONOMY,
+} from "@packages/fivenines-engine";
+import { Button } from "@packages/ui/molecules/button";
+
+import { ActiveProjectCard } from "@/molecules/active-project-card/active-project-card";
+import { EventLog, type EventLogEntry } from "@/molecules/event-log/event-log";
+import { Hud } from "@/molecules/hud/hud";
+import { PanelHeader } from "@/molecules/panel-header/panel-header";
+import { ProjectOfferCard } from "@/molecules/project-offer-card/project-offer-card";
+import { ServerCard } from "@/molecules/server-card/server-card";
+import {
+	commandLogTone,
+	formatCents,
+	formatClockLabel,
+	formatHourTick,
+	formatPpm,
+	REGION_CLASS,
+	skuCostLabel,
+	skuCpuLabel,
+	skuOpexLabel,
+	skuRamLabel,
+	slaPercent,
+	slaStatusLabel,
+	slaTone,
+	sparklineFromSlaHours,
+	utilTone,
+} from "./hub-map";
+import { useHubGame } from "./use-hub-game";
+
+interface OfferRow {
+	readonly customerId: string;
+	readonly project: Project;
+}
+
+interface ServedRow {
+	readonly customerId: string;
+	readonly project: Project;
+}
+
+function collectOffers(customers: Game["customers"]): readonly OfferRow[] {
+	return customers.flatMap((customer) =>
+		customer.projects
+			.filter((project) => project.status === "offered")
+			.map((project) => ({ customerId: customer.id, project })),
+	);
+}
+
+function collectServed(customers: Game["customers"]): readonly ServedRow[] {
+	return customers.flatMap((customer) =>
+		customer.projects
+			.filter((project) => project.status === "served")
+			.map((project) => ({ customerId: customer.id, project })),
+	);
+}
+
+export function HubSession() {
+	const { user, logout } = useAuth();
+	const { game, lastError, running, toggleRunning, dispatch } = useHubGame();
+	const [buyRegion, setBuyRegion] = useState<RegionId>(DEFAULT_REGION);
+	const [entries, setEntries] = useState<readonly EventLogEntry[]>([]);
+	const regionSelectId = useId();
+	const { cashCents, accountsReceivableCents, jailed, opexCents } = game.finance;
+
+	const pushEntry = useCallback(
+		(tone: EventLogEntry["tone"], message: string, hourIndex: number) => {
+			setEntries((current) => {
+				const next: EventLogEntry = {
+					id: `${String(hourIndex)}-${String(current.length)}-${message}`,
+					tickLabel: formatHourTick(hourIndex),
+					message,
+					tone,
+				};
+
+				return [...current, next].slice(-50);
+			});
+		},
+		[],
+	);
+
+	const runCommand = (command: EngineCommand, message: string): void => {
+		dispatch(command);
+		pushEntry(commandLogTone(command.type), message, game.hourIndex);
+	};
+
+	const offers = collectOffers(game.customers);
+	const served = collectServed(game.customers);
+	const localCount = (region: RegionId): number =>
+		game.assets.filter((asset) => asset.region === region).length;
+
+	return (
+		<div className="flex min-h-screen min-w-[1280px] flex-col bg-background text-foreground">
+			<Hud
+				account={
+					<Button
+						onClick={() => {
+							void logout();
+						}}
+						size="sm"
+						variant="ghost"
+					>
+						{user?.email ?? "Sign out"}
+					</Button>
+				}
+				clockLabel={formatClockLabel(game.hourIndex)}
+				jailed={jailed}
+				metrics={[
+					{ label: "CASH", value: formatCents(cashCents), tone: "primary" },
+					{ label: "AR", value: formatCents(accountsReceivableCents), tone: "info" },
+					{ label: "OPEX", value: formatCents(opexCents), tone: "warning" },
+				]}
+				onToggleRunning={toggleRunning}
+				running={running}
+				subtitle="Opening Shift"
+				tickLabel={formatHourTick(game.hourIndex)}
+				title="Five Nines"
+			/>
+			{lastError !== null ? (
+				<p className="bg-destructive/10 px-4 py-2 font-mono text-sm text-destructive" role="alert">
+					{lastError}
+				</p>
+			) : null}
+			<main className="flex min-h-0 flex-1">
+				<section
+					aria-label="Incoming queue"
+					className="flex w-[320px] shrink-0 flex-col border-r border-border bg-panel"
+				>
+					<PanelHeader count={offers.length} label="Incoming" tone="warning" />
+					<div className="flex flex-col gap-2 overflow-y-auto p-2">
+						{offers.map(({ customerId, project }) => (
+							<ProjectOfferCard
+								cpuLabel={`${String(project.estimatedRequestsPerHour)} /h`}
+								customerName={customerId}
+								disabled={jailed}
+								key={project.id}
+								name={project.id}
+								onAccept={() => {
+									runCommand(
+										{ type: "acceptProject", payload: { projectId: project.id } },
+										`Accepted ${project.id}`,
+									);
+								}}
+								onDecline={() => {
+									pushEntry(
+										"warn",
+										`Decline is not a kernel command (${project.id})`,
+										game.hourIndex,
+									);
+								}}
+								paygLabel={`${String(project.commercial.paygCentsPerThousandHandled)}¢/k`}
+								regionClassName={REGION_CLASS[project.region]}
+								regionLabel={project.region}
+								slaLabel={formatPpm(project.commercial.targetPpm)}
+							/>
+						))}
+					</div>
+				</section>
+				<section aria-label="Active floor" className="flex min-w-0 flex-1 flex-col bg-background">
+					<PanelHeader count={served.length} label="Active" tone="primary" />
+					<div className="grid grid-cols-2 gap-2 overflow-y-auto p-2">
+						{served.length === 0 ? (
+							<p className="col-span-2 font-mono text-sm text-muted-foreground">
+								No served projects
+							</p>
+						) : (
+							served.map(({ customerId, project }) => {
+								const sparkline = sparklineFromSlaHours(project);
+								const windowPpm = project.metrics.windowAvailabilityPpm;
+
+								return (
+									<ActiveProjectCard
+										customerName={customerId}
+										key={project.id}
+										name={project.id}
+										paygLabel={formatCents(project.periodPaygCents)}
+										regionClassName={REGION_CLASS[project.region]}
+										regionLabel={project.region}
+										serverLabel={`${String(localCount(project.region))} local`}
+										slaLabel={formatPpm(windowPpm)}
+										slaPercent={slaPercent(windowPpm)}
+										slaStatusLabel={slaStatusLabel(windowPpm, project.commercial.targetPpm)}
+										slaTone={slaTone(windowPpm, project.commercial.targetPpm)}
+										sparkline={sparkline}
+										sparklineWarmingLabel={sparkline.length === 0 ? "warming" : undefined}
+									/>
+								);
+							})
+						)}
+					</div>
+					<PanelHeader count={game.assets.length} label="Fleet" tone="info" />
+					<div className="grid grid-cols-2 gap-2 overflow-y-auto p-2">
+						{game.assets.length === 0 ? (
+							<p className="col-span-2 font-mono text-sm text-muted-foreground">No servers</p>
+						) : (
+							game.assets.map((asset) => (
+								<ServerCard
+									cpuLabel={skuCpuLabel(asset.catalogId)}
+									idLabel={asset.id}
+									key={asset.id}
+									label={`${SERVER_TIER_LABEL[asset.catalogId]} · ${asset.region}`}
+									onSell={() => {
+										runCommand(
+											{ type: "sellServer", payload: { serverId: asset.id } },
+											`Sold ${asset.id}`,
+										);
+									}}
+									opexLabel={skuOpexLabel(asset.catalogId)}
+									utilPercent={Math.min(100, asset.metrics.utilization)}
+									utilTone={utilTone(asset.metrics.utilization)}
+									variant="fleet"
+								/>
+							))
+						)}
+					</div>
+				</section>
+				<section
+					aria-label="Server market"
+					className="flex w-[300px] shrink-0 flex-col border-l border-border bg-panel"
+				>
+					<PanelHeader
+						count={SERVER_CATALOG_IDS.length}
+						label="Market"
+						tone="destructive"
+						trailing={
+							<label className="font-mono text-xs text-muted-foreground" htmlFor={regionSelectId}>
+								Region
+								<select
+									className="ml-1 bg-card text-foreground"
+									id={regionSelectId}
+									name="buy-region"
+									onChange={(event) => setBuyRegion(regions.parseRegionId(event.target.value))}
+									value={buyRegion}
+								>
+									{REGION_IDS.map((id) => (
+										<option key={id} value={id}>
+											{id}
+										</option>
+									))}
+								</select>
+							</label>
+						}
+					/>
+					<div className="flex flex-col gap-2 overflow-y-auto p-2">
+						{SERVER_CATALOG_IDS.map((catalogId: ServerCatalogId) => {
+							const canAfford = !jailed && cashCents >= SKU_ECONOMY[catalogId].purchaseCents;
+
+							return (
+								<ServerCard
+									canAfford={canAfford}
+									costLabel={skuCostLabel(catalogId)}
+									cpuLabel={skuCpuLabel(catalogId)}
+									key={catalogId}
+									label={SERVER_TIER_LABEL[catalogId]}
+									onBuy={() => {
+										runCommand(
+											{
+												type: "buyServer",
+												payload: { serverType: catalogId, region: buyRegion },
+											},
+											`Bought ${SERVER_TIER_LABEL[catalogId]} in ${buyRegion}`,
+										);
+									}}
+									opexLabel={skuOpexLabel(catalogId)}
+									ramLabel={skuRamLabel(catalogId)}
+									variant="market"
+								/>
+							);
+						})}
+					</div>
+				</section>
+			</main>
+			<section aria-label="Event log" className="h-40 border-t border-border">
+				<EventLog entries={entries} />
+			</section>
+		</div>
+	);
+}

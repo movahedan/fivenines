@@ -25,11 +25,12 @@ jobs:
       TURBO_SCM_BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before || 'HEAD~1' }}
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v7.0.1
         with:
+          fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2.2.0
         with:

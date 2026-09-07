@@ -167,7 +167,7 @@ tags:
   - name: Tenants
     description: Tenant directory (management)
 servers: 
-  - url: http://localhost:3006
+  - url: http://localhost:3002
     description: Development
 components: 
   securitySchemes: 

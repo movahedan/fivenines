@@ -15,6 +15,10 @@ function packageDir(specifier: string): string {
 	return path.dirname(requireFromUi.resolve(`${specifier}/package.json`));
 }
 
+function toPosixPath(filePath: string): string {
+	return filePath.split("\\").join("/");
+}
+
 const sharedReactPackages = [
 	"react",
 	"react-dom",
@@ -106,7 +110,7 @@ function virtualReactBareId(source: string): (typeof sharedReactPackages)[number
 		return withoutQuery as (typeof sharedReactPackages)[number];
 	}
 
-	const posix = withoutQuery.replaceAll("\\", "/");
+	const posix = toPosixPath(withoutQuery);
 	if (!posix.includes("/node_modules/")) {
 		return;
 	}
@@ -152,12 +156,12 @@ function rewriteCjsRequires(bundled: string, externals: string[]): string {
 		if (!binding) {
 			throw new Error(`Unexpected external require: ${specifier}`);
 		}
-		return binding;
+		return `(${binding}.default ?? ${binding})`;
 	});
 	return `${imports}\n${next}`;
 }
 
-function rewriteExternalRequires(bundled: string): string {
+export function rewriteExternalRequires(bundled: string): string {
 	const specifiers = [
 		...new Set(
 			[...bundled.matchAll(/__require\(["']([^"']+)["']\)/g)].flatMap((match) =>
@@ -272,7 +276,7 @@ export function shareSingleReact(): Plugin {
 
 export function preferNodeModuleEsm(id: string): string | undefined {
 	const filePath = id.split("?")[0] ?? id;
-	const posix = filePath.replaceAll("\\", "/");
+	const posix = toPosixPath(filePath);
 	const isRnPrimitives = posix.includes("/node_modules/@rn-primitives/");
 	const isRadix = posix.includes("/node_modules/@radix-ui/");
 	if (!isRnPrimitives && !isRadix) {
@@ -372,7 +376,7 @@ function namedExportsFromCjs(code: string): string[] {
 		}
 	}
 	const blocks = [...code.matchAll(/\bmodule\.exports\s*=\s*\{([^}]*)\}/g)];
-	const lastBlock = blocks.at(-1)?.[1];
+	const lastBlock = blocks[blocks.length - 1]?.[1];
 	if (lastBlock) {
 		for (const match of lastBlock.matchAll(/([A-Za-z_$][\w$]*)\s*:/g)) {
 			if (match[1] && match[1] !== "default") {
@@ -398,7 +402,10 @@ export function transpileCjsNodeModules(): Plugin {
 			if (filePath.includes(`${path.sep}node_modules${path.sep}react-dom${path.sep}`)) {
 				return;
 			}
-			if (filePath.includes(`${path.sep}node_modules${path.sep}react-native-web${path.sep}`)) {
+			if (
+				filePath.includes(`${path.sep}node_modules${path.sep}react-native-web${path.sep}`) &&
+				!toPosixPath(filePath).includes("/react-native-web/dist/cjs/")
+			) {
 				return;
 			}
 			if (!/\.c?js$/u.test(filePath)) {
@@ -443,7 +450,7 @@ export function transpileCjsNodeModules(): Plugin {
 					}
 				}
 			}
-			if (filePath.replaceAll("\\", "/").includes("/use-sync-external-store/")) {
+			if (toPosixPath(filePath).includes("/use-sync-external-store/")) {
 				const names = namedExportsFromCjs(code);
 				const exportNames =
 					names.length > 0 ? names : (["useSyncExternalStoreWithSelector"] as const);
@@ -459,14 +466,14 @@ export function transpileCjsNodeModules(): Plugin {
 }
 
 function isRnSvgTransformPath(source: string, importer?: string): boolean {
-	const clean = (source.split("?")[0] ?? source).replaceAll("\\", "/");
+	const clean = toPosixPath(source.split("?")[0] ?? source);
 	if (clean.endsWith("/react-native-svg/lib/module/lib/extract/transform.js")) {
 		return true;
 	}
 	if (!importer) {
 		return false;
 	}
-	const importerPath = (importer.split("?")[0] ?? importer).replaceAll("\\", "/");
+	const importerPath = toPosixPath(importer.split("?")[0] ?? importer);
 	if (!importerPath.includes("/react-native-svg/")) {
 		return false;
 	}
@@ -474,9 +481,7 @@ function isRnSvgTransformPath(source: string, importer?: string): boolean {
 		path.dirname(importer.split("?")[0] ?? importer),
 		source.split("?")[0] ?? source,
 	);
-	return resolved
-		.replaceAll("\\", "/")
-		.endsWith("/react-native-svg/lib/module/lib/extract/transform.js");
+	return toPosixPath(resolved).endsWith("/react-native-svg/lib/module/lib/extract/transform.js");
 }
 
 const rnSvgTransformEsm = `
@@ -506,7 +511,7 @@ export function esmifyReactNativeSvgTransform(): Plugin {
 			}
 		},
 		transform(_code, id) {
-			const clean = (id.split("?")[0] ?? id).replaceAll("\\", "/");
+			const clean = toPosixPath(id.split("?")[0] ?? id);
 			if (clean.includes("/react-native-svg/") && clean.endsWith("/extract/transform.js")) {
 				return { code: rnSvgTransformEsm, map: null };
 			}
@@ -564,9 +569,18 @@ export function resolveStyleqStubs(): Plugin {
 
 export function rnWebAliases(): Record<string, string> {
 	const rnSvgDir = packageDir("react-native-svg");
+	const rnWebDir = packageDir("react-native-web");
 	return {
 		"@": path.join(uiRoot, "src"),
 		"react-native": "react-native-web",
+		"react-native-web/dist/cjs/exports/StyleSheet/compiler/createReactDOMStyle.js": path.join(
+			rnWebDir,
+			"dist/exports/StyleSheet/compiler/createReactDOMStyle.js",
+		),
+		"react-native-web/dist/cjs/exports/StyleSheet/preprocess.js": path.join(
+			rnWebDir,
+			"dist/exports/StyleSheet/preprocess.js",
+		),
 		"react-native-svg": path.join(rnSvgDir, "lib/module/ReactNativeSVG.web.js"),
 		[path.join(rnSvgDir, "lib/module/lib/extract/transform.js")]: path.join(
 			storybookDir,
@@ -609,6 +623,7 @@ export function rnWebGlobalDefines(mode: "development" | "production"): Record<s
 	return {
 		__DEV__: JSON.stringify(mode === "development"),
 		"process.env.NODE_ENV": JSON.stringify(mode),
+		global: "globalThis",
 	};
 }
 
@@ -726,10 +741,47 @@ export function rewriteReactNativeCssImports(): Plugin {
 
 			let next = rewriteNamedReactNativeImport(code, "react-native");
 			next = rewriteNamedReactNativeImport(next, "react-native-web");
-			next = next.replaceAll(
+			next = next.replace(
 				/\brequire\(["']react-native["']\)/g,
 				'require("react-native-css/components")',
 			);
+			if (next === code) {
+				return;
+			}
+			return { code: next, map: null };
+		},
+	};
+}
+
+export function stubReanimatedWorkletsVersionCheck(): Plugin {
+	return {
+		name: "stub-reanimated-worklets-version",
+		enforce: "pre",
+		resolveId(source) {
+			if (source === "react-native-reanimated/scripts/validate-worklets-version") {
+				return "\0reanimated-validate-worklets-version";
+			}
+		},
+		load(id) {
+			if (id === "\0reanimated-validate-worklets-version") {
+				return "export default function validateWorkletsVersion() { return { ok: true }; }\n";
+			}
+		},
+	};
+}
+
+export function rewriteReanimatedBrowserGlobals(): Plugin {
+	return {
+		name: "rewrite-reanimated-browser-globals",
+		transform(code, id) {
+			const filePath = id.split("?")[0] ?? id;
+			if (!toPosixPath(filePath).includes("/react-native-reanimated/")) {
+				return;
+			}
+			if (!/\bglobal\b/.test(code)) {
+				return;
+			}
+			const next = code.replace(/\bglobal\b/g, "globalThis");
 			if (next === code) {
 				return;
 			}
@@ -747,6 +799,8 @@ export function applyRnWebVite(viteConfig: UserConfig): UserConfig {
 	viteConfig.plugins = [
 		shareSingleReact(),
 		preferNodeModuleEsmPlugin(),
+		stubReanimatedWorkletsVersionCheck(),
+		rewriteReanimatedBrowserGlobals(),
 		rewriteReactNativeCssImports(),
 		esmifyReactNativeSvgTransform(),
 		rewriteRnWebStyleqImports(),

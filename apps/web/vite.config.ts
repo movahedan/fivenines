@@ -12,6 +12,7 @@ import {
 	preferNodeModuleEsmPlugin,
 	resolveStyleqStubs,
 	rewriteReactNativeCssImports,
+	rewriteReanimatedBrowserGlobals,
 	rewriteRnWebStyleqImports,
 	rnWebAliases,
 	rnWebExtensions,
@@ -19,6 +20,7 @@ import {
 	rnWebOptimizeDeps,
 	rnWebSsrNoExternal,
 	shareSingleReact,
+	stubReanimatedWorkletsVersionCheck,
 	transpileCjsNodeModules,
 	transpileRnPrimitivesJsx,
 } from "../../packages/ui/scripts/rn-web.ts";
@@ -122,6 +124,8 @@ export default defineConfig(({ command }) => {
 		plugins: [
 			...(shareReact ? [shareSingleReact()] : []),
 			preferNodeModuleEsmPlugin(),
+			stubReanimatedWorkletsVersionCheck(),
+			rewriteReanimatedBrowserGlobals(),
 			rewriteReactNativeCssImports(),
 			esmifyReactNativeSvgTransform(),
 			rewriteRnWebStyleqImports(),

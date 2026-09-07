@@ -6,7 +6,7 @@ Shared review rubric (GitHub Copilot + Cursor). Workflow env: [`docs/GITHUB_WORK
 
 When performing a code review on GitHub Actions:
 
-- Pin **third-party** actions (`oven-sh/*`, `docker/*`, …) to a full commit SHA with a `# vX.Y.Z` comment. GitHub-owned `actions/*` / `github/codeql-action` may stay on version tags. Do not use floating `@v4`.
+- Pin actions to a version tag (`@v2.2.0`), not a floating `@v2`. Dependabot owns bumps. Do not SHA-pin third-party actions unless we opt into that later. Workflows need an explicit `permissions` block.
 - Least privilege: default `contents: read`; add `security-events: write` only for SARIF upload.
 - Do not introduce `POSTGRES_*` or compose ports as Actions secrets. Check uses `.env.sample` defaults.
 - Bun version should stay aligned with the root `packageManager` field.

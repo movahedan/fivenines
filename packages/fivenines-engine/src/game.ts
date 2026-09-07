@@ -1,7 +1,15 @@
 import { ids } from "@packages/shared/ids";
+import { units } from "@packages/shared/units";
 
+import { DEBT_LIMIT_CENTS, STARTING_CASH_CENTS } from "./catalog/economy-policy";
 import { Customer, type CustomerInitial } from "./customer";
 import { placeProjectDemand } from "./demand";
+import {
+	EMPTY_GAME_OPEX,
+	type GameFinanceSnapshot,
+	type GameOpexTotals,
+	measureGameOpex,
+} from "./game.finance";
 import { EMPTY_GAME_TICK_METRICS, type GameTickMetrics, measureGameTick } from "./game.metrics";
 import {
 	type AssetInitial,
@@ -13,6 +21,7 @@ import {
 import type { Server } from "./server";
 import { MathRandomSource, type RandomSource } from "./traffic/random-source";
 
+export type { GameFinanceSnapshot } from "./game.finance";
 export type { GameTickMetrics } from "./game.metrics";
 export type { AssetInitial, EngineCommand, GameAsset } from "./game.utils";
 
@@ -23,6 +32,8 @@ export interface GameOptions {
 export interface GameInitial {
 	customers: readonly CustomerInitial[];
 	assets: readonly AssetInitial[];
+	cashCents?: number;
+	jailed?: boolean;
 }
 
 export class Game {
@@ -30,6 +41,9 @@ export class Game {
 	#assets: GameAsset[];
 	#hourIndex = 0;
 	#random: RandomSource;
+	#cashCents: number;
+	#jailed: boolean;
+	#opex: GameOpexTotals = EMPTY_GAME_OPEX;
 
 	#metrics: GameTickMetrics = EMPTY_GAME_TICK_METRICS;
 	#serversById: ReadonlyMap<string, Server> = new Map();
@@ -48,6 +62,8 @@ export class Game {
 		this.#customers = initial.customers.map((customer) => new Customer(customer));
 		this.#assets = initial.assets.map((asset) => createAsset(asset));
 		this.#random = options?.random ?? new MathRandomSource();
+		this.#cashCents = units.asFiniteInteger(initial.cashCents ?? STARTING_CASH_CENTS, "cashCents");
+		this.#jailed = initial.jailed ?? false;
 		this.#syncDerivedState();
 	}
 
@@ -67,6 +83,24 @@ export class Game {
 		return this.#metrics;
 	}
 
+	get cashCents(): number {
+		return this.#cashCents;
+	}
+
+	get jailed(): boolean {
+		return this.#jailed;
+	}
+
+	get finance(): GameFinanceSnapshot {
+		return {
+			cashCents: this.#cashCents,
+			jailed: this.#jailed,
+			opexCents: this.#opex.opexCents,
+			maintenanceCents: this.#opex.maintenanceCents,
+			powerCents: this.#opex.powerCents,
+		};
+	}
+
 	get hourIndex(): number {
 		return this.#hourIndex;
 	}
@@ -84,12 +118,16 @@ export class Game {
 			{
 				customers: this.#customers,
 				assets: this.#assets,
+				cashCents: this.#cashCents,
+				jailed: this.#jailed,
 			},
 			command,
 		);
 
 		this.#customers = [...next.customers];
 		this.#assets = [...next.assets];
+		this.#cashCents = next.cashCents;
+		this.#jailed = next.jailed;
 		this.#syncDerivedState();
 
 		return this;
@@ -132,6 +170,14 @@ export class Game {
 			totalDemand,
 			unroutableDemand,
 		);
+
+		this.#opex = measureGameOpex(servers);
+		this.#cashCents -= this.#opex.opexCents;
+
+		if (this.#cashCents <= -DEBT_LIMIT_CENTS) {
+			this.#jailed = true;
+		}
+
 		this.#hourIndex += 1;
 
 		return this;

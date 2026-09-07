@@ -36,7 +36,7 @@ Runtime: `@packages/shared/units`, `@packages/shared/ids`. Integers only at the 
 
 ## Clock and RNG
 
-`hourIndex` starts at `0`. Each `tick()` uses the **current** hour for demand, rolls metrics, then `hourIndex += 1`. Derived: `hourOfDay = hourIndex % 24`, `dayIndex = floor(hourIndex / 24)`. `dispatch` does not change the clock.
+`hourIndex` starts at `0`. Each `tick()` uses the **current** hour for demand, rolls physics metrics, charges opex, may trip jail, then `hourIndex += 1`. Derived: `hourOfDay = hourIndex % 24`, `dayIndex = floor(hourIndex / 24)`. `dispatch` does not change the clock and does not charge hourly opex.
 
 `new Game(initial, { random?: RandomSource })`. Default wraps `Math.random`. Demand code calls `random.nextUnit()` only.
 
@@ -55,9 +55,23 @@ const overloaded = new Game(oneBronzeInitial).tick();
 const healthy = new Game(twoBronzeInitial).tick();
 ```
 
-`GameInitial`: `{ customers, assets }`. Empty `assets` is valid.
+`GameInitial`: `{ customers, assets, cashCents?, jailed? }`. Empty `assets` is valid. Defaults: `cashCents = STARTING_CASH_CENTS` (40_000), `jailed = false` (`src/catalog/economy-policy.ts`). Cash is signed integer cents.
 
-After `tick()`, `game.metrics` (`src/game.metrics.ts`), each `server.metrics` (`src/server.metrics.ts`), and each `project.metrics` (`src/project.metrics.ts`) hold that hour’s snapshot (SLA will consume this pattern).
+After `tick()`, `game.metrics` (`src/game.metrics.ts`), each `server.metrics` (`src/server.metrics.ts`), and each `project.metrics` (`src/project.metrics.ts`) hold that hour’s physics snapshot. `game.finance` (`src/game.finance.ts`) is the last-hour money snapshot: `cashCents`, `jailed`, fleet totals `opexCents` / `maintenanceCents` / `powerCents`.
+
+## Wallet and opex
+
+Money tunables live in `src/catalog/economy-policy.ts` (not `SERVER_CATALOG`). Salvage is `floor(purchaseCents * SALVAGE_PERCENT / 100)` (`SALVAGE_PERCENT = 70`). Better SKUs pay **less** maintenance per hour; power still scales up with size; `thin-ram` is a high-maint trap. Jail is sticky: `cashCents <= -DEBT_LIMIT_CENTS` (20_000) sets `jailed`; this slice never clears it. Negative cash is allowed; buy still requires `cashCents >= purchaseCents`.
+
+Opex runs **after** `server.tick` / `measureGameTick`, **before** `hourIndex += 1`. Per box, using this hour’s `server.metrics.utilization` (tightest axis; 0 when `assignedRequests === 0`; may exceed 100):
+
+```
+utilForPower = min(utilization, 100)
+powerCents   = idle + floor((max - idle) * utilForPower / 100)
+opexCents    = maintenance + powerCents
+```
+
+Idle boxes still pay maintenance + idle power. Overload bills **max** power, not above TDP. Empty fleet opex is 0. Then `cashCents -= totalOpex`; if at/under the debt limit, `jailed = true`.
 
 ## `dispatch`
 
@@ -70,10 +84,17 @@ type EngineCommand =
   | { type: "sellServer"; payload: { serverId: string } };
 ```
 
-`acceptProject` requires `status === "offered"`. Implementation: `applyCommand` in `src/game.utils.ts`.
+`acceptProject` requires `status === "offered"`. Throws if `jailed`. No cash change.
+
+`buyServer` throws if `jailed` or `cashCents < purchaseCents` (no debit). Else debit catalog purchase and add the box.
+
+`sellServer` is allowed while jailed. Credits salvage and removes the box.
+
+Implementation: `applyCommand` in `src/game.utils.ts`.
 
 ## Related
 
+- Opex / cash: `.cursor/plans/fivenines-engine-opex.plan.md` — spec `.cursor/plans/fivenines-engine-opex.design.md`
 - Plan: `.cursor/plans/fivenines-engine-capacity.plan.md` (region / placement; traffic: `.cursor/plans/fivenines-engine-traffic.plan.md`)
 - Spec: `.cursor/plans/fivenines-engine-capacity.design.md`
 - Domain (kernel graph): `.cursor/plans/fivenines-engine-domain.design.md`

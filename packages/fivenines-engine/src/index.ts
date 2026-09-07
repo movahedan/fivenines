@@ -1,4 +1,11 @@
 export { CAPACITY_POLICY } from "./catalog/capacity-policy";
+export {
+	DEBT_LIMIT_CENTS,
+	SALVAGE_PERCENT,
+	SKU_ECONOMY,
+	STARTING_CASH_CENTS,
+	salvageCents,
+} from "./catalog/economy-policy";
 export type { ServerCatalogId } from "./catalog/kernel";
 export { SERVER_CATALOG, SERVER_CATALOG_IDS, SERVER_TIER_LABEL } from "./catalog/kernel";
 export type { RegionId } from "./catalog/regions";
@@ -13,6 +20,7 @@ export type {
 	GameInitial,
 } from "./game";
 export { Game } from "./game";
+export type { GameFinanceSnapshot } from "./game.finance";
 export type { GameTickMetrics } from "./game.metrics";
 export type {
 	CampaignWindow,

@@ -86,7 +86,7 @@ describe("Game - dispatch", () => {
 	it("removes a bought server when sellServer is dispatched", () => {
 		const game = new Game(offeredInitial(0)).dispatch({
 			type: "buyServer",
-			payload: { serverType: "gold", region: "utc+0" },
+			payload: { serverType: "bronze", region: "utc+0" },
 		});
 
 		expect(game.assets).toHaveLength(1);

@@ -15,6 +15,8 @@ describe("applyCommand - acceptProject", () => {
 		const graph = {
 			customers,
 			assets: [],
+			cashCents: 40_000,
+			jailed: false,
 		};
 
 		const next = applyCommand(graph, {

@@ -22,13 +22,13 @@ todos:
     status: completed
   - id: phase-3-lab
     content: "Phase 3: /lab this-period PAYG, last settlement, history list"
-    status: pending
+    status: completed
   - id: phase-3-verify
     content: "Phase 3 gate: bun test packages/fivenines-engine apps/web/src/routes/lab.test.tsx && bun run turbo run typecheck --filter=@packages/fivenines-engine --filter=@apps/web"
-    status: pending
+    status: completed
   - id: phase-3-docs
     content: "Phase 3: documentation-sync (web AGENTS if lab listed)"
-    status: pending
+    status: completed
 isProject: false
 ---
 

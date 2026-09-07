@@ -16,6 +16,8 @@ alwaysApply: true
 | Security | [`security.mdc`](security.mdc) |
 | TypeScript / React deltas | [`typescript.mdc`](typescript.mdc) when editing `.ts` / `.tsx` |
 | Multi-phase work | [initiative-workflow](../skills/initiative-workflow/SKILL.md) |
+| GitHub Copilot PR review | [`.github/copilot-instructions.md`](../../.github/copilot-instructions.md) |
+| Cursor + Copilot review rubric | [code-review.mdc](code-review.mdc) (points at `.github/`) |
 
 ## Quality gate
 

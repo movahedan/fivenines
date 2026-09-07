@@ -75,7 +75,7 @@ Player UI is **TanStack Start** (`@apps/web`) with file-based routing. The contr
 
 > **Developer-first documentation** with **AI assistant optimization**
 
-The repo uses **`.cursor/rules/`** for standards, **`AGENTS.md`** for AI-oriented structure, **`README.md`** + **`docs/`** for setup and commands (**[CHEATSHEET.md](./docs/CHEATSHEET.md)**), and the **[wiki](https://github.com/movahedan/fivenines/wiki)** for human product orientation. [Renovate](./renovate.json) keeps dependencies pinned; quality gates run through Biome, TypeScript, and Bun tests.
+The repo uses **`.cursor/rules/`** for standards, **`AGENTS.md`** for AI-oriented structure, **`README.md`** + **`docs/`** for setup and commands (**[CHEATSHEET.md](./docs/CHEATSHEET.md)**), and the **[wiki](https://github.com/movahedan/fivenines/wiki)** for human product orientation. [Dependabot](./.github/dependabot.yml) keeps dependencies pinned; quality gates run through Biome, TypeScript, and Bun tests. GitHub Copilot review reads [`.github/copilot-instructions.md`](./.github/copilot-instructions.md).
 
 </div>
 
@@ -87,7 +87,7 @@ The repo uses **`.cursor/rules/`** for standards, **`AGENTS.md`** for AI-oriente
 [![Bun](https://img.shields.io/badge/Bun-Runtime%20%26%20Tools-000000?style=for-the-badge&logo=bun&logoColor=white)](https://bun.sh/docs/runtime/bunfig#package-manager)
 
 [![Biome](https://img.shields.io/badge/Biome-Linting-60a5fa?style=for-the-badge&logo=biome&logoColor=white)](https://biomejs.dev/)
-[![Renovate](https://img.shields.io/badge/Renovate-Auto%20Updates-1A1F36?style=for-the-badge&logo=renovate&logoColor=white)](https://docs.renovatebot.com/)
+[![Dependabot](https://img.shields.io/badge/Dependabot-Auto%20Updates-025E8C?style=for-the-badge&logo=dependabot&logoColor=white)](https://docs.github.com/code-security/dependabot)
 [![Lefthook](https://img.shields.io/badge/Lefthook-Git%20Hooks-00D4AA?style=for-the-badge&logo=git&logoColor=white)](https://github.com/evilmartians/lefthook)
 
 > **Minimal, powerful toolchain** with just **5 core tools** for **everything**
@@ -118,7 +118,8 @@ Everything you need to build rock-solid applications is right here! We've kept i
 [![Dev stack (compose)](https://img.shields.io/badge/🐳%20Dev%20stack%20(compose)-495057?style=for-the-badge)](#quick-start)
 
 ### **🤖 AI and automation**
-[![Renovate (config)](https://img.shields.io/badge/🔄%20Renovate%20config-495057?style=for-the-badge)](./renovate.json)
+[![Dependabot (config)](https://img.shields.io/badge/🔄%20Dependabot%20config-495057?style=for-the-badge)](./.github/dependabot.yml)
+[![Copilot review](https://img.shields.io/badge/🤖%20Copilot%20review-495057?style=for-the-badge)](./.github/copilot-instructions.md)
 [![MCP integration](https://img.shields.io/badge/🔌%20MCP%20integration-495057?style=for-the-badge)](./.mcp.json)
 
 ### **📋 Cursor rules**

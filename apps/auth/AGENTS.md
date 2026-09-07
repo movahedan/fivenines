@@ -2,6 +2,8 @@
 
 **@apps/auth** — authentication service (human JWT, refresh, M2M token).
 
+**Code review:** [`.github/instructions/auth-nest.instructions.md`](../../.github/instructions/auth-nest.instructions.md) (shared with GitHub Copilot).
+
 ## Overview
 
 - **Port:** 3001 (`AUTH_PORT`)

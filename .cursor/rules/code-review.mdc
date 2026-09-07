@@ -1,0 +1,13 @@
+---
+description: Shared code-review rubric with GitHub Copilot — read .github instructions. Keywords: review, PR, Copilot, diff, code-reviewer
+alwaysApply: false
+---
+
+# Code review (shared with GitHub Copilot)
+
+When reviewing a PR, diff, or `@code-reviewer` pass, **read and apply**:
+
+1. [`.github/copilot-instructions.md`](../../.github/copilot-instructions.md) — every review
+2. The matching file under [`.github/instructions/`](../../.github/instructions/) for paths in the diff (`engine`, `web`, `ui`, `auth-nest`, `tests`, `workflows`)
+
+Those files are the rubric. Nested `AGENTS.md` is how the code is supposed to work; flag when the diff violates it. Do not invent a parallel review list in chat. Do not paste this rule into Copilot — Copilot already loads the `.github` files.

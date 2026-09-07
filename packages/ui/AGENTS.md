@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for `@packages/ui`. Repo map: [root AGENTS.md](../../AGENTS.md). Commands: [CHEATSHEET](../../docs/CHEATSHEET.md). Storybook: [STORYBOOK.md](STORYBOOK.md).
+Guidance for `@packages/ui`. Repo map: [root AGENTS.md](../../AGENTS.md). Commands: [CHEATSHEET](../../docs/CHEATSHEET.md). Storybook: [STORYBOOK.md](STORYBOOK.md). **Code review:** [`.github/instructions/ui.instructions.md`](../../.github/instructions/ui.instructions.md) (shared with GitHub Copilot).
 
 ## Role
 

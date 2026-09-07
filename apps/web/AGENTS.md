@@ -2,6 +2,8 @@
 
 **@apps/web** — Five Nines player UI (TanStack Start SSR, file-based router).
 
+**Code review:** [`.github/instructions/web.instructions.md`](../../.github/instructions/web.instructions.md) (shared with GitHub Copilot).
+
 ## Overview
 
 - **Port:** 3000 (`WEB_PORT`)

@@ -2,6 +2,8 @@
 
 Guidance for agents working in this monorepo. **Map and pointers** — standards in rules; procedures in skills; human setup in [README.md](README.md#quick-start); commands in [docs/CHEATSHEET.md](docs/CHEATSHEET.md). Human product pitch and how-to-play: [wiki](https://github.com/movahedan/fivenines/wiki). Do not copy kernel formulas, ports, or cheatsheet tables into the wiki; do not treat the wiki as tick/economy truth.
 
+**Code review (Cursor and GitHub Copilot):** the rubric lives in [`.github/copilot-instructions.md`](.github/copilot-instructions.md) and path files under [`.github/instructions/`](.github/instructions/). Read those when reviewing a diff or PR — do not invent a second checklist. Nested `AGENTS.md` files are implementation truth; they point at the matching instruction file. Copilot loads the `.github` files natively ([settings](https://github.com/movahedan/fivenines/settings/copilot/code_review)). Cursor loads them because this map and [code-review.mdc](.cursor/rules/code-review.mdc) say to. Do not copy `.cursor/rules/*.mdc` into Copilot files.
+
 ## Standards (`.cursor/rules/`)
 
 | Rule | When |
@@ -12,6 +14,7 @@ Guidance for agents working in this monorepo. **Map and pointers** — standards
 | [testing.mdc](.cursor/rules/testing.mdc) | `*.test.ts` / `*.spec.ts` |
 | [clean-dom.mdc](.cursor/rules/clean-dom.mdc) | UI apps + `packages/ui` |
 | [advisor.mdc](.cursor/rules/advisor.mdc) | Review / trade-offs (`@advisor` or intelligent apply) |
+| [code-review.mdc](.cursor/rules/code-review.mdc) | Cursor review: load `.github/copilot-instructions.md` |
 
 Enforced by tooling: [`tools/typescript/base.json`](tools/typescript/base.json), [`biome.json`](biome.json).
 
@@ -113,7 +116,7 @@ Prod-shaped file: `bun run container --prod up`. Extra compose flags after `--`:
 - **Filters** — workspace `name` from `package.json`, not folder name alone
 - **Lint/types** — `bun run lint -- --write`, `bun run typecheck`
 
-Renovate: [renovate.json](renovate.json).
+Dependabot: [`.github/dependabot.yml`](.github/dependabot.yml) · [docs/DEPENDABOT.md](docs/DEPENDABOT.md).
 
 ### Stack notes
 

@@ -60,6 +60,7 @@ If the diff is huge, still scan paths, renames, deletes, and config keys (workfl
 | `chore` |
 | `wip` |
 | `renovate` |
+| `dependabot` |
 | `codex` |
 | `cursor` |
 | `agent` |

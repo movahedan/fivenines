@@ -2,6 +2,8 @@
 
 This file provides guidance to Agents when working with the config-tests package.
 
+**Code review (tests):** [`.github/instructions/tests.instructions.md`](../../.github/instructions/tests.instructions.md) (shared with GitHub Copilot).
+
 ## Package Overview
 
 **@tools/tests-preset** provides shared testing configurations, utilities, and mocks for consistent testing across all packages and applications in the monorepo.

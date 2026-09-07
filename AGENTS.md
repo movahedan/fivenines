@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for agents working in this monorepo. **Map and pointers** — standards in rules; procedures in skills; human setup in [README.md](README.md#quick-start); commands in [docs/CHEATSHEET.md](docs/CHEATSHEET.md).
+Guidance for agents working in this monorepo. **Map and pointers** — standards in rules; procedures in skills; human setup in [README.md](README.md#quick-start); commands in [docs/CHEATSHEET.md](docs/CHEATSHEET.md). Human product pitch and how-to-play: [wiki](https://github.com/movahedan/fivenines/wiki). Do not copy kernel formulas, ports, or cheatsheet tables into the wiki; do not treat the wiki as tick/economy truth.
 
 ## Standards (`.cursor/rules/`)
 

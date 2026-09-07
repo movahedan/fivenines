@@ -1,3 +1,4 @@
+import { SKU_ECONOMY, salvageCents } from "./catalog/economy-policy";
 import type { ServerCatalogId } from "./catalog/kernel";
 import type { RegionId } from "./catalog/regions";
 import { Customer } from "./customer";
@@ -21,25 +22,51 @@ export type EngineCommand =
 export interface GameGraph {
 	readonly customers: readonly Customer[];
 	readonly assets: readonly GameAsset[];
+	readonly cashCents: number;
+	readonly jailed: boolean;
 }
 
 export function applyCommand(graph: GameGraph, command: EngineCommand): GameGraph {
 	switch (command.type) {
 		case "acceptProject":
+			if (graph.jailed) {
+				throw new Error("cannot acceptProject while jailed");
+			}
+
 			return {
 				...graph,
 				customers: acceptProject(graph.customers, command.payload.projectId),
 			};
-		case "buyServer":
+		case "buyServer": {
+			if (graph.jailed) {
+				throw new Error("cannot buyServer while jailed");
+			}
+
+			const purchaseCents = SKU_ECONOMY[command.payload.serverType].purchaseCents;
+
+			if (graph.cashCents < purchaseCents) {
+				throw new Error(`insufficient cash: ${purchaseCents}`);
+			}
+
 			return {
 				...graph,
+				cashCents: graph.cashCents - purchaseCents,
 				assets: buyServer(graph.assets, command.payload),
 			};
-		case "sellServer":
+		}
+		case "sellServer": {
+			const sold = graph.assets.find((asset) => asset.id === command.payload.serverId);
+
+			if (sold === undefined) {
+				throw new Error(`unknown server id: ${command.payload.serverId}`);
+			}
+
 			return {
 				...graph,
+				cashCents: graph.cashCents + salvageCents(SKU_ECONOMY[sold.catalogId].purchaseCents),
 				assets: sellServer(graph.assets, command.payload.serverId),
 			};
+		}
 		default: {
 			throw new Error(`unknown command type: ${String((command as { type: unknown }).type)}`);
 		}
@@ -88,10 +115,6 @@ function buyServer(
 }
 
 function sellServer(assets: readonly GameAsset[], serverId: string): readonly GameAsset[] {
-	if (!assets.some((asset) => asset.id === serverId)) {
-		throw new Error(`unknown server id: ${serverId}`);
-	}
-
 	return assets.filter((asset) => asset.id !== serverId);
 }
 

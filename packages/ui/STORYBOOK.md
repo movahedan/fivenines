@@ -14,6 +14,8 @@ URL: **http://localhost:9000**. `dev-storybook.ts` launches the Storybook CLI wi
 
 Preview CSS: `.storybook/preview.tsx` imports `../src/style.css` (ops navy canvas, Inter + JetBrains Mono). Default Storybook background is **ops** (`#050912`); the decorator uses `bg-background font-sans text-foreground`. Do not import `react-native` or `@rn-primitives` in preview (the Node CLI loads that file without Vite aliases). There is no light theme toggle.
 
+Ops chrome lives under **Components**: Hud, PanelHeader, MetricStat, ProjectOfferCard, ActiveProjectCard, ServerCard, EventLog (same glob as other molecules).
+
 ## RN-web + NativeWind
 
 Shared Vite config: `scripts/rn-web.ts` (Storybook and `@apps/web`).

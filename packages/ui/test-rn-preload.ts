@@ -24,3 +24,22 @@ mock.module("lucide-react-native", () => ({
 	EyeOff: () => null,
 	Loader2: () => null,
 }));
+
+function MockBox({ children, ...props }: { children?: ReactNode }) {
+	return createElement("div", props, children);
+}
+
+mock.module("@rn-primitives/progress", () => ({
+	Root: MockBox,
+	Indicator: MockBox,
+}));
+
+mock.module("react-native-reanimated", () => ({
+	default: { View: MockBox },
+	View: MockBox,
+	useAnimatedStyle: () => ({}),
+	useDerivedValue: (fn: () => number) => ({ value: fn() }),
+	withSpring: (value: unknown) => value,
+	interpolate: () => 0,
+	Extrapolation: { CLAMP: "clamp" },
+}));

@@ -1,0 +1,83 @@
+import { View } from "react-native";
+
+import { cn } from "@/utils";
+import { Card } from "../../atoms/card";
+import { Text } from "../../atoms/text";
+import { Button } from "../button/button";
+import { MetricStat } from "../metric-stat/metric-stat";
+
+export interface ProjectOfferCardProps {
+	readonly customerName: string;
+	readonly name: string;
+	readonly regionLabel: string;
+	readonly regionClassName?: string;
+	readonly cpuLabel: string;
+	readonly paygLabel: string;
+	readonly slaLabel: string;
+	readonly onAccept: () => void;
+	readonly onDecline: () => void;
+	readonly disabled?: boolean;
+	readonly className?: string;
+}
+
+export function ProjectOfferCard({
+	customerName,
+	name,
+	regionLabel,
+	regionClassName,
+	cpuLabel,
+	paygLabel,
+	slaLabel,
+	onAccept,
+	onDecline,
+	disabled,
+	className,
+}: ProjectOfferCardProps) {
+	return (
+		<Card className={cn("gap-2 p-3", className)}>
+			<View className="flex-row items-start justify-between gap-2">
+				<View className="min-w-0 flex-1">
+					<Text className="font-mono text-xs tracking-wide text-muted-foreground">
+						{customerName}
+					</Text>
+					<Text className="font-mono text-sm font-semibold leading-tight text-card-foreground">
+						{name}
+					</Text>
+				</View>
+				<Text
+					className={cn(
+						"rounded-full px-1.5 py-0.5 font-mono text-xs font-bold tracking-wide",
+						regionClassName,
+					)}
+				>
+					{regionLabel}
+				</Text>
+			</View>
+			<View className="flex-row gap-1">
+				<MetricStat className="flex-1" label="CPU" tone="info" value={cpuLabel} />
+				<MetricStat className="flex-1" label="PAYG" tone="primary" value={paygLabel} />
+				<MetricStat className="flex-1" label="SLA" tone="warning" value={slaLabel} />
+			</View>
+			<View className="flex-row gap-1.5">
+				<Button
+					className="flex-1"
+					disabled={disabled}
+					onClick={onAccept}
+					size="sm"
+					variant="outline"
+				>
+					ACCEPT
+				</Button>
+				<Button
+					className="flex-1"
+					disabled={disabled}
+					onClick={onDecline}
+					size="sm"
+					variant="destructive"
+				>
+					DECLINE
+				</Button>
+			</View>
+		</Card>
+	);
+}

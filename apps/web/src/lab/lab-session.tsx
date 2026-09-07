@@ -7,6 +7,7 @@ import {
 	regions,
 	SERVER_CATALOG_IDS,
 	SERVER_TIER_LABEL,
+	SKU_ECONOMY,
 } from "@packages/fivenines-engine";
 import { Button } from "@packages/ui/molecules/button";
 
@@ -23,11 +24,41 @@ const METRIC_KEYS = [
 export function LabSession() {
 	const { game, lastError, tick, dispatch, reset } = useLabGame();
 	const [region, setRegion] = useState<RegionId>(DEFAULT_REGION);
+	const { cashCents, jailed, maintenanceCents, powerCents } = game.finance;
 
 	return (
 		<main className="flex flex-col gap-6">
 			<h1>Lab</h1>
 			{lastError !== null ? <p role="alert">{lastError}</p> : null}
+			<section>
+				<h2>Finance</h2>
+				<table>
+					<thead>
+						<tr>
+							<th scope="col">Field</th>
+							<th scope="col">Value</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<th scope="row">Cash</th>
+							<td>{cashCents}</td>
+						</tr>
+						<tr>
+							<th scope="row">Jailed</th>
+							<td>{jailed ? "yes" : "no"}</td>
+						</tr>
+						<tr>
+							<th scope="row">Last opex maintenance</th>
+							<td>{maintenanceCents}</td>
+						</tr>
+						<tr>
+							<th scope="row">Last opex power</th>
+							<td>{powerCents}</td>
+						</tr>
+					</tbody>
+				</table>
+			</section>
 			<section>
 				<h2>Commands</h2>
 				<div className="flex flex-row flex-wrap gap-2">
@@ -53,6 +84,8 @@ export function LabSession() {
 							key={serverType}
 							serverType={serverType}
 							region={region}
+							cashCents={cashCents}
+							jailed={jailed}
 							onDispatch={dispatch}
 						/>
 					))}
@@ -88,7 +121,7 @@ export function LabSession() {
 									<li key={project.id}>
 										{project.id} {project.status}
 										{project.status === "offered" ? (
-											<AcceptButton projectId={project.id} onDispatch={dispatch} />
+											<AcceptButton projectId={project.id} jailed={jailed} onDispatch={dispatch} />
 										) : null}
 									</li>
 								))}
@@ -124,13 +157,24 @@ export function LabSession() {
 interface BuyServerButtonProps {
 	readonly serverType: ServerCatalogId;
 	readonly region: RegionId;
+	readonly cashCents: number;
+	readonly jailed: boolean;
 	readonly onDispatch: (command: EngineCommand) => void;
 }
 
-function BuyServerButton({ serverType, region, onDispatch }: BuyServerButtonProps) {
+function BuyServerButton({
+	serverType,
+	region,
+	cashCents,
+	jailed,
+	onDispatch,
+}: BuyServerButtonProps) {
+	const cannotBuy = jailed || cashCents < SKU_ECONOMY[serverType].purchaseCents;
+
 	return (
 		<Button
 			variant="secondary"
+			disabled={cannotBuy}
 			onClick={() => onDispatch({ type: "buyServer", payload: { serverType, region } })}
 		>
 			{`Buy ${SERVER_TIER_LABEL[serverType]}`}
@@ -140,12 +184,16 @@ function BuyServerButton({ serverType, region, onDispatch }: BuyServerButtonProp
 
 interface AcceptButtonProps {
 	readonly projectId: string;
+	readonly jailed: boolean;
 	readonly onDispatch: (command: EngineCommand) => void;
 }
 
-function AcceptButton({ projectId, onDispatch }: AcceptButtonProps) {
+function AcceptButton({ projectId, jailed, onDispatch }: AcceptButtonProps) {
 	return (
-		<Button onClick={() => onDispatch({ type: "acceptProject", payload: { projectId } })}>
+		<Button
+			disabled={jailed}
+			onClick={() => onDispatch({ type: "acceptProject", payload: { projectId } })}
+		>
 			{`Accept ${projectId}`}
 		</Button>
 	);

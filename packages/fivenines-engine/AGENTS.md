@@ -24,7 +24,7 @@ Package scripts: `typecheck` (`tsc --noEmit`), `test` (re-roots to repo `bun tes
 |------|------|
 | `Customer` | Org with `projects[]`. Does not emit load. |
 | `Project` | `offered` \| `declined` \| `served` \| `offline`. Served demand is integer RPS from a `DemandModel`. `offline` is a parked project: contract kept, nothing running, no route. |
-| `Server` | Inventory. Empty fleet: nothing can be accepted at all, because accept requires an existing `serverId`. Each box has a `region` (same enum as projects). |
+| `Server` | Inventory. Empty fleet: nothing can be accepted at all, because accept requires an existing `serverId`. Each box has a `region` (same enum as projects) and a `tenure`: `{ kind: "owned"; purchaseCents }` or `{ kind: "leased"; hourlyCents }`. Physics (compute, net, RAM) do not change with tenure. Omitted `AssetInitial.tenure` defaults to owned at catalog purchase. Tenure cents are non-negative integers (`src/server.ts`). |
 
 Ids are unique per game (`customer.id`, `project.id` global, `asset.id`) via `@packages/shared/ids`. Construct throws on duplicates.
 
@@ -65,7 +65,7 @@ const healthy = new Game(twoBronzeInitial).tick();
 
 A `served` `ProjectInitial` requires a `route`, and a non-served one must not carry one — construct throws either way. `Game` additionally throws when a route names an id absent from `assets`, and re-checks that on every `dispatch`. The check (`assertRoutesResolve` in `game.utils.ts`) runs against the **candidate** graph returned by `applyCommand`, before any field is written, so a rejected command leaves the game exactly as it was instead of half applied.
 
-After `tick()`, `game.metrics` (`src/game.metrics.ts`), each `server.metrics` (`src/server.metrics.ts`), and each `project.metrics` (`src/project.metrics.ts`) hold that hour’s snapshot. `game.finance` (`src/game.finance.ts`) is the last-hour money snapshot: `cashCents`, `accountsReceivableCents`, `jailed`, fleet totals `opexCents` / `maintenanceCents` / `powerCents`.
+After `tick()`, `game.metrics` (`src/game.metrics.ts`), each `server.metrics` (`src/server.metrics.ts`), and each `project.metrics` (`src/project.metrics.ts`) hold that hour’s snapshot. `game.finance` (`src/game.finance.ts`) is the last-hour money snapshot: `cashCents`, `accountsReceivableCents`, `jailed`, fleet totals `opexCents` / `maintenanceCents` / `powerCents` / `leaseCents`.
 
 ## SLA measurement
 
@@ -75,17 +75,18 @@ This-hour `availabilityPpm = floor(handled * 1_000_000 / emitted)` when `emitted
 
 ## Wallet and opex
 
-Money tunables live in `src/catalog/economy-policy.ts` (not `SERVER_CATALOG`). Salvage is `floor(purchaseCents * SALVAGE_PERCENT / 100)` (`SALVAGE_PERCENT = 70`). Bigger SKUs pay **more** maintenance in absolute cents; maintenance per compute unit still falls; power still scales up with size; `thin-ram` is a high-maint trap. Jail is sticky: `cashCents <= -DEBT_LIMIT_CENTS` (20_000) sets `jailed`; this slice never clears it. Negative cash is allowed; buy still requires `cashCents >= purchaseCents`.
+Money tunables live in `src/catalog/economy-policy.ts` (not `SERVER_CATALOG`). Each SKU has integer `leaseHourlyCents` (Bronze **147**) besides purchase and maint/power. Teaching break-even is about one billing week of idle opex: `(purchase − salvage) / (leaseHourly − maint − idlePower) ≈ 168`. Salvage is `floor(purchaseCents * SALVAGE_PERCENT / 100)` (`SALVAGE_PERCENT = 70`) from the **owned tenure’s** `purchaseCents`, not a live catalog lookup. Bigger SKUs pay **more** maintenance in absolute cents; maintenance per compute unit still falls; power still scales up with size; `thin-ram` is a high-maint trap. Jail is sticky: `cashCents <= -DEBT_LIMIT_CENTS` (20_000) sets `jailed`; this slice never clears it. Negative cash is allowed; buy still requires `cashCents >= purchaseCents`. Lease acquire costs **0** cash.
 
 Opex runs **after** `server.tick` / `measureGameTick`, **before** `hourIndex += 1`. Per box, using this hour’s `server.metrics.utilization` (tightest axis; 0 when `assignedRequests === 0`; may exceed 100):
 
 ```
 utilForPower = min(utilization, 100)
 powerCents   = idle + floor((max - idle) * utilForPower / 100)
-opexCents    = maintenance + powerCents
+leaseCents   = tenure.kind === "leased" ? tenure.hourlyCents : 0
+opexCents    = maintenance + powerCents + leaseCents
 ```
 
-Idle boxes still pay maintenance + idle power. Overload bills **max** power, not above TDP. Empty fleet opex is 0. Then `cashCents -= totalOpex`. Served PAYG is added to `accountsReceivableCents`, not cash. Jail trips after the opex cash move (receivable does not delay jail).
+`skuHourlyOpex` is still maint+power only. `measureGameOpex` adds rent. Idle owned boxes still pay maintenance + idle power; leased boxes pay that **plus** rent. Overload bills **max** power, not above TDP. Empty fleet opex is 0. Then `cashCents -= totalOpex`. Served PAYG is added to `accountsReceivableCents`, not cash. Jail trips after the opex cash move (receivable does not delay jail).
 
 ## Billing (PAYG)
 
@@ -124,7 +125,9 @@ type EngineCommand =
   | { type: "unassignProject"; payload: { projectId: string } }
   | { type: "assignProject"; payload: { projectId: string; serverId: string } }
   | { type: "buyServer"; payload: { serverType: ServerCatalogId; region: RegionId } }
-  | { type: "sellServer"; payload: { serverId: string } };
+  | { type: "leaseServer"; payload: { serverType: ServerCatalogId; region: RegionId } }
+  | { type: "sellServer"; payload: { serverId: string } }
+  | { type: "releaseServer"; payload: { serverId: string } };
 ```
 
 | Command | Transition |
@@ -135,13 +138,19 @@ type EngineCommand =
 | `unassignProject` | `served` → `offline`, clearing the route (park) |
 | `assignProject` | `offline` → `served` on `serverId` |
 
-Unknown project id or wrong source status throws. No command changes cash except `buyServer` / `sellServer`. Any command carrying a `serverId` throws `unknown server id` when the box is absent.
+Unknown project id or wrong source status throws. Cash-changing commands are `buyServer` (debit purchase) and `sellServer` (credit salvage). `leaseServer` and `releaseServer` do not change cash. Any command carrying a `serverId` throws `unknown server id` when the box is absent.
 
-`acceptProject` and `buyServer` throw while `jailed`; `moveProject` / `unassignProject` / `assignProject` / `sellServer` / `declineProject` are allowed while jailed.
+`acceptProject`, `buyServer`, and `leaseServer` throw while `jailed`; `moveProject` / `unassignProject` / `assignProject` / `sellServer` / `releaseServer` / `declineProject` are allowed while jailed.
 
-`buyServer` throws if `jailed` or `cashCents < purchaseCents` (no debit). Else debit catalog purchase and add the box.
+`buyServer` throws if `jailed` or `cashCents < purchaseCents` (no debit). Else debit catalog purchase and add an **owned** box (`purchaseCents` from the SKU table).
 
-`sellServer` credits salvage and removes the box. It throws while a **served** project routes to that box; a **parked** project does not pin its old box, so park-then-sell works.
+`leaseServer` throws if `jailed`. Else add a **leased** box at catalog `leaseHourlyCents` with no cash debit. Same SKU + region as buy; same `nextAssetId`.
+
+`sellServer` is **owned only** (`server is leased: ${id}` otherwise). Credits salvage from tenure `purchaseCents` and removes the box.
+
+`releaseServer` is **leased only** (`server is owned: ${id}` otherwise). Removes the box with **no salvage**.
+
+Both sell and release throw while a **served** project routes to that box; a **parked** project does not pin its old box, so park-then-sell / park-then-release works.
 
 Implementation: `applyCommand` in `src/game.utils.ts`.
 

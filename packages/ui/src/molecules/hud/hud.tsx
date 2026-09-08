@@ -1,10 +1,16 @@
+import { Pause, Play } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { View } from "react-native";
 
 import { cn } from "@/utils";
 import { Button } from "../../atoms/button";
+import { Icon } from "../../atoms/icon";
 import { Text } from "../../atoms/text";
 import { MetricStat, type MetricTone } from "../metric-stat/metric-stat";
+
+export const HUD_TICK_SPEEDS = [1, 2, 4] as const;
+
+export type HudTickSpeed = (typeof HUD_TICK_SPEEDS)[number];
 
 export interface HudMetric {
 	readonly label: string;
@@ -21,6 +27,8 @@ export interface HudProps {
 	readonly running: boolean;
 	readonly jailed?: boolean;
 	readonly onToggleRunning: () => void;
+	readonly speed?: HudTickSpeed;
+	readonly onSpeedChange?: (speed: HudTickSpeed) => void;
 	readonly account?: ReactNode;
 	readonly logo?: ReactNode;
 	readonly className?: string;
@@ -35,6 +43,8 @@ function Hud({
 	running,
 	jailed,
 	onToggleRunning,
+	speed = 1,
+	onSpeedChange,
 	account,
 	logo,
 	className,
@@ -80,10 +90,28 @@ function Hud({
 				</View>
 			</View>
 
-			<View className="flex-row items-center gap-3">
-				<Button size="sm" variant="outline" onClick={onToggleRunning}>
-					{running ? "Pause" : "Resume"}
+			<View className="flex-row items-center gap-2">
+				<Button
+					accessibilityLabel={running ? "Pause" : "Play"}
+					size="icon"
+					variant="outline"
+					onClick={onToggleRunning}
+				>
+					<Icon as={running ? Pause : Play} size={16} />
 				</Button>
+				{HUD_TICK_SPEEDS.map((tickSpeed) => (
+					<Button
+						accessibilityLabel={`Speed ×${String(tickSpeed)}`}
+						key={tickSpeed}
+						size="icon"
+						variant={speed === tickSpeed ? "default" : "outline"}
+						onClick={() => {
+							onSpeedChange?.(tickSpeed);
+						}}
+					>
+						×{tickSpeed}
+					</Button>
+				))}
 				{jailed ? <Text className="text-xs font-semibold text-destructive">JAILED</Text> : null}
 				{account}
 			</View>

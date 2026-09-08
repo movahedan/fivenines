@@ -13,7 +13,8 @@ const meta: Meta<typeof Hud> = {
 		},
 		docs: {
 			description: {
-				component: "Ops HUD with logo, tick clock, metrics, pause, jail, and account slot.",
+				component:
+					"Ops HUD with logo, tick clock, metrics, play/pause icon, ×1/×2/×4 speed, jail, and account slot.",
 			},
 		},
 	},
@@ -28,7 +29,9 @@ const meta: Meta<typeof Hud> = {
 			{ label: "OPEX / hour", value: "$42", tone: "default" },
 		],
 		running: true,
+		speed: 1,
 		onToggleRunning: () => undefined,
+		onSpeedChange: () => undefined,
 	},
 	tags: ["autodocs"],
 };

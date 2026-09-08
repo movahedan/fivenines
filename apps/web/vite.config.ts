@@ -28,6 +28,8 @@ import {
 const webConfigDir = path.dirname(fileURLToPath(import.meta.url));
 const ssrRnWebStub = path.join(webConfigDir, "src/ssr-rn-web-stub.tsx");
 
+const ssrCssComponentPrefix = "\0ssr-rn-css-component:";
+
 function stubRnWebOnSsr(): Plugin {
 	return {
 		name: "stub-rn-web-on-ssr",
@@ -35,6 +37,10 @@ function stubRnWebOnSsr(): Plugin {
 		resolveId(source) {
 			if (this.environment.name !== "ssr") {
 				return;
+			}
+			const cssComponent = /^react-native-css\/components\/([A-Za-z_][A-Za-z0-9_]*)$/.exec(source);
+			if (cssComponent?.[1]) {
+				return `${ssrCssComponentPrefix}${cssComponent[1]}`;
 			}
 			if (
 				source === "react-native" ||
@@ -45,6 +51,14 @@ function stubRnWebOnSsr(): Plugin {
 			) {
 				return ssrRnWebStub;
 			}
+		},
+		load(id) {
+			if (!id.startsWith(ssrCssComponentPrefix)) {
+				return;
+			}
+			const exportName = id.slice(ssrCssComponentPrefix.length);
+			const stub = JSON.stringify(ssrRnWebStub);
+			return `import { Box } from ${stub};\nexport const ${exportName} = Box;\nexport default Box;\n`;
 		},
 	};
 }

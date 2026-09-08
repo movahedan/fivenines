@@ -7,7 +7,7 @@
 ## Overview
 
 - **Port:** 3000 (`WEB_PORT`)
-- **Stack:** Vite + `@tanstack/react-start` (`spa.enabled`) + `@tanstack/react-router` file routes. No runtime Node and no server functions. SPA shell prerender (`/_shell.html`) must not execute `react-native-web` (SSR aliases a stub; `/hub` `/lab` `/` are `ssr: false`).
+- **Stack:** Vite + `@tanstack/react-start` (`spa.enabled`) + `@tanstack/react-router` file routes. No runtime Node and no server functions. SPA shell prerender (`/_shell.html`) must not execute `react-native-web` (SSR aliases a stub; `/hub` `/lab` `/` are `ssr: false`). Login `redirect_uri` uses the play page origin, never the auth origin (`:3001`).
 - Production routes must not construct `Game` or `tick()` in the browser, except the temporary `/hub` and `/lab` clients below.
 - **`/hub` and `/lab` exceptions:** `src/hub/` and `src/lab/` construct `@packages/fivenines-engine` `Game` on the client (Opening Shift). Nest campaign/SSE is the future production caller. Clock SSE on `/hub` is session health (unauthenticated → login), not the sim clock.
 - Hub talks to Nest from the **browser** (`VITE_NESTJS_API_URL`). Do not add Start server functions or `@packages/nestjs-sdk/server`.

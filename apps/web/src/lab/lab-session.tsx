@@ -16,7 +16,7 @@ import {
 	SKU_ECONOMY,
 } from "@packages/fivenines-engine";
 
-import { Button } from "@/molecules/button/button";
+import { Button } from "@/atoms/button";
 import { useLabGame } from "./use-lab-game";
 
 const METRIC_KEYS = [

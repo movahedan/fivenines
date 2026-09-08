@@ -19,7 +19,12 @@ async function writeBarrelIndex(
 	const moduleNames = fileNames
 		.filter(
 			(fileName) =>
-				!SKIP_BARREL.has(fileName) && (fileName.endsWith(".ts") || fileName.endsWith(".tsx")),
+				!SKIP_BARREL.has(fileName) &&
+				(fileName.endsWith(".ts") || fileName.endsWith(".tsx")) &&
+				!fileName.endsWith(".test.ts") &&
+				!fileName.endsWith(".test.tsx") &&
+				!fileName.endsWith(".stories.ts") &&
+				!fileName.endsWith(".stories.tsx"),
 		)
 		.map((fileName) => fileName.replace(/\.(ts|tsx)$/u, ""))
 		.filter((moduleName) => !exclude.has(moduleName))
@@ -34,10 +39,17 @@ async function writeBarrelIndex(
 
 async function writeMoleculesIndex(moleculesDir: string): Promise<void> {
 	const entries = await readdir(moleculesDir, { withFileTypes: true });
-	const moleculeNames = entries
-		.filter((entry) => entry.isDirectory())
-		.map((entry) => entry.name)
-		.sort((a, b) => a.localeCompare(b));
+	const moleculeNames: string[] = [];
+	for (const entry of entries) {
+		if (!entry.isDirectory()) {
+			continue;
+		}
+		const files = await readdir(path.join(moleculesDir, entry.name));
+		if (files.includes(`${entry.name}.tsx`)) {
+			moleculeNames.push(entry.name);
+		}
+	}
+	moleculeNames.sort((a, b) => a.localeCompare(b));
 
 	const lines = moleculeNames.map((name) => `export * from "./${name}/${name}";`);
 	await writeFile(path.join(moleculesDir, "index.ts"), `${lines.join("\n")}\n`);

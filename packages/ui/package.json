@@ -22,16 +22,6 @@
 			"import": "./src/molecules/index.ts",
 			"default": "./src/molecules/index.ts"
 		},
-		"./molecules/login-form": {
-			"types": "./src/molecules/login-form/login-form.tsx",
-			"import": "./src/molecules/login-form/login-form.tsx",
-			"default": "./src/molecules/login-form/login-form.tsx"
-		},
-		"./molecules/card": {
-			"types": "./src/molecules/card/card.tsx",
-			"import": "./src/molecules/card/card.tsx",
-			"default": "./src/molecules/card/card.tsx"
-		},
 		"./molecules/active-project-card": {
 			"types": "./src/molecules/active-project-card/active-project-card.tsx",
 			"import": "./src/molecules/active-project-card/active-project-card.tsx",
@@ -42,20 +32,10 @@
 			"import": "./src/molecules/event-log/event-log.tsx",
 			"default": "./src/molecules/event-log/event-log.tsx"
 		},
-		"./molecules/input": {
-			"types": "./src/molecules/input/input.tsx",
-			"import": "./src/molecules/input/input.tsx",
-			"default": "./src/molecules/input/input.tsx"
-		},
 		"./molecules/panel-header": {
 			"types": "./src/molecules/panel-header/panel-header.tsx",
 			"import": "./src/molecules/panel-header/panel-header.tsx",
 			"default": "./src/molecules/panel-header/panel-header.tsx"
-		},
-		"./molecules/label": {
-			"types": "./src/molecules/label/label.tsx",
-			"import": "./src/molecules/label/label.tsx",
-			"default": "./src/molecules/label/label.tsx"
 		},
 		"./molecules/project-offer-card": {
 			"types": "./src/molecules/project-offer-card/project-offer-card.tsx",
@@ -66,16 +46,6 @@
 			"types": "./src/molecules/server-card/server-card.tsx",
 			"import": "./src/molecules/server-card/server-card.tsx",
 			"default": "./src/molecules/server-card/server-card.tsx"
-		},
-		"./molecules/button": {
-			"types": "./src/molecules/button/button.tsx",
-			"import": "./src/molecules/button/button.tsx",
-			"default": "./src/molecules/button/button.tsx"
-		},
-		"./molecules/link": {
-			"types": "./src/molecules/link/link.tsx",
-			"import": "./src/molecules/link/link.tsx",
-			"default": "./src/molecules/link/link.tsx"
 		},
 		"./molecules/metric-stat": {
 			"types": "./src/molecules/metric-stat/metric-stat.tsx",
@@ -190,7 +160,6 @@
 		"lucide-react": "1.16.0",
 		"lucide-react-native": "1.40.0",
 		"nativewind": "5.0.0-preview.4",
-		"next-themes": "0.4.6",
 		"react": "19.2.8",
 		"react-day-picker": "9.14.0",
 		"react-dom": "19.2.8",

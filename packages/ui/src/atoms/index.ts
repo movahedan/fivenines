@@ -15,6 +15,7 @@ export * from "./hover-card";
 export * from "./icon";
 export * from "./input";
 export * from "./label";
+export * from "./link";
 export * from "./menubar";
 export * from "./native-only-animated-view";
 export * from "./popover";

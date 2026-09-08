@@ -31,10 +31,10 @@ describe("buildExportsWithoutPattern", () => {
 
 	it("exports nested same-named modules under a barrel directory", async () => {
 		const moleculesDir = path.join(srcDir, "molecules");
-		const buttonDir = path.join(moleculesDir, "button");
-		await mkdir(buttonDir, { recursive: true });
+		const hudDir = path.join(moleculesDir, "hud");
+		await mkdir(hudDir, { recursive: true });
 		await writeFile(path.join(moleculesDir, "index.ts"), "export {};\n");
-		await writeFile(path.join(buttonDir, "button.tsx"), "export {};\n");
+		await writeFile(path.join(hudDir, "hud.tsx"), "export {};\n");
 
 		const exports = await buildExportsWithoutPattern(
 			[createDirent("molecules", "directory")],
@@ -44,7 +44,7 @@ describe("buildExportsWithoutPattern", () => {
 
 		expect(exports).toEqual({
 			"./molecules": toSourceExport("./src/molecules/index.ts"),
-			"./molecules/button": toSourceExport("./src/molecules/button/button.tsx"),
+			"./molecules/hud": toSourceExport("./src/molecules/hud/hud.tsx"),
 		});
 	});
 

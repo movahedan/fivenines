@@ -6,7 +6,10 @@ import type { Plugin, ViteDevServer } from "vite";
 import { applyRnWebVite } from "../scripts/rn-web.ts";
 
 const config: StorybookConfig = {
-	stories: ["../src/molecules/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
+	stories: [
+		"../src/atoms/**/*.stories.@(js|jsx|mjs|ts|tsx)",
+		"../src/molecules/**/*.stories.@(js|jsx|mjs|ts|tsx)",
+	],
 	addons: [],
 	framework: {
 		name: "@storybook/react-vite",

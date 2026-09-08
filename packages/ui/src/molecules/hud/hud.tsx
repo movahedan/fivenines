@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import { View } from "react-native";
 
 import { cn } from "@/utils";
+import { Button } from "../../atoms/button";
 import { Text } from "../../atoms/text";
-import { Button } from "../button/button";
 import { MetricStat, type MetricTone } from "../metric-stat/metric-stat";
 
 export interface HudMetric {

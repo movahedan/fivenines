@@ -4,9 +4,9 @@ Guidance for `@packages/ui`. Repo map: [root AGENTS.md](../../AGENTS.md). Comman
 
 ## Role
 
-Universal React UI library: **RNR atoms** (NativeWind v5 + `react-native-css`) for Web and future native, **molecules** wrapping those atoms, archived web shadcn under `src/shadcn`.
+Universal React UI library: **RNR atoms** (NativeWind v5 + `react-native-css`) plus local primitives (`Link`) under `src/atoms/`. Web adapters live on the atoms (`onClick`, `Text` children, Input `onChange`/`disabled`). **Molecules** are ops chrome only (HUD, cards, log). Archived web shadcn under `src/shadcn`.
 
-Do **not** run `rnr init` here (it scaffolds Expo). Do **not** add `apps/mobile` from this package. Do **not** add Storybook files under `src/atoms/` (CLI `add` overwrites atoms).
+Do **not** run `rnr init` here (it scaffolds Expo). Do **not** add `apps/mobile` from this package. Primitive stories live at `src/atoms/*.stories.tsx`; CLI `add` can overwrite RNR files — re-apply the list below.
 
 ## Commands
 
@@ -15,7 +15,7 @@ Do **not** run `rnr init` here (it scaffolds Expo). Do **not** add `apps/mobile`
 | `bun run turbo run dev --filter=@packages/ui` | Storybook on **:9000** (Node CLI; not Bun — RN Flow). Host vs Docker: only one listener. |
 | `bun run turbo run build:storybook --filter=@packages/ui` | Static Storybook → `dist-storybook/` |
 | `bun run typecheck` | `tsc --noEmit` |
-| `bun test packages/ui` | Molecule tests (`test-rn-preload.ts` via root `bunfig.toml`) |
+| `bun test packages/ui` | Atom + molecule tests (`test-rn-preload.ts` via root `bunfig.toml`) |
 
 RNR: from `packages/ui`, `bunx @react-native-reusables/cli@latest doctor -c packages/ui --summary` and `add -a -y -o --styling-library nativewind -p src/atoms` when regenerating atoms.
 
@@ -23,9 +23,9 @@ RNR: from `packages/ui`, `bunx @react-native-reusables/cli@latest doctor -c pack
 
 ```
 packages/ui/
-├── src/atoms/          # RNR primitives (CLI output)
+├── src/atoms/          # RNR primitives, Link, web adapters, `*.stories.tsx` / tests
 ├── src/shadcn/         # Frozen web shadcn (export `./shadcn`)
-├── src/molecules/      # Wrappers + `*.stories.tsx` only
+├── src/molecules/      # Ops chrome + `*.stories.tsx`
 ├── src/style.css       # Ops tokens + Tailwind 4 (unlayered utilities for RN-web)
 ├── src/theme.ts        # THEME / NAV_THEME (mirrors CSS; light and dark are the same ops map)
 ├── src/utils/          # `cn` (clsx + tailwind-merge)
@@ -46,7 +46,9 @@ packages/ui/
 | `@packages/ui/style.css` | `src/style.css` |
 | `@packages/ui/theme.ts` | `src/theme.ts` |
 
-Molecules map web `onClick` → atom `onPress`. Stack label+control with `flex flex-col gap-*` — `space-y-*` on a DOM wrapper does not apply to RN-web Label/Input. Icons in generated atoms: `lucide-react-native` (declare `react-native-svg`). CSS `@import "tailwindcss-safe-area"` needs that package declared. UI Docker installer copies the repo `bun.lock` over prune output so Bun does not ignore a broken nested lock.
+Import Button, Card, Input, Label, Link from `@packages/ui/atoms` (not the molecules barrel). Atom `Button` maps `onClick` → `onPress` and wraps string/number children in `Text`. Atom `Input` accepts web `onChange` / `disabled` / `type` (`email` / `password`). `Link` is a local DOM `<a>` (not RNR). Stack label+control with `flex flex-col gap-*` — `space-y-*` on a DOM wrapper does not apply to RN-web Label/Input. Icons in generated atoms: `lucide-react-native` (declare `react-native-svg`). CSS `@import "tailwindcss-safe-area"` needs that package declared. UI Docker installer copies the repo `bun.lock` over prune output so Bun does not ignore a broken nested lock. There is no LoginForm.
+
+**After `rnr add` overwrites `src/atoms/`:** re-apply Button (`onClick` / `Text` children / ignore unused `asChild`/`type`), Input (`onChange` / `disabled` / `type`); restore `link.tsx` if the CLI removed it; restore `*.stories.tsx` / `*.test.tsx` next to those files. Keep `scripts/write-barrels.ts` skipping `*.test.ts(x)` and `*.stories.ts(x)`, plus molecule dirs that have no `${name}/${name}.tsx`. Frozen `src/shadcn/sonner.tsx` pins Sonner `theme="dark"` — do not add `next-themes`.
 
 **Ops chrome** (engine-agnostic display props + callbacks; no `@packages/fivenines-engine` / `@packages/auth`): `Hud`, `PanelHeader`, `MetricStat`, `ProjectOfferCard` (`disabled` gates Accept only; Decline stays enabled), `ActiveProjectCard` (`slaPercent` 0–100, SLA caption rows, `sparkline` 0–1 vs `sparklineTarget`), `ServerCard` (`variant`: `fleet` | `market`), `EventLog`. Pass region color via token `className` (`text-info`, …), not hex. Barrel: `@packages/ui/molecules`.
 
@@ -60,7 +62,7 @@ To add a semantic color: set `--name` on `:root` and `.dark`, add `--color-name:
 
 ## Storybook
 
-- Framework: `@storybook/react-vite`, glob `src/molecules/**/*.stories.*` only.
+- Framework: `@storybook/react-vite`, globs `src/atoms/**/*.stories.*` and `src/molecules/**/*.stories.*`.
 - Ops chrome: **Components / Hud**, PanelHeader, MetricStat, ProjectOfferCard, ActiveProjectCard, ServerCard, EventLog.
 - Preview imports `src/style.css`. Do not import `react-native` / `@rn-primitives` in `preview.tsx` (Node CLI, no Vite aliases).
 - RN-web + NativeWind: `scripts/rn-web.ts` (single React, CSS component rewrite, SVG stubs). Storybook and `@apps/web` both import it.

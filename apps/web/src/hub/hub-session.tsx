@@ -18,8 +18,8 @@ import {
 } from "@packages/fivenines-engine";
 import { formatters } from "@packages/shared/formatters";
 
+import { Button } from "@/atoms/button";
 import { ActiveProjectCard } from "@/molecules/active-project-card/active-project-card";
-import { Button } from "@/molecules/button/button";
 import { EventLog, type EventLogEntry } from "@/molecules/event-log/event-log";
 import { Hud } from "@/molecules/hud/hud";
 import { PanelHeader } from "@/molecules/panel-header/panel-header";

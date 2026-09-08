@@ -1,6 +1,6 @@
 # @packages/ui
 
-Shared React UI for Fivenines: **React Native Reusables** atoms (NativeWind v5) plus molecule wrappers. Legacy web shadcn lives under `src/shadcn` and stays exported.
+Shared React UI for Fivenines: **React Native Reusables** atoms (NativeWind v5) plus ops-chrome molecules. Legacy web shadcn lives under `src/shadcn` and stays exported.
 
 ## Install
 
@@ -9,8 +9,8 @@ Workspace dependency: `"@packages/ui": "workspace:*"`.
 ## Imports
 
 ```ts
-import { Button } from "@packages/ui/molecules";
-import { Button as AtomButton } from "@packages/ui/atoms";
+import { Button, Link } from "@packages/ui/atoms";
+import { Hud } from "@packages/ui/molecules";
 import "@packages/ui/style.css";
 ```
 

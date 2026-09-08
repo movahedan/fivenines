@@ -33,6 +33,9 @@ describe("Hud", () => {
 		expect(screen.getByLabelText("Five Nines mark")).toBeInTheDocument();
 		expect(screen.getByText("9s")).toBeInTheDocument();
 		expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "Speed ×1" })).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "Speed ×2" })).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "Speed ×4" })).toBeInTheDocument();
 	});
 
 	it("calls onToggleRunning when the pause control is pressed", () => {
@@ -53,7 +56,28 @@ describe("Hud", () => {
 		expect(onToggleRunning).toHaveBeenCalledTimes(1);
 	});
 
-	it("shows resume and jail chrome when paused and jailed", () => {
+	it("calls onSpeedChange when a speed control is pressed", () => {
+		const onSpeedChange = mock();
+
+		render(
+			<Hud
+				title="Five Nines"
+				tickLabel="W1 T04"
+				metrics={METRICS}
+				running
+				speed={1}
+				onSpeedChange={onSpeedChange}
+				onToggleRunning={mock()}
+			/>,
+		);
+
+		fireEvent.click(screen.getByRole("button", { name: "Speed ×4" }));
+
+		expect(onSpeedChange).toHaveBeenCalledTimes(1);
+		expect(onSpeedChange).toHaveBeenCalledWith(4);
+	});
+
+	it("shows play and jail chrome when paused and jailed", () => {
 		render(
 			<Hud
 				title="Five Nines"
@@ -66,7 +90,7 @@ describe("Hud", () => {
 			/>,
 		);
 
-		expect(screen.getByRole("button", { name: "Resume" })).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
 		expect(screen.getByText("JAILED")).toBeInTheDocument();
 		expect(screen.getByText("ops@five")).toBeInTheDocument();
 	});

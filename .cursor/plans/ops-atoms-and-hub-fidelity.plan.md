@@ -28,16 +28,16 @@ todos:
     status: completed
   - id: phase-3-formatters
     content: "Phase 3: Align shared formatters + hub CPU as cores; no kernel change"
-    status: pending
+    status: completed
   - id: phase-3-verify
     content: "Phase 3 gate: bun test packages/shared && bun test apps/web && bun test packages/ui && bun run typecheck --filter=@packages/shared && bun run typecheck --filter=@apps/web"
-    status: pending
+    status: completed
   - id: phase-3-docs
     content: "Phase 3: documentation-sync (after build, before PR)"
-    status: pending
+    status: completed
   - id: phase-3-pr
     content: "Phase 3: git-pr-workflow"
-    status: pending
+    status: completed
   - id: phase-4-hud-speed
     content: "Phase 4: HUD Pause/Play lucide icon + ×1 ×2 ×4 tick-speed controls; UI interval only"
     status: pending

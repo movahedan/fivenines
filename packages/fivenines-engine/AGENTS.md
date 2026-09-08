@@ -18,21 +18,21 @@ Package scripts: `typecheck` (`tsc --noEmit`), `test` (re-roots to repo `bun tes
 
 ## Graph
 
-`Game` owns `customers[]` and `assets[]` (`Server` only). No load balancers, project routes, or balancer pools.
+`Game` owns `customers[]` and `assets[]` (`Server` only). A served project carries exactly **one** `RouteTarget` (`{ kind: "server"; serverId }`) on the project itself. Still no load balancers, no route arrays, no balancer pools.
 
 | Noun | Role |
 |------|------|
 | `Customer` | Org with `projects[]`. Does not emit load. |
-| `Project` | `offered` \| `declined` \| `served`. Served demand is integer RPS from a `DemandModel`. |
-| `Server` | Inventory. Empty fleet: served demand is unroutable drops. Each box has a `region` (same enum as projects). |
+| `Project` | `offered` \| `declined` \| `served` \| `offline`. Served demand is integer RPS from a `DemandModel`. `offline` is a parked project: contract kept, nothing running, no route. |
+| `Server` | Inventory. Empty fleet: nothing can be accepted at all, because accept requires an existing `serverId`. Each box has a `region` (same enum as projects). |
 
 Ids are unique per game (`customer.id`, `project.id` global, `asset.id`) via `@packages/shared/ids`. Construct throws on duplicates.
 
-Tick walks each served project: `placeProjectDemand` fills **local** boxes first (`server.region === project.region`), then **other-region** overflow, then leftover is **unroutable** `droppedRequests`. Slices are `{ category, requests, sourceRegion, remote, projectId }`. Split among a pool uses `computeUnitsPerHour` (floor + remainder) capped by remaining compute headroom. Extra p95 on a box is `|offsetHours| × PLACEMENT_POLICY.latencyMsPerOffsetHour` (v1: `5` in `src/catalog/placement-policy.ts`), mixed by slice request counts (`regions.remoteLatencyMs`).
+Tick walks each served project: `placeProjectDemand` puts the hour on the **one** routed box, capped by that box’s `remainingHeadroom`; the leftover is **unroutable** `droppedRequests`. There is no pool, no local-first preference, and no cross-region overflow — an overloaded project drops rather than borrowing headroom from another box. A project whose route is absent (parked) is fully unroutable. Slices are `{ category, requests, sourceRegion, remote, projectId }`; `assignSlice` derives `remote` from `sourceRegion !== server.region`. Cross-region routing stays legal and still costs extra p95 on the box: `|offsetHours| × PLACEMENT_POLICY.latencyMsPerOffsetHour` (v1: `5` in `src/catalog/placement-policy.ts`), mixed by slice request counts (`regions.remoteLatencyMs`).
 
 On each box, `server.tick` converts slices via `CAPACITY_POLICY` (`src/catalog/capacity-policy.ts`): v1 `cpuPerRequest = 1` for all categories; shopping/saas/portfolio differ on `bytesPerRequest` (40/10/20) and `memPerInflight` (2/4/1). `cpuLoad` / `netLoad` are per assigned request this hour. `inFlight = floor(assigned × inflightPerThousandRequests / 1000)` (v1: 10). `memOcc = baseMemoryMiB + inFlight ×` request-weighted `memPerInflight`. Handled scales by the **min** finite cap/load ratio (floor) across CPU/net/RAM; leftover on that box is dropped. Utilization is the **tightest** axis.
 
-Catalog: Bronze–Diamond plus teaching `thin-ram` (`SERVER_CATALOG`). Bronze = compute **1000**, net **1_000_000**, memory **4096**, base **256**. Overload fixtures `oneBronzeInitial` / `twoBronzeInitial`: two **constant** served projects at 700+700 (exact **1400**, CPU-bound on one Bronze). `openingInitial`: 4 customers, 10 **shaped** offered projects, `assets: []`. Opening `acme-web` baseline is **2000** shopping so a single Bronze cannot 99% an accept-all hog.
+Catalog: Bronze–Diamond plus teaching `thin-ram` (`SERVER_CATALOG`). Bronze = compute **1000**, net **1_000_000**, memory **4096**, base **256**. `oneBronzeInitial` routes both **constant** 700 RPS projects to `server-1` (exact **1400** against a 1000 cap, CPU-bound on one Bronze). `twoBronzeInitial` routes one project per box and is the **isolation** fixture: overload on one box never spills onto the other. `openingInitial`: 4 customers, 10 **shaped** offered projects, `assets: []`. Opening `acme-web` baseline is **2000** shopping so a single Bronze cannot 99% an accept-all hog.
 
 Runtime: `@packages/shared/units`, `@packages/shared/ids`. Integers only at the demand boundary. `1 tick() = 1` simulated hour.
 
@@ -61,13 +61,15 @@ const healthy = new Game(twoBronzeInitial).tick();
 
 `GameInitial`: `{ customers, assets, cashCents?, accountsReceivableCents?, jailed? }`. Empty `assets` is valid. Defaults: `cashCents = STARTING_CASH_CENTS` (25_000), `accountsReceivableCents = 0`, `jailed = false` (`src/catalog/economy-policy.ts`). Cash is signed integer cents. Opening cash buys one Bronze (18_000) with runway; Silver and above stay out of reach at start.
 
+A `served` `ProjectInitial` requires a `route`, and a non-served one must not carry one — construct throws either way. `Game` additionally throws when a route names an id absent from `assets`, and re-checks that after every `dispatch`.
+
 After `tick()`, `game.metrics` (`src/game.metrics.ts`), each `server.metrics` (`src/server.metrics.ts`), and each `project.metrics` (`src/project.metrics.ts`) hold that hour’s snapshot. `game.finance` (`src/game.finance.ts`) is the last-hour money snapshot: `cashCents`, `accountsReceivableCents`, `jailed`, fleet totals `opexCents` / `maintenanceCents` / `powerCents`.
 
 ## SLA measurement
 
 After `server.tick`, `applyProjectSla` (`src/game.sla.ts`) attributes each project’s **handled** vs misses. Unroutable leftover is a miss. Capacity drops on a box split in proportion to that project’s `requests` on the box (floor + remainder). Conservation: `handled + unroutable + capacityDrop = emitted`. Game `handledRequests` / `droppedRequests` / `errorPpm` stay physics (N1); they are not the SLA scalar.
 
-This-hour `availabilityPpm = floor(handled * 1_000_000 / emitted)` when `emitted > 0`, else `null`. Each `Project` keeps a ring of `{ handled, emitted }` up to `SLA_WINDOW_HOURS` (168 in `src/catalog/sla-policy.ts`). Emit-0 hours (offered / declined / zero demand) are **not** appended. `windowAvailabilityPpm` is the same floor over ring sums; `null` if `sumEmitted === 0`. Partial windows are valid. The ring has no target %; credits use **period** buckets at week close (Z2), not `windowAvailabilityPpm`. `slaRecoveryHours(samples, targetPpm)` (`src/catalog/sla-policy.ts`) simulates appending 100% hours on that ring (FIFO 168) and returns hours until window ≥ target, or `null` if already meeting, empty, or unreachable in one window. It does not mutate the ring.
+This-hour `availabilityPpm = floor(handled * 1_000_000 / emitted)` when `emitted > 0`, else `null`. Each `Project` keeps a ring of `{ handled, emitted }` up to `SLA_WINDOW_HOURS` (168 in `src/catalog/sla-policy.ts`). Emit-0 hours (offered / declined / zero demand) are **not** appended; **offline** hours are — a parked project emits, handles 0, and the whole hour lands in the ring as a miss. `windowAvailabilityPpm` is the same floor over ring sums; `null` if `sumEmitted === 0`. Partial windows are valid. The ring has no target %; credits use **period** buckets at week close (Z2), not `windowAvailabilityPpm`. `slaRecoveryHours(samples, targetPpm)` (`src/catalog/sla-policy.ts`) simulates appending 100% hours on that ring (FIFO 168) and returns hours until window ≥ target, or `null` if already meeting, empty, or unreachable in one window. It does not mutate the ring.
 
 ## Wallet and opex
 
@@ -89,11 +91,11 @@ Commercial tunables live in `src/catalog/commercial-policy.ts`. Every project mu
 
 Opening cards come from `commercialTermsForCategory` (portfolio 330 / saas 450 / shopping 650 cents per thousand handled; recurring 800 / 1_500 / 2_500; target 990_000; credit 1_000_000). `OPENING_COMMERCIAL_STUB` is the saas card. Overload fixtures use `PAYG_ONLY_COMMERCIAL_STUB` (1000 cents per thousand so PAYG equals handled count). Opening `acme-web` target is **995_000**; `initech-tps` is **980_000**.
 
-After opex, served projects accrue `paygCentsForHandled(handled, paygCentsPerThousandHandled)` into **period buckets** and `game.accountsReceivableCents` (`game.commercial.ts`). Emit-0: no PAYG and no period handled/emitted; still increment `hoursServedInPeriod`. Offered/declined: no PAYG. Jailed games still accrue receivable.
+After opex, served projects accrue `paygCentsForHandled(handled, paygCentsPerThousandHandled)` into **period buckets** and `game.accountsReceivableCents` (`Project.accruePeriodPayg()`, helper of the same name in `game.commercial.ts`). Emit-0: no PAYG and no period handled/emitted; still increment `hoursServedInPeriod`. **Offline**: no PAYG and **no** `hoursServedInPeriod` bump (recurring sleeps), but `periodHandled` / `periodEmitted` still grow, so the period SLA and any credit see the downtime. Offered/declined: no PAYG. Jailed games still accrue receivable.
 
 After `hourIndex += 1`, if `hourIndex % PAYG_SETTLE_HOURS === 0` (24), `cashCents += accountsReceivableCents` and receivable resets to 0.
 
-If `hourIndex % BILLING_PERIOD_HOURS === 0` (168), close each project with `hoursServedInPeriod > 0`:
+If `hourIndex % BILLING_PERIOD_HOURS === 0` (168), close each project with `hoursServedInPeriod > 0 || periodEmitted > 0` — a fully parked week still settles (recurring prorates to 0) and its period buckets reset instead of leaking misses into the next period:
 
 ```
 recurring = floor(recurringCentsPerPeriod * hoursServedInPeriod / 168)
@@ -114,24 +116,36 @@ credit    = min(periodRevenue, floor(periodRevenue * creditPpm / 1_000_000))
 
 ```ts
 type EngineCommand =
-  | { type: "acceptProject"; payload: { projectId: string } }
+  | { type: "acceptProject"; payload: { projectId: string; serverId: string } }
   | { type: "declineProject"; payload: { projectId: string } }
+  | { type: "moveProject"; payload: { projectId: string; serverId: string } }
+  | { type: "unassignProject"; payload: { projectId: string } }
+  | { type: "assignProject"; payload: { projectId: string; serverId: string } }
   | { type: "buyServer"; payload: { serverType: ServerCatalogId; region: RegionId } }
   | { type: "sellServer"; payload: { serverId: string } };
 ```
 
-`acceptProject` requires `status === "offered"`. Throws if `jailed`. No cash change.
+| Command | Transition |
+|---------|------------|
+| `acceptProject` | `offered` → `served` on `serverId` (**breaking**: the payload gained `serverId`) |
+| `declineProject` | `offered` → `declined` (`Project.asDeclined()`) |
+| `moveProject` | `served` → `served` on another box |
+| `unassignProject` | `served` → `offline`, clearing the route (park) |
+| `assignProject` | `offline` → `served` on `serverId` |
 
-`declineProject` requires `status === "offered"` (`Project.asDeclined()`). Allowed while jailed. No cash change. Unknown id / not offered throws.
+Unknown project id or wrong source status throws. No command changes cash except `buyServer` / `sellServer`. Any command carrying a `serverId` throws `unknown server id` when the box is absent.
+
+`acceptProject` and `buyServer` throw while `jailed`; `moveProject` / `unassignProject` / `assignProject` / `sellServer` / `declineProject` are allowed while jailed.
 
 `buyServer` throws if `jailed` or `cashCents < purchaseCents` (no debit). Else debit catalog purchase and add the box.
 
-`sellServer` is allowed while jailed. Credits salvage and removes the box.
+`sellServer` credits salvage and removes the box. It throws while a **served** project routes to that box; a **parked** project does not pin its old box, so park-then-sell works.
 
 Implementation: `applyCommand` in `src/game.utils.ts`.
 
 ## Related
 
+- Hosting platform initiative: `.cursor/plans/fivenines-hosting-platform.plan.md` — design `.cursor/plans/fivenines-hosting-platform.design.md`
 - Billing / PAYG: `.cursor/plans/fivenines-engine-billing.plan.md` — spec `.cursor/plans/fivenines-engine-billing.design.md`
 - Balance harness: `src/economy.balance.test.ts` — plan `.cursor/plans/fivenines-engine-balance.plan.md`
 - SLA: `.cursor/plans/fivenines-engine-sla.plan.md` — spec `.cursor/plans/fivenines-engine-sla.design.md`

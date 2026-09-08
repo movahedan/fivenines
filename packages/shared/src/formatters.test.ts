@@ -9,14 +9,21 @@ describe("formatters - display labels", () => {
 	});
 
 	it("pads hour-index and clock labels", () => {
-		expect(formatters.hourTick(0)).toBe("T+0000");
-		expect(formatters.hourTick(24)).toBe("T+0024");
-		expect(formatters.clockLabel(0)).toBe("D0 H00");
-		expect(formatters.clockLabel(25)).toBe("D1 H01");
+		expect(formatters.hourTick(0)).toBe("TICK 0000");
+		expect(formatters.hourTick(24)).toBe("TICK 0024");
+		expect(formatters.clockLabel(0)).toBe("DAY 01 · HR 00:00");
+		expect(formatters.clockLabel(25)).toBe("DAY 02 · HR 01:00");
 	});
 
-	it("formats nullable parts-per-million", () => {
+	it("formats nullable parts-per-million as a percent", () => {
 		expect(formatters.ppm(null)).toBe("—");
-		expect(formatters.ppm(990_000)).toBe("990000 ppm");
+		expect(formatters.ppm(990_000)).toBe("99.00%");
+		expect(formatters.ppm(1_000_000)).toBe("100.00%");
+	});
+
+	it("formats compute counts as cores", () => {
+		expect(formatters.cores(1)).toBe("1 core");
+		expect(formatters.cores(1000)).toBe("1000 cores");
+		expect(formatters.coresCompact(2000)).toBe("2000c");
 	});
 });

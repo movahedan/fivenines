@@ -1,6 +1,6 @@
 ---
 name: Atoms, theme, hub fidelity
-overview: "Three PRs: fold Button/Card/Input/Label adapters into RNR atoms and drop next-themes; ops chrome glow/logo; display formatters (ppm %, clock, cores) on /hub."
+overview: "Four stacked PRs: atoms fold + drop next-themes; ops glow/logo; display formatters (ppm %, clock, cores); HUD play/pause icon plus ×1/×2/×4 tick speed."
 todos:
   - id: phase-1-atoms-theme
     content: "Phase 1: Fold molecule adapters into atoms; remove molecule wrappers; drop next-themes"
@@ -13,19 +13,19 @@ todos:
     status: completed
   - id: phase-1-pr
     content: "Phase 1: git-pr-workflow"
-    status: pending
+    status: completed
   - id: phase-2-chrome
     content: "Phase 2: HUD 9s mark, glowing panel/SKU dots, apply shadow-glow tokens"
-    status: pending
+    status: completed
   - id: phase-2-verify
     content: "Phase 2 gate: bun run typecheck --filter=@packages/ui && bun test packages/ui && bun run turbo run build:storybook --filter=@packages/ui"
-    status: pending
+    status: completed
   - id: phase-2-docs
     content: "Phase 2: documentation-sync (after build, before PR)"
-    status: pending
+    status: completed
   - id: phase-2-pr
     content: "Phase 2: git-pr-workflow"
-    status: pending
+    status: completed
   - id: phase-3-formatters
     content: "Phase 3: Align shared formatters + hub CPU as cores; no kernel change"
     status: pending
@@ -37,6 +37,18 @@ todos:
     status: pending
   - id: phase-3-pr
     content: "Phase 3: git-pr-workflow"
+    status: pending
+  - id: phase-4-hud-speed
+    content: "Phase 4: HUD Pause/Play lucide icon + ×1 ×2 ×4 tick-speed controls; UI interval only"
+    status: pending
+  - id: phase-4-verify
+    content: "Phase 4 gate: bun test packages/ui && bun test apps/web && bun run typecheck --filter=@packages/ui && bun run typecheck --filter=@apps/web"
+    status: pending
+  - id: phase-4-docs
+    content: "Phase 4: documentation-sync (after build, before PR)"
+    status: pending
+  - id: phase-4-pr
+    content: "Phase 4: git-pr-workflow"
     status: pending
 isProject: false
 ---
@@ -268,6 +280,47 @@ bun run typecheck --filter=@apps/web
 
 ---
 
+## Phase 4 — HUD play/pause icon and tick speed
+
+**Goal:** Replace the HUD **Pause** / **Resume** text button with a lucide **Pause** / **Play** icon, then compact **×1**, **×2**, **×4** speed controls. Interval is UI-only (`HUB_TICK_MS / speed`); the engine still ticks one hour per `Game.tick()`.
+
+**Hard constraints (phase 4 only):**
+
+- Must use `lucide-react-native` via the existing `Icon` atom (`Pause` when `running`, `Play` when paused). Accessible names: **Pause** and **Play** (not "Resume").
+- Must add speed `1 | 2 | 4` as icon-sized buttons immediately after the play/pause control (`×1` / `×2` / `×4`). Changing speed while paused keeps paused; resume uses the selected speed.
+- Must wire `use-hub-game.ts` so `setInterval` uses `HUB_TICK_MS / speed` (1000 / 500 / 250 ms). Default **×1**. Reset returns to ×1 and running.
+- Must **not** change `packages/fivenines-engine`. Must **not** add a second clock or skip hours.
+- Must update `Hud` tests, Storybook, and `apps/web/src/routes/hub.test.tsx` (they currently look up `name: "Pause"` / `"Resume"`).
+
+### Code/config surfaces (builder-workflow)
+
+- `packages/ui/src/molecules/hud/hud.tsx`, `hud.test.tsx`, `hud.stories.tsx`
+- `apps/web/src/hub/use-hub-game.ts`, `hub-session.tsx`
+- `apps/web/src/routes/hub.test.tsx`
+
+### Scouts (parallel inventory — code/config only)
+
+| Scout | Task | Patterns / paths | Row budget |
+|-------|------|------------------|------------|
+| 1 | Pause/Resume copy | `rg 'Pause|Resume' packages/ui/src/molecules/hud apps/web/src` | ≤20 |
+| 2 | Tick interval | `rg 'HUB_TICK_MS|setInterval' apps/web/src/hub` | ≤15 |
+
+### Verification (phase 4 gate)
+
+```bash
+bun test packages/ui
+bun test apps/web
+bun run typecheck --filter=@packages/ui
+bun run typecheck --filter=@apps/web
+```
+
+### Documentation before PR (documentation-sync)
+
+- `packages/ui/AGENTS.md` — HUD play/pause icon + ×N speed props
+- `apps/web/AGENTS.md` — UI interval = `HUB_TICK_MS / speed`; engine unchanged
+
+---
+
 ## What stays out of scope
 
 - Engine catalog, demand, or adding a `cpuRequired` field
@@ -287,6 +340,7 @@ bun run typecheck --filter=@apps/web
 | PR1 | Phase 1 only | Phase 1 verify + `rg next-themes` empty |
 | PR2 | Phase 2 only | Phase 2 verify |
 | PR3 | Phase 3 only | Phase 3 verify |
+| PR4 | Phase 4 only | Phase 4 verify |
 
 Doc sync after each build, before that PR’s commit.
 
@@ -301,3 +355,4 @@ Doc sync after each build, before that PR’s commit.
 | `ppm` change breaks lab copy | Scout formatter call sites; update lab if it asserts `ppm` |
 | “cores” misread as 4/8/16 SKUs | Docs: same kernel integers, word only |
 | Glow unused on RN | NativeWind shadow tokens; degrade to fill color if shadow no-ops |
+| Speed buttons skip hours | Interval only; each `tick()` is still one hour |

@@ -2,16 +2,17 @@ import { describe, expect, it } from "bun:test";
 
 import { PAYG_ONLY_COMMERCIAL_STUB } from "./catalog/commercial-policy";
 import { type RegionId, regions } from "./catalog/regions";
-import { constantProject, oneBronzeInitial, twoBronzeInitial } from "./fixtures";
+import { oneBronzeInitial, twoBronzeInitial } from "./fixtures";
 import type { GameInitial } from "./game";
 import { Game } from "./game";
-import type { ProjectCategory, ProjectInitial } from "./project";
-import type { DemandSlice } from "./server";
+import type { Project, ProjectCategory, ProjectInitial } from "./project";
+import type { DemandSlice, Server } from "./server";
 
 function servedProject(
 	id: string,
 	estimatedRequestsPerHour: number,
 	region: RegionId,
+	serverId: string,
 	category: ProjectCategory = "saas",
 ): ProjectInitial {
 	return {
@@ -23,6 +24,7 @@ function servedProject(
 		region,
 		campaignProne: false,
 		commercial: PAYG_ONLY_COMMERCIAL_STUB,
+		route: { kind: "server", serverId },
 	};
 }
 
@@ -37,50 +39,88 @@ function gameOf(projects: readonly ProjectInitial[], assets: GameInitial["assets
 	});
 }
 
+function serverOf(game: Game, serverId: string): Server | undefined {
+	return game.servers.find((server) => server.id === serverId);
+}
+
+function projectOf(game: Game, projectId: string): Project | undefined {
+	return game.customers
+		.flatMap((customer) => [...customer.projects])
+		.find((project) => project.id === projectId);
+}
+
 function sliceRequests(slices: readonly DemandSlice[], remote: boolean): number {
 	return slices.reduce((sum, slice) => (slice.remote === remote ? sum + slice.requests : sum), 0);
 }
 
-describe("Game - prefer-local placement", () => {
-	it("assigns zero remote slices when local servers have enough headroom", () => {
+describe("Game - routed placement", () => {
+	it("assigns every request to the routed box and leaves an unrouted box idle", () => {
 		const game = gameOf(
-			[servedProject("project-1", 700, "utc+0")],
-			[bronze("local-1", "utc+0"), bronze("remote-1", "utc+9")],
+			[servedProject("project-1", 700, "utc+0", "server-1")],
+			[bronze("server-1", "utc+0"), bronze("server-2", "utc+0")],
 		).tick();
 
-		const local = game.servers.find((server) => server.id === "local-1");
-		const remote = game.servers.find((server) => server.id === "remote-1");
+		const routed = serverOf(game, "server-1");
+		const idle = serverOf(game, "server-2");
 
-		expect(local?.metrics.assignedRequests).toBe(700);
-		expect(sliceRequests(local?.slices ?? [], false)).toBe(700);
-		expect(sliceRequests(local?.slices ?? [], true)).toBe(0);
-		expect(remote?.metrics.assignedRequests).toBe(0);
+		expect(routed?.metrics.assignedRequests).toBe(700);
+		expect(sliceRequests(routed?.slices ?? [], false)).toBe(700);
+		expect(sliceRequests(routed?.slices ?? [], true)).toBe(0);
+		expect(idle?.metrics.assignedRequests).toBe(0);
+		expect(idle?.slices).toEqual([]);
 		expect(game.metrics.droppedRequests).toBe(0);
 	});
 
-	it("assigns 500 local and 500 remote slices when local remaining headroom is 500 and demand is 1000", () => {
+	it("leaves the remainder unroutable when demand exceeds the routed box headroom", () => {
 		const game = gameOf(
-			[servedProject("fill-local", 500, "utc+0"), servedProject("overflow", 1000, "utc+0")],
-			[bronze("local-1", "utc+0"), bronze("remote-1", "utc+9")],
+			[servedProject("project-1", 1400, "utc+0", "server-1")],
+			[bronze("server-1", "utc+0")],
 		).tick();
 
-		const local = game.servers.find((server) => server.id === "local-1");
-		const remote = game.servers.find((server) => server.id === "remote-1");
+		const routed = serverOf(game, "server-1");
 
-		expect(local?.metrics.assignedRequests).toBe(1000);
-		expect(sliceRequests(local?.slices ?? [], false)).toBe(1000);
-		expect(sliceRequests(local?.slices ?? [], true)).toBe(0);
-		expect(remote?.metrics.assignedRequests).toBe(500);
-		expect(sliceRequests(remote?.slices ?? [], true)).toBe(500);
-		expect(sliceRequests(remote?.slices ?? [], false)).toBe(0);
-		expect(game.metrics.droppedRequests).toBe(0);
+		expect(routed?.metrics.assignedRequests).toBe(1000);
+		expect(game.metrics.handledRequests).toBe(1000);
+		expect(game.metrics.droppedRequests).toBe(400);
+		expect(projectOf(game, "project-1")?.metrics.unroutableRequests).toBe(400);
 	});
 
-	it("adds offset-hours times PLACEMENT_POLICY.latencyMsPerOffsetHour to p95 when servers exist only in another region", () => {
+	it("drops an overloaded project's leftover instead of spilling it onto the box next door", () => {
+		const isolated = gameOf(
+			[
+				servedProject("project-a", 1400, "utc+0", "server-1"),
+				servedProject("project-b", 700, "utc+0", "server-2"),
+			],
+			[bronze("server-1", "utc+0"), bronze("server-2", "utc+0")],
+		).tick();
+		const aloneOnServerTwo = gameOf(
+			[servedProject("project-b", 700, "utc+0", "server-2")],
+			[bronze("server-1", "utc+0"), bronze("server-2", "utc+0")],
+		).tick();
+
+		const neighbour = serverOf(isolated, "server-2");
+		const overloaded = projectOf(isolated, "project-a");
+		const untouched = projectOf(isolated, "project-b");
+
+		expect(neighbour?.slices.some((slice) => slice.projectId === "project-a")).toBe(false);
+		expect(neighbour?.metrics.assignedRequests).toBe(700);
+		expect(untouched?.metrics.handledRequests).toBe(
+			projectOf(aloneOnServerTwo, "project-b")?.metrics.handledRequests,
+		);
+		expect(untouched?.metrics.handledRequests).toBe(700);
+		expect(overloaded?.metrics.handledRequests).toBe(1000);
+		expect(overloaded?.metrics.unroutableRequests).toBe(400);
+		expect(isolated.metrics.droppedRequests).toBe(400);
+	});
+
+	it("adds offset-hours times PLACEMENT_POLICY.latencyMsPerOffsetHour to p95 when the route crosses regions", () => {
 		const assets = [bronze("server-1", "utc+0")];
-		const local = gameOf([servedProject("project-1", 700, "utc+0")], assets).tick();
-		const nearRemote = gameOf([servedProject("project-1", 700, "utc-5")], assets).tick();
-		const farRemote = gameOf([servedProject("project-1", 700, "utc+9")], assets).tick();
+		const local = gameOf([servedProject("project-1", 700, "utc+0", "server-1")], assets).tick();
+		const nearRemote = gameOf(
+			[servedProject("project-1", 700, "utc-5", "server-1")],
+			assets,
+		).tick();
+		const farRemote = gameOf([servedProject("project-1", 700, "utc+9", "server-1")], assets).tick();
 		const remoteSlices = nearRemote.servers.flatMap((server) => [...server.slices]);
 
 		expect(remoteSlices.length).toBeGreaterThan(0);
@@ -94,24 +134,14 @@ describe("Game - prefer-local placement", () => {
 		expect(farRemote.metrics.p95LatencyMs).toBeGreaterThan(nearRemote.metrics.p95LatencyMs);
 	});
 
-	it("drops requests on one utc+0 Bronze and clears drops with lower p95 on two utc+0 Bronze when demand is 1400", () => {
-		const overloaded = new Game(oneBronzeInitial).tick();
-		const healthy = new Game(twoBronzeInitial).tick();
+	it("drops 400 when two projects share one Bronze and drops none when each has its own", () => {
+		const shared = new Game(oneBronzeInitial).tick();
+		const isolated = new Game(twoBronzeInitial).tick();
 
-		expect(overloaded.metrics.droppedRequests).toBe(400);
-		expect(overloaded.metrics.handledRequests).toBe(1000);
-		expect(healthy.metrics.droppedRequests).toBe(0);
-		expect(healthy.metrics.p95LatencyMs).toBeLessThan(overloaded.metrics.p95LatencyMs);
-	});
-
-	it("leaves leftover demand unroutable when local headroom is exhausted and no other-region servers exist", () => {
-		const game = gameOf(
-			[constantProject("project-1", 700, "served"), constantProject("project-2", 700, "served")],
-			[bronze("server-1", "utc+0")],
-		).tick();
-
-		expect(game.metrics.handledRequests).toBe(1000);
-		expect(game.metrics.droppedRequests).toBe(400);
-		expect(game.servers[0]?.metrics.assignedRequests).toBe(1000);
+		expect(shared.metrics.droppedRequests).toBe(400);
+		expect(shared.metrics.handledRequests).toBe(1000);
+		expect(isolated.metrics.droppedRequests).toBe(0);
+		expect(isolated.metrics.handledRequests).toBe(1400);
+		expect(isolated.metrics.p95LatencyMs).toBeLessThan(shared.metrics.p95LatencyMs);
 	});
 });

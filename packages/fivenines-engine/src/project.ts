@@ -24,9 +24,15 @@ import type { RandomSource } from "./traffic/random-source";
 
 export type { ProjectTickMetrics } from "./project.metrics";
 
-export type ProjectStatus = "offered" | "declined" | "served";
+export type ProjectStatus = "offered" | "declined" | "served" | "offline";
 export type ProjectCategory = "shopping" | "saas" | "portfolio";
 export type DemandKind = "constant" | "shaped";
+
+/**
+ * Where a served project runs. Exactly one target — an array would be load
+ * balancing, which needs a balancer asset that does not exist yet.
+ */
+export type RouteTarget = { kind: "server"; serverId: string };
 
 export interface BillingSettlement {
 	periodIndex: number;
@@ -53,10 +59,35 @@ export interface ProjectInitial {
 	campaignProne: boolean;
 	campaign?: CampaignWindow;
 	commercial: CommercialTerms;
+	route?: RouteTarget;
 }
 
 function isProjectCategory(value: string): value is ProjectCategory {
 	return Object.hasOwn(TRAFFIC_POLICY.rhythm, value);
+}
+
+function parseRoute(
+	id: string,
+	status: ProjectStatus,
+	route: RouteTarget | undefined,
+): RouteTarget | undefined {
+	if (status !== "served") {
+		if (route !== undefined) {
+			throw new Error(`only a served project can have a route: ${id}`);
+		}
+
+		return undefined;
+	}
+
+	if (route === undefined) {
+		throw new Error(`served project requires a route: ${id}`);
+	}
+
+	if (route.kind !== "server" || route.serverId === "") {
+		throw new Error(`invalid route for project: ${id}`);
+	}
+
+	return { kind: "server", serverId: route.serverId };
 }
 
 function parseCampaign(campaign: CampaignWindow): CampaignWindow {
@@ -80,6 +111,7 @@ export class Project {
 	readonly campaign: CampaignWindow | undefined;
 	readonly commercial: CommercialTerms;
 	readonly #status: ProjectStatus;
+	readonly #route: RouteTarget | undefined;
 	readonly #demandModel: DemandModel;
 	#metrics: ProjectTickMetrics = EMPTY_PROJECT_TICK_METRICS;
 	#slaHours: SlaHourSample[] = [];
@@ -96,6 +128,7 @@ export class Project {
 			"estimatedRequestsPerHour",
 		);
 		this.#status = initial.status;
+		this.#route = parseRoute(initial.id, initial.status, initial.route);
 		this.demand = initial.demand;
 
 		if (!isProjectCategory(initial.category)) {
@@ -121,6 +154,10 @@ export class Project {
 
 	get status(): ProjectStatus {
 		return this.#status;
+	}
+
+	get route(): RouteTarget | undefined {
+		return this.#route;
 	}
 
 	get metrics(): ProjectTickMetrics {
@@ -151,32 +188,12 @@ export class Project {
 		return this.#settlements;
 	}
 
-	asServed(): Project {
+	asServed(serverId: string): Project {
 		if (this.#status !== "offered") {
 			throw new Error(`project is not offered: ${this.id}`);
 		}
 
-		const served = new Project({
-			id: this.id,
-			estimatedRequestsPerHour: this.estimatedRequestsPerHour,
-			status: "served",
-			demand: this.demand,
-			category: this.category,
-			region: this.region,
-			campaignProne: this.campaignProne,
-			commercial: this.commercial,
-			...(this.campaign === undefined ? {} : { campaign: this.campaign }),
-		});
-
-		served.#slaHours = this.#slaHours.slice();
-		served.#metrics = this.#metrics;
-		served.#hoursServedInPeriod = this.#hoursServedInPeriod;
-		served.#periodPaygCents = this.#periodPaygCents;
-		served.#periodHandled = this.#periodHandled;
-		served.#periodEmitted = this.#periodEmitted;
-		served.#settlements = this.#settlements.slice();
-
-		return served;
+		return this.#transition("served", { kind: "server", serverId });
 	}
 
 	asDeclined(): Project {
@@ -184,54 +201,65 @@ export class Project {
 			throw new Error(`project is not offered: ${this.id}`);
 		}
 
-		const declined = new Project({
-			id: this.id,
-			estimatedRequestsPerHour: this.estimatedRequestsPerHour,
-			status: "declined",
-			demand: this.demand,
-			category: this.category,
-			region: this.region,
-			campaignProne: this.campaignProne,
-			commercial: this.commercial,
-			...(this.campaign === undefined ? {} : { campaign: this.campaign }),
-		});
-
-		declined.#slaHours = this.#slaHours.slice();
-		declined.#metrics = this.#metrics;
-		declined.#hoursServedInPeriod = this.#hoursServedInPeriod;
-		declined.#periodPaygCents = this.#periodPaygCents;
-		declined.#periodHandled = this.#periodHandled;
-		declined.#periodEmitted = this.#periodEmitted;
-		declined.#settlements = this.#settlements.slice();
-
-		return declined;
+		return this.#transition("declined", undefined);
 	}
 
-	accrueServedPayg(): number {
+	/** Park: the customer keeps the contract, nothing runs. */
+	asOffline(): Project {
+		if (this.#status !== "served") {
+			throw new Error(`project is not served: ${this.id}`);
+		}
+
+		return this.#transition("offline", undefined);
+	}
+
+	/** Move a served project, or bring a parked one back up. */
+	asRoutedTo(serverId: string): Project {
+		if (this.#status !== "served" && this.#status !== "offline") {
+			throw new Error(`project is not routable: ${this.id}`);
+		}
+
+		return this.#transition("served", { kind: "server", serverId });
+	}
+
+	/**
+	 * Offline hours keep filling the period SLA buckets — parking is downtime the
+	 * contract saw — but they do not count as served hours, so recurring sleeps.
+	 */
+	accruePeriodPayg(): number {
+		if (this.#status !== "served" && this.#status !== "offline") {
+			return 0;
+		}
+
+		if (this.#status === "served") {
+			this.#hoursServedInPeriod += 1;
+		}
+
+		const { emittedRequests, handledRequests } = this.#metrics;
+
+		if (emittedRequests === 0) {
+			return 0;
+		}
+
+		this.#periodHandled += handledRequests;
+		this.#periodEmitted += emittedRequests;
+
 		if (this.#status !== "served") {
 			return 0;
 		}
 
-		this.#hoursServedInPeriod += 1;
-
-		if (this.#metrics.emittedRequests === 0) {
-			return 0;
-		}
-
 		const paygCents = paygCentsForHandled(
-			this.#metrics.handledRequests,
+			handledRequests,
 			this.commercial.paygCentsPerThousandHandled,
 		);
 
 		this.#periodPaygCents += paygCents;
-		this.#periodHandled += this.#metrics.handledRequests;
-		this.#periodEmitted += this.#metrics.emittedRequests;
 
 		return paygCents;
 	}
 
 	closeBillingPeriod(periodIndex: number): number {
-		if (this.#hoursServedInPeriod === 0) {
+		if (this.#hoursServedInPeriod === 0 && this.#periodEmitted === 0) {
 			return 0;
 		}
 
@@ -289,8 +317,12 @@ export class Project {
 		};
 	}
 
+	/**
+	 * Offline emits like served. Reusing the "not served, emit 0" branch would
+	 * freeze the SLA ring and turn parking into free uptime.
+	 */
 	tick(hourIndex: number, random: RandomSource): number {
-		if (this.#status !== "served") {
+		if (this.#status !== "served" && this.#status !== "offline") {
 			this.#metrics = EMPTY_PROJECT_TICK_METRICS;
 
 			return 0;
@@ -301,5 +333,30 @@ export class Project {
 		this.#metrics = measureProjectTick(emittedRequests);
 
 		return emittedRequests;
+	}
+
+	#transition(status: ProjectStatus, route: RouteTarget | undefined): Project {
+		const next = new Project({
+			id: this.id,
+			estimatedRequestsPerHour: this.estimatedRequestsPerHour,
+			status,
+			demand: this.demand,
+			category: this.category,
+			region: this.region,
+			campaignProne: this.campaignProne,
+			commercial: this.commercial,
+			...(this.campaign === undefined ? {} : { campaign: this.campaign }),
+			...(route === undefined ? {} : { route }),
+		});
+
+		next.#slaHours = this.#slaHours.slice();
+		next.#metrics = this.#metrics;
+		next.#hoursServedInPeriod = this.#hoursServedInPeriod;
+		next.#periodPaygCents = this.#periodPaygCents;
+		next.#periodHandled = this.#periodHandled;
+		next.#periodEmitted = this.#periodEmitted;
+		next.#settlements = this.#settlements.slice();
+
+		return next;
 	}
 }

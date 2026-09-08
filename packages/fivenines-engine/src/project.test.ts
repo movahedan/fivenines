@@ -18,6 +18,14 @@ function shapedInitial(overrides: Partial<ProjectInitial> = {}): ProjectInitial 
 	};
 }
 
+function servedInitial(overrides: Partial<ProjectInitial> = {}): ProjectInitial {
+	return shapedInitial({
+		status: "served",
+		route: { kind: "server", serverId: "server-1" },
+		...overrides,
+	});
+}
+
 describe("Project - tick", () => {
 	it("returns 0 without consuming RNG when the project is offered", () => {
 		const project = new Project(shapedInitial());
@@ -28,7 +36,15 @@ describe("Project - tick", () => {
 	});
 
 	it("emits demand when the project is served", () => {
-		const project = new Project(shapedInitial({ status: "served" }));
+		const project = new Project(servedInitial());
+		const emittedRequests = project.tick(0, new FixedRandomSource(0.5));
+
+		expect(emittedRequests).toBeGreaterThan(0);
+		expect(project.metrics.emittedRequests).toBe(emittedRequests);
+	});
+
+	it("emits demand when the project is parked offline", () => {
+		const project = new Project(shapedInitial({ status: "offline" }));
 		const emittedRequests = project.tick(0, new FixedRandomSource(0.5));
 
 		expect(emittedRequests).toBeGreaterThan(0);
@@ -82,6 +98,27 @@ describe("Project - construction", () => {
 			"at least one of paygCentsPerThousandHandled or recurringCentsPerPeriod must be positive",
 		);
 	});
+
+	it("throws when a served project has no route", () => {
+		expect(() => new Project(shapedInitial({ status: "served" }))).toThrow(
+			"served project requires a route: project-1",
+		);
+	});
+
+	it("throws when a non-served project carries a route", () => {
+		for (const status of ["offered", "declined", "offline"] as const) {
+			expect(
+				() =>
+					new Project(shapedInitial({ status, route: { kind: "server", serverId: "server-1" } })),
+			).toThrow("only a served project can have a route: project-1");
+		}
+	});
+
+	it("keeps the route on a served project and leaves it undefined otherwise", () => {
+		expect(new Project(servedInitial()).route).toEqual({ kind: "server", serverId: "server-1" });
+		expect(new Project(shapedInitial({ status: "offline" })).route).toBeUndefined();
+		expect(new Project(shapedInitial()).route).toBeUndefined();
+	});
 });
 
 describe("Project - asServed", () => {
@@ -96,15 +133,56 @@ describe("Project - asServed", () => {
 				},
 			}),
 		);
-		const served = offered.asServed();
+		const served = offered.asServed("server-1");
 
 		expect(served.status).toBe("served");
+		expect(served.route).toEqual({ kind: "server", serverId: "server-1" });
 		expect(served.commercial).toEqual({
 			paygCentsPerThousandHandled: 3,
 			recurringCentsPerPeriod: 4_000,
 			targetPpm: 950_000,
 			creditPpm: 50_000,
 		});
+	});
+});
+
+describe("Project - asOffline", () => {
+	it("clears the route and keeps period buckets when a served project is parked", () => {
+		const served = new Project(servedInitial());
+		const parked = served.asOffline();
+
+		expect(parked.status).toBe("offline");
+		expect(parked.route).toBeUndefined();
+		expect(parked.hoursServedInPeriod).toBe(served.hoursServedInPeriod);
+		expect(parked.slaHours).toEqual(served.slaHours);
+	});
+
+	it("throws when the project is not served", () => {
+		expect(() => new Project(shapedInitial()).asOffline()).toThrow(
+			"project is not served: project-1",
+		);
+	});
+});
+
+describe("Project - asRoutedTo", () => {
+	it("moves a served project to another box", () => {
+		const moved = new Project(servedInitial()).asRoutedTo("server-2");
+
+		expect(moved.status).toBe("served");
+		expect(moved.route).toEqual({ kind: "server", serverId: "server-2" });
+	});
+
+	it("brings a parked project back to served", () => {
+		const revived = new Project(shapedInitial({ status: "offline" })).asRoutedTo("server-2");
+
+		expect(revived.status).toBe("served");
+		expect(revived.route).toEqual({ kind: "server", serverId: "server-2" });
+	});
+
+	it("throws when the project is neither served nor offline", () => {
+		expect(() => new Project(shapedInitial()).asRoutedTo("server-1")).toThrow(
+			"project is not routable: project-1",
+		);
 	});
 });
 
@@ -135,7 +213,7 @@ describe("Project - asDeclined", () => {
 	});
 
 	it("throws when the project is not offered", () => {
-		const served = new Project(shapedInitial({ status: "served" }));
+		const served = new Project(servedInitial());
 
 		expect(() => served.asDeclined()).toThrow("project is not offered: project-1");
 	});

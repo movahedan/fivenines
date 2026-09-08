@@ -40,7 +40,11 @@ function lastSettlementLabel(settlements: readonly BillingSettlement[]): string 
 export function LabSession() {
 	const { game, lastError, tick, dispatch, reset } = useLabGame();
 	const [region, setRegion] = useState<RegionId>(DEFAULT_REGION);
+	const [pickedServerId, setPickedServerId] = useState<string | undefined>(undefined);
 	const { cashCents, accountsReceivableCents, jailed, maintenanceCents, powerCents } = game.finance;
+	const serverId = game.assets.some((asset) => asset.id === pickedServerId)
+		? pickedServerId
+		: game.assets.at(0)?.id;
 
 	return (
 		<main className="flex flex-col gap-6">
@@ -95,6 +99,20 @@ export function LabSession() {
 							</option>
 						))}
 					</select>
+					<label htmlFor="lab-server">Server</label>
+					<select
+						id="lab-server"
+						name="server"
+						value={serverId ?? ""}
+						onChange={(event) => setPickedServerId(event.target.value)}
+					>
+						{game.assets.length === 0 ? <option value="">none</option> : null}
+						{game.assets.map((asset) => (
+							<option key={asset.id} value={asset.id}>
+								{asset.id}
+							</option>
+						))}
+					</select>
 					<Button onClick={tick}>Tick</Button>
 					<Button variant="outline" onClick={reset}>
 						Reset
@@ -141,8 +159,9 @@ export function LabSession() {
 									<li key={project.id}>
 										{project.id} {project.status}
 										{project.status === "offered" ? <OfferCard project={project} /> : null}
-										{project.status === "served" ? (
+										{project.status === "served" || project.status === "offline" ? (
 											<>
+												<p>routed {project.route?.serverId ?? "parked"}</p>
 												<p>this-hour {formatSlaPpm(project.metrics.availabilityPpm)} ppm</p>
 												<p>window {formatSlaPpm(project.metrics.windowAvailabilityPpm)} ppm</p>
 												<p>this-period PAYG {project.periodPaygCents}</p>
@@ -162,7 +181,20 @@ export function LabSession() {
 											</>
 										) : null}
 										{project.status === "offered" ? (
-											<AcceptButton projectId={project.id} jailed={jailed} onDispatch={dispatch} />
+											<AcceptButton
+												projectId={project.id}
+												jailed={jailed}
+												serverId={serverId}
+												onDispatch={dispatch}
+											/>
+										) : null}
+										{project.status === "served" || project.status === "offline" ? (
+											<RouteButtons
+												projectId={project.id}
+												parked={project.status === "offline"}
+												serverId={serverId}
+												onDispatch={dispatch}
+											/>
 										) : null}
 									</li>
 								))}
@@ -248,16 +280,57 @@ function BuyServerButton({
 interface AcceptButtonProps {
 	readonly projectId: string;
 	readonly jailed: boolean;
+	readonly serverId: string | undefined;
 	readonly onDispatch: (command: EngineCommand) => void;
 }
 
-function AcceptButton({ projectId, jailed, onDispatch }: AcceptButtonProps) {
+function AcceptButton({ projectId, jailed, serverId, onDispatch }: AcceptButtonProps) {
 	return (
 		<Button
-			disabled={jailed}
-			onClick={() => onDispatch({ type: "acceptProject", payload: { projectId } })}
+			disabled={jailed || serverId === undefined}
+			onClick={() => {
+				if (serverId !== undefined) {
+					onDispatch({ type: "acceptProject", payload: { projectId, serverId } });
+				}
+			}}
 		>
 			{`Accept ${projectId}`}
 		</Button>
+	);
+}
+
+interface RouteButtonsProps {
+	readonly projectId: string;
+	readonly parked: boolean;
+	readonly serverId: string | undefined;
+	readonly onDispatch: (command: EngineCommand) => void;
+}
+
+function RouteButtons({ projectId, parked, serverId, onDispatch }: RouteButtonsProps) {
+	return (
+		<>
+			<Button
+				variant="outline"
+				disabled={serverId === undefined}
+				onClick={() => {
+					if (serverId !== undefined) {
+						onDispatch({
+							type: parked ? "assignProject" : "moveProject",
+							payload: { projectId, serverId },
+						});
+					}
+				}}
+			>
+				{`${parked ? "Assign" : "Move"} ${projectId}`}
+			</Button>
+			{parked ? null : (
+				<Button
+					variant="secondary"
+					onClick={() => onDispatch({ type: "unassignProject", payload: { projectId } })}
+				>
+					{`Park ${projectId}`}
+				</Button>
+			)}
+		</>
 	);
 }

@@ -11,7 +11,7 @@ const offeredConstantInitial: GameInitial = {
 			projects: [constantProject("project-1", 700, "offered")],
 		},
 	],
-	assets: [],
+	assets: [{ kind: "server", id: "server-1", catalogId: "bronze", region: "utc+0" }],
 };
 
 describe("Game - tick", () => {
@@ -81,7 +81,10 @@ describe("Game - hourIndex", () => {
 
 		expect(game.hourIndex).toBe(0);
 
-		game.dispatch({ type: "acceptProject", payload: { projectId: "project-1" } });
+		game.dispatch({
+			type: "acceptProject",
+			payload: { projectId: "project-1", serverId: "server-1" },
+		});
 
 		expect(game.hourIndex).toBe(0);
 	});
@@ -160,5 +163,35 @@ describe("Game - construct", () => {
 					],
 				}),
 		).toThrow("unknown region: utc+3");
+	});
+
+	it("throws when a project route names a server the fleet does not own", () => {
+		expect(
+			() =>
+				new Game({
+					customers: [
+						{
+							id: "customer-1",
+							projects: [constantProject("project-1", 700, "served", "server-9")],
+						},
+					],
+					assets: [{ kind: "server", id: "server-1", catalogId: "bronze", region: "utc+0" }],
+				}),
+		).toThrow("unknown server id for project route: project-1");
+	});
+
+	it("throws when a served project route has no fleet at all", () => {
+		expect(
+			() =>
+				new Game({
+					customers: [
+						{
+							id: "customer-1",
+							projects: [constantProject("project-1", 700, "served", "server-1")],
+						},
+					],
+					assets: [],
+				}),
+		).toThrow("unknown server id for project route: project-1");
 	});
 });

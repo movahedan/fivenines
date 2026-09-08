@@ -96,11 +96,15 @@ describe("Game - buy sell accept money", () => {
 	it("throws and does not change cash when acceptProject is dispatched while jailed", () => {
 		const game = new Game({
 			...offeredInitial(),
+			assets: [{ kind: "server", id: "server-1", catalogId: "bronze", region: "utc+0" }],
 			jailed: true,
 		});
 
 		expect(() =>
-			game.dispatch({ type: "acceptProject", payload: { projectId: "project-1" } }),
+			game.dispatch({
+				type: "acceptProject",
+				payload: { projectId: "project-1", serverId: "server-1" },
+			}),
 		).toThrow("cannot acceptProject while jailed");
 		expect(game.cashCents).toBe(STARTING_CASH_CENTS);
 		expect(game.customers[0]?.projects[0]?.status).toBe("offered");

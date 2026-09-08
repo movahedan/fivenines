@@ -28,6 +28,11 @@ const OPS = {
 	warning: "#fbbf24",
 	info: "#60a5fa",
 	sla: "#4ade80",
+	glowPrimary: "0 0 16px rgb(0 255 136 / 0.45)",
+	glowDanger: "0 0 16px rgb(248 113 113 / 0.45)",
+	glowWarning: "0 0 16px rgb(251 191 36 / 0.45)",
+	glowInfo: "0 0 16px rgb(96 165 250 / 0.45)",
+	glowSla: "0 0 16px rgb(74 222 128 / 0.45)",
 } as const;
 
 export const THEME = {

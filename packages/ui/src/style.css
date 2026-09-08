@@ -139,6 +139,9 @@
 	--color-sla: var(--sla);
 	--shadow-glow-primary: 0 0 16px rgb(0 255 136 / 0.45);
 	--shadow-glow-danger: 0 0 16px rgb(248 113 113 / 0.45);
+	--shadow-glow-warning: 0 0 16px rgb(251 191 36 / 0.45);
+	--shadow-glow-info: 0 0 16px rgb(96 165 250 / 0.45);
+	--shadow-glow-sla: 0 0 16px rgb(74 222 128 / 0.45);
 }
 
 @layer base {

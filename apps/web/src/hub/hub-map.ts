@@ -27,6 +27,15 @@ export const REGION_CLASS: Record<RegionId, string> = {
 	"utc+9": "bg-destructive/20 text-destructive",
 };
 
+export const SKU_DOT_CLASS: Record<ServerCatalogId, string> = {
+	bronze: "bg-warning shadow-glow-warning",
+	silver: "bg-muted-foreground shadow-glow-info",
+	gold: "bg-warning shadow-glow-warning",
+	platinum: "bg-sla shadow-glow-sla",
+	diamond: "bg-info shadow-glow-info",
+	"thin-ram": "bg-sla shadow-glow-sla",
+};
+
 export function slaPercent(windowAvailabilityPpm: number | null): number {
 	if (windowAvailabilityPpm === null) {
 		return 0;

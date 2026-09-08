@@ -30,6 +30,8 @@ describe("Hud", () => {
 		expect(screen.getByText("00:12:00")).toBeInTheDocument();
 		expect(screen.getByText("CASH")).toBeInTheDocument();
 		expect(screen.getByText("$12,400")).toBeInTheDocument();
+		expect(screen.getByLabelText("Five Nines mark")).toBeInTheDocument();
+		expect(screen.getByText("9s")).toBeInTheDocument();
 		expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
 	});
 
@@ -67,5 +69,21 @@ describe("Hud", () => {
 		expect(screen.getByRole("button", { name: "Resume" })).toBeInTheDocument();
 		expect(screen.getByText("JAILED")).toBeInTheDocument();
 		expect(screen.getByText("ops@five")).toBeInTheDocument();
+	});
+
+	it("renders a custom logo when provided", () => {
+		render(
+			<Hud
+				title="Five Nines"
+				tickLabel="W1 T04"
+				metrics={METRICS}
+				running
+				onToggleRunning={mock()}
+				logo={<Text>mark</Text>}
+			/>,
+		);
+
+		expect(screen.getByText("mark")).toBeInTheDocument();
+		expect(screen.queryByLabelText("Five Nines mark")).not.toBeInTheDocument();
 	});
 });

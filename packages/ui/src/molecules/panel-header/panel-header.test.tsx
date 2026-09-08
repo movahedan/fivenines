@@ -24,4 +24,10 @@ describe("PanelHeader", () => {
 		expect(screen.getByText("Market")).toBeInTheDocument();
 		expect(screen.getByText("filter")).toBeInTheDocument();
 	});
+
+	it("exposes a panel marker for the given tone", () => {
+		render(<PanelHeader label="Incoming" tone="warning" />);
+
+		expect(screen.getByLabelText("warning panel marker")).toBeInTheDocument();
+	});
 });

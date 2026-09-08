@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, mock } from "bun:test";
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
 import { AuthProvider } from "@packages/auth/react";
 
@@ -29,6 +29,51 @@ function renderHub(): ReturnType<typeof render> {
 async function waitForOpsFloor(): Promise<void> {
 	await waitFor(() => {
 		expect(screen.getByRole("button", { name: "Pause" })).toBeTruthy();
+	});
+}
+
+function stubSession(): void {
+	stubLoggedInHint(true);
+	globalThis.fetch = mock(async () =>
+		Promise.resolve(new Response(null, { status: 401 })),
+	) as unknown as typeof fetch;
+}
+
+function activeFloor(): HTMLElement {
+	return screen.getByRole("region", { name: "Active floor" });
+}
+
+function buyFirstMarketServer(): void {
+	const buy = screen.getAllByRole("button", { name: "BUY" })[0];
+
+	if (buy === undefined) {
+		throw new Error("expected a market BUY button");
+	}
+
+	fireEvent.click(buy);
+}
+
+function acceptFirstOffer(): void {
+	const accept = screen.getAllByRole("button", { name: "ACCEPT" })[0];
+
+	if (accept === undefined) {
+		throw new Error("expected an offer ACCEPT button");
+	}
+
+	fireEvent.click(accept);
+}
+
+async function serveFirstOffer(): Promise<void> {
+	buyFirstMarketServer();
+
+	await waitFor(() => {
+		expect(screen.getByText("Fleet (1)")).toBeTruthy();
+	});
+
+	acceptFirstOffer();
+
+	await waitFor(() => {
+		expect(screen.getByText("Active (1)")).toBeTruthy();
 	});
 }
 
@@ -139,19 +184,17 @@ describe("HubPage - ops landmarks", () => {
 	});
 
 	it("moves an accepted offer into the active panel", async () => {
-		stubLoggedInHint(true);
-		globalThis.fetch = mock(async () =>
-			Promise.resolve(new Response(null, { status: 401 })),
-		) as unknown as typeof fetch;
+		stubSession();
 
 		renderHub();
 
 		await waitForOpsFloor();
-		const accept = screen.getAllByRole("button", { name: "ACCEPT" })[0];
-		if (accept === undefined) {
-			throw new Error("expected an offer ACCEPT button");
-		}
-		fireEvent.click(accept);
+		buyFirstMarketServer();
+
+		await waitFor(() => {
+			expect(screen.getByText("Fleet (1)")).toBeTruthy();
+		});
+		acceptFirstOffer();
 
 		await waitFor(() => {
 			expect(screen.getByText("Active (1)")).toBeTruthy();
@@ -181,6 +224,103 @@ describe("HubPage - ops landmarks", () => {
 			expect(screen.getByText("Active (0)")).toBeTruthy();
 		});
 		expect(screen.queryByText(/not a kernel command/)).toBeNull();
+	});
+});
+
+describe("HubPage - project routing", () => {
+	afterEach(() => {
+		mock.restore();
+		Reflect.deleteProperty(document, "cookie");
+	});
+
+	it("keeps Accept disabled while the fleet is empty", async () => {
+		stubSession();
+
+		renderHub();
+
+		await waitForOpsFloor();
+
+		expect(screen.getAllByRole("button", { name: "ACCEPT" })[0]).toBeDisabled();
+	});
+
+	it("shows the routed server on the active card after accepting an offer", async () => {
+		stubSession();
+
+		renderHub();
+
+		await waitForOpsFloor();
+		await serveFirstOffer();
+
+		expect(within(activeFloor()).getByText("server-1 · Bronze")).toBeTruthy();
+	});
+
+	it("moves a served project into the parked list and back when parked then assigned", async () => {
+		stubSession();
+
+		renderHub();
+
+		await waitForOpsFloor();
+		await serveFirstOffer();
+
+		fireEvent.click(within(activeFloor()).getByRole("button", { name: "PARK" }));
+
+		await waitFor(() => {
+			expect(screen.getByText("Active (0)")).toBeTruthy();
+			expect(screen.getByText("Parked (1)")).toBeTruthy();
+		});
+		expect(within(activeFloor()).getByText("PARKED")).toBeTruthy();
+
+		fireEvent.click(within(activeFloor()).getByRole("button", { name: "ASSIGN" }));
+
+		await waitFor(() => {
+			expect(screen.getByText("Active (1)")).toBeTruthy();
+			expect(screen.getByText("Parked (0)")).toBeTruthy();
+		});
+		expect(within(activeFloor()).getByText("server-1 · Bronze")).toBeTruthy();
+	});
+
+	it("does not log a move when MOVE is clicked with the picker still on the current server", async () => {
+		stubSession();
+
+		renderHub();
+
+		await waitForOpsFloor();
+		await serveFirstOffer();
+
+		fireEvent.click(within(activeFloor()).getByRole("button", { name: "MOVE" }));
+
+		const log = screen.getByRole("region", { name: "Event log" });
+
+		await waitFor(() => {
+			expect(within(log).queryByText(/^Moved /)).toBeNull();
+		});
+		expect(within(activeFloor()).getByText("server-1 · Bronze")).toBeTruthy();
+	});
+
+	it("refuses to sell a server while a served project routes to it, then sells once parked", async () => {
+		stubSession();
+
+		renderHub();
+
+		await waitForOpsFloor();
+		await serveFirstOffer();
+
+		fireEvent.click(within(activeFloor()).getByRole("button", { name: "SELL" }));
+
+		await waitFor(() => {
+			expect(screen.getByRole("alert").textContent).toContain(
+				"server has a served project routed to it: acme-web",
+			);
+		});
+		expect(screen.getByText("Fleet (1)")).toBeTruthy();
+
+		fireEvent.click(within(activeFloor()).getByRole("button", { name: "PARK" }));
+		fireEvent.click(within(activeFloor()).getByRole("button", { name: "SELL" }));
+
+		await waitFor(() => {
+			expect(screen.getByText("Fleet (0)")).toBeTruthy();
+		});
+		expect(screen.queryByRole("alert")).toBeNull();
 	});
 });
 

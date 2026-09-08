@@ -15,30 +15,33 @@ function allProjects(game: Game): Project[] {
 	return game.customers.flatMap((customer) => [...customer.projects]);
 }
 
-function emptyFleetInitial(projects: GameInitial["customers"][number]["projects"]): GameInitial {
+function oneBronzeWith(
+	projects: GameInitial["customers"][number]["projects"],
+	cashCents?: number,
+): GameInitial {
 	return {
 		customers: [{ id: "customer-1", projects }],
-		assets: [],
+		assets: [{ kind: "server", id: "server-1", catalogId: "bronze", region: "utc+0" }],
+		...(cashCents === undefined ? {} : { cashCents }),
 	};
 }
 
+const IDLE_BRONZE_OPEX_CENTS =
+	SKU_ECONOMY.bronze.maintenanceCentsPerHour + SKU_ECONOMY.bronze.idlePowerCentsPerHour;
+
 describe("Game - PAYG", () => {
 	it("credits floor of handled times paygCentsPerThousandHandled over 1000 after opex and buckets the hour", () => {
-		const game = new Game({
-			customers: [
-				{
-					id: "customer-1",
-					projects: [
-						{
-							...constantProject("project-1", 100, "served"),
-							commercial: { ...PAYG_ONLY_COMMERCIAL_STUB, paygCentsPerThousandHandled: 7_000 },
-						},
-					],
-				},
-			],
-			assets: [{ kind: "server", id: "server-1", catalogId: "bronze", region: "utc+0" }],
-			cashCents: 10_000,
-		}).tick();
+		const game = new Game(
+			oneBronzeWith(
+				[
+					{
+						...constantProject("project-1", 100, "served", "server-1"),
+						commercial: { ...PAYG_ONLY_COMMERCIAL_STUB, paygCentsPerThousandHandled: 7_000 },
+					},
+				],
+				10_000,
+			),
+		).tick();
 		const project = allProjects(game)[0];
 		const paygCents = paygCentsForHandled(project?.metrics.handledRequests ?? 0, 7_000);
 
@@ -52,7 +55,9 @@ describe("Game - PAYG", () => {
 	});
 
 	it("credits 0 PAYG on emit-0 and still increments hoursServedInPeriod", () => {
-		const game = new Game(emptyFleetInitial([constantProject("project-1", 0, "served")])).tick();
+		const game = new Game(
+			oneBronzeWith([constantProject("project-1", 0, "served", "server-1")]),
+		).tick();
 		const project = allProjects(game)[0];
 
 		expect(project?.metrics.emittedRequests).toBe(0);
@@ -60,7 +65,21 @@ describe("Game - PAYG", () => {
 		expect(project?.periodPaygCents).toBe(0);
 		expect(project?.periodHandled).toBe(0);
 		expect(project?.periodEmitted).toBe(0);
-		expect(game.cashCents).toBe(STARTING_CASH_CENTS);
+		expect(game.accountsReceivableCents).toBe(0);
+		expect(game.cashCents).toBe(STARTING_CASH_CENTS - IDLE_BRONZE_OPEX_CENTS);
+	});
+
+	it("credits 0 PAYG and no served hour when the project is parked", () => {
+		const game = new Game(oneBronzeWith([constantProject("project-1", 700, "offline")])).tick();
+		const project = allProjects(game)[0];
+
+		expect(project?.metrics.emittedRequests).toBe(700);
+		expect(project?.metrics.handledRequests).toBe(0);
+		expect(project?.hoursServedInPeriod).toBe(0);
+		expect(project?.periodPaygCents).toBe(0);
+		expect(project?.periodEmitted).toBe(700);
+		expect(game.accountsReceivableCents).toBe(0);
+		expect(game.cashCents).toBe(STARTING_CASH_CENTS - IDLE_BRONZE_OPEX_CENTS);
 	});
 
 	it("credits 0 PAYG when the project is offered or declined", () => {
@@ -120,16 +139,9 @@ describe("Game - PAYG", () => {
 	});
 
 	it("settles PAYG receivable into cash after 24 hours", () => {
-		const game = new Game({
-			customers: [
-				{
-					id: "customer-1",
-					projects: [constantProject("project-1", 100, "served")],
-				},
-			],
-			assets: [{ kind: "server", id: "server-1", catalogId: "bronze", region: "utc+0" }],
-			cashCents: 20_000,
-		});
+		const game = new Game(
+			oneBronzeWith([constantProject("project-1", 100, "served", "server-1")], 20_000),
+		);
 		let accruedPayg = 0;
 
 		for (let hour = 0; hour < 23; hour++) {

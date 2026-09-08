@@ -4,15 +4,19 @@ import {
 	BILLING_PERIOD_HOURS,
 	OPENING_COMMERCIAL_STUB,
 	PAYG_ONLY_COMMERCIAL_STUB,
+	paygCentsForHandled,
 	SETTLEMENT_HISTORY_K,
 	slaCreditPpm,
 } from "./catalog/commercial-policy";
-import { STARTING_CASH_CENTS } from "./catalog/economy-policy";
+import { STARTING_CASH_CENTS, skuHourlyOpex } from "./catalog/economy-policy";
 import { slaAvailabilityPpm } from "./catalog/sla-policy";
 import { constantProject, oneBronzeInitial, twoBronzeInitial } from "./fixtures";
 import type { GameInitial } from "./game";
 import { Game } from "./game";
 import type { Project } from "./project";
+
+const IDLE_BRONZE_OPEX_CENTS = skuHourlyOpex("bronze", 0).opexCents;
+const FULL_BRONZE_OPEX_CENTS = skuHourlyOpex("bronze", 100).opexCents;
 
 function allProjects(game: Game): Project[] {
 	return game.customers.flatMap((customer) => [...customer.projects]);
@@ -22,6 +26,13 @@ function emptyFleetInitial(projects: GameInitial["customers"][number]["projects"
 	return {
 		customers: [{ id: "customer-1", projects }],
 		assets: [],
+	};
+}
+
+function oneBronzeWith(projects: GameInitial["customers"][number]["projects"]): GameInitial {
+	return {
+		customers: [{ id: "customer-1", projects }],
+		assets: [{ kind: "server", id: "server-1", catalogId: "bronze", region: "utc+0" }],
 	};
 }
 
@@ -50,9 +61,9 @@ function expectedCredit(
 describe("Game - billing close", () => {
 	it("does not close before hourIndex reaches 168 and closes after 168 ticks", () => {
 		const game = new Game(
-			emptyFleetInitial([
+			oneBronzeWith([
 				{
-					...constantProject("project-1", 0, "served"),
+					...constantProject("project-1", 0, "served", "server-1"),
 					commercial: OPENING_COMMERCIAL_STUB,
 				},
 			]),
@@ -81,7 +92,9 @@ describe("Game - billing close", () => {
 		]);
 		expect(project?.hoursServedInPeriod).toBe(0);
 		expect(game.cashCents).toBe(
-			STARTING_CASH_CENTS + OPENING_COMMERCIAL_STUB.recurringCentsPerPeriod,
+			STARTING_CASH_CENTS -
+				IDLE_BRONZE_OPEX_CENTS * BILLING_PERIOD_HOURS +
+				OPENING_COMMERCIAL_STUB.recurringCentsPerPeriod,
 		);
 	});
 
@@ -92,7 +105,7 @@ describe("Game - billing close", () => {
 			(OPENING_COMMERCIAL_STUB.recurringCentsPerPeriod * hoursServed) / BILLING_PERIOD_HOURS,
 		);
 		const game = new Game(
-			emptyFleetInitial([
+			oneBronzeWith([
 				{
 					...constantProject("project-1", 0, "offered"),
 					commercial: OPENING_COMMERCIAL_STUB,
@@ -101,7 +114,10 @@ describe("Game - billing close", () => {
 		);
 
 		tickHours(game, hoursOffered);
-		game.dispatch({ type: "acceptProject", payload: { projectId: "project-1" } });
+		game.dispatch({
+			type: "acceptProject",
+			payload: { projectId: "project-1", serverId: "server-1" },
+		});
 		tickHours(game, hoursServed);
 
 		const project = allProjects(game)[0];
@@ -118,15 +134,17 @@ describe("Game - billing close", () => {
 				periodRevenueCents: recurringCents,
 			},
 		]);
-		expect(game.cashCents).toBe(STARTING_CASH_CENTS + recurringCents);
+		expect(game.cashCents).toBe(
+			STARTING_CASH_CENTS - IDLE_BRONZE_OPEX_CENTS * BILLING_PERIOD_HOURS + recurringCents,
+		);
 	});
 
 	it("counts emit-0 served hours toward recurring and not PAYG", () => {
 		const game = tickHours(
 			new Game(
-				emptyFleetInitial([
+				oneBronzeWith([
 					{
-						...constantProject("project-1", 0, "served"),
+						...constantProject("project-1", 0, "served", "server-1"),
 						commercial: OPENING_COMMERCIAL_STUB,
 					},
 				]),
@@ -143,34 +161,43 @@ describe("Game - billing close", () => {
 		expect(settlement?.creditCents).toBe(0);
 	});
 
-	it("credits T1 when periodPpm is below targetPpm", () => {
+	it("credits the full period revenue when a served project only ever handles half its demand", () => {
 		const game = tickHours(
 			new Game(
-				emptyFleetInitial([
+				oneBronzeWith([
 					{
-						...constantProject("project-1", 100, "served"),
+						...constantProject("project-1", 2_000, "served", "server-1"),
 						commercial: OPENING_COMMERCIAL_STUB,
 					},
 				]),
 			),
 			BILLING_PERIOD_HOURS,
 		);
-		const project = allProjects(game)[0];
-		const settlement = project?.settlements[0];
-		const periodPpm = slaAvailabilityPpm(0, 100 * BILLING_PERIOD_HOURS);
+		const settlement = allProjects(game)[0]?.settlements[0];
+		const paygCents =
+			paygCentsForHandled(1_000, OPENING_COMMERCIAL_STUB.paygCentsPerThousandHandled) *
+			BILLING_PERIOD_HOURS;
 		const recurringCents = OPENING_COMMERCIAL_STUB.recurringCentsPerPeriod;
+		const periodRevenueCents = paygCents + recurringCents;
 		const creditCents = expectedCredit(
-			recurringCents,
-			periodPpm,
+			periodRevenueCents,
+			slaAvailabilityPpm(1_000 * BILLING_PERIOD_HOURS, 2_000 * BILLING_PERIOD_HOURS),
 			OPENING_COMMERCIAL_STUB.targetPpm,
 		);
 
-		expect(settlement?.periodPpm).toBe(0);
-		expect(settlement?.paygCents).toBe(0);
+		expect(settlement?.periodPpm).toBe(500_000);
+		expect(settlement?.paygCents).toBe(paygCents);
 		expect(settlement?.recurringCents).toBe(recurringCents);
+		expect(settlement?.periodRevenueCents).toBe(periodRevenueCents);
 		expect(settlement?.creditCents).toBe(creditCents);
-		expect(creditCents).toBeGreaterThan(0);
-		expect(game.cashCents).toBe(STARTING_CASH_CENTS + recurringCents - creditCents);
+		expect(creditCents).toBe(periodRevenueCents);
+		expect(game.cashCents).toBe(
+			STARTING_CASH_CENTS -
+				FULL_BRONZE_OPEX_CENTS * BILLING_PERIOD_HOURS +
+				paygCents +
+				recurringCents -
+				creditCents,
+		);
 	});
 
 	it("credits 0 when periodPpm meets targetPpm", () => {
@@ -188,9 +215,9 @@ describe("Game - billing close", () => {
 	it("credits 0 when periodEmitted is 0", () => {
 		const game = tickHours(
 			new Game(
-				emptyFleetInitial([
+				oneBronzeWith([
 					{
-						...constantProject("project-1", 0, "served"),
+						...constantProject("project-1", 0, "served", "server-1"),
 						commercial: {
 							...OPENING_COMMERCIAL_STUB,
 							targetPpm: 0,
@@ -210,9 +237,9 @@ describe("Game - billing close", () => {
 
 	it("keeps the last 8 settlements", () => {
 		const game = new Game(
-			emptyFleetInitial([
+			oneBronzeWith([
 				{
-					...constantProject("project-1", 0, "served"),
+					...constantProject("project-1", 0, "served", "server-1"),
 					commercial: OPENING_COMMERCIAL_STUB,
 				},
 			]),
@@ -244,12 +271,101 @@ describe("Game - billing close", () => {
 		}
 	});
 
+	it("settles a parked week with zero recurring and resets the period buckets", () => {
+		const game = tickHours(
+			new Game(
+				emptyFleetInitial([
+					{
+						...constantProject("project-1", 100, "offline"),
+						commercial: OPENING_COMMERCIAL_STUB,
+					},
+				]),
+			),
+			BILLING_PERIOD_HOURS,
+		);
+		const project = allProjects(game)[0];
+
+		expect(project?.settlements).toEqual([
+			{
+				periodIndex: 1,
+				hoursServedInPeriod: 0,
+				paygCents: 0,
+				recurringCents: 0,
+				creditCents: 0,
+				periodPpm: 0,
+				periodRevenueCents: 0,
+			},
+		]);
+		expect(project?.hoursServedInPeriod).toBe(0);
+		expect(project?.periodHandled).toBe(0);
+		expect(project?.periodEmitted).toBe(0);
+		expect(game.cashCents).toBe(STARTING_CASH_CENTS);
+	});
+
+	it("prorates recurring over the served half of a period but rates SLA over all of it", () => {
+		const halfPeriod = BILLING_PERIOD_HOURS / 2;
+		const game = new Game(
+			oneBronzeWith([
+				{
+					...constantProject("project-1", 100, "served", "server-1"),
+					commercial: OPENING_COMMERCIAL_STUB,
+				},
+			]),
+		);
+
+		let servedHandled = 0;
+		let servedEmitted = 0;
+		let totalEmitted = 0;
+
+		for (let hour = 0; hour < BILLING_PERIOD_HOURS; hour++) {
+			if (hour === halfPeriod) {
+				game.dispatch({ type: "unassignProject", payload: { projectId: "project-1" } });
+			}
+
+			game.tick();
+
+			const metrics = allProjects(game)[0]?.metrics;
+			totalEmitted += metrics?.emittedRequests ?? 0;
+
+			if (hour < halfPeriod) {
+				servedHandled += metrics?.handledRequests ?? 0;
+				servedEmitted += metrics?.emittedRequests ?? 0;
+			}
+		}
+
+		const project = allProjects(game)[0];
+		const settlement = project?.settlements.at(-1);
+		const periodPpm = slaAvailabilityPpm(servedHandled, totalEmitted);
+
+		expect(project?.status).toBe("offline");
+		expect(settlement?.hoursServedInPeriod).toBe(halfPeriod);
+		expect(settlement?.recurringCents).toBe(
+			Math.floor((OPENING_COMMERCIAL_STUB.recurringCentsPerPeriod * halfPeriod) / 168),
+		);
+		expect(settlement?.periodPpm).toBe(periodPpm);
+		expect(settlement?.creditCents).toBe(
+			expectedCredit(
+				settlement?.periodRevenueCents ?? 0,
+				periodPpm,
+				OPENING_COMMERCIAL_STUB.targetPpm,
+			),
+		);
+
+		// The parked half is downtime the customer felt, so it has to drag the
+		// period rating below what the served half alone would have scored.
+		expect(periodPpm).toBeLessThan(slaAvailabilityPpm(servedHandled, servedEmitted) ?? 0);
+
+		expect(project?.hoursServedInPeriod).toBe(0);
+		expect(project?.periodHandled).toBe(0);
+		expect(project?.periodEmitted).toBe(0);
+	});
+
 	it("still closes while jailed", () => {
 		const game = tickHours(
 			new Game({
-				...emptyFleetInitial([
+				...oneBronzeWith([
 					{
-						...constantProject("project-1", 0, "served"),
+						...constantProject("project-1", 0, "served", "server-1"),
 						commercial: OPENING_COMMERCIAL_STUB,
 					},
 				]),
@@ -263,7 +379,10 @@ describe("Game - billing close", () => {
 		expect(game.jailed).toBe(true);
 		expect(project?.settlements).toHaveLength(1);
 		expect(project?.settlements[0]?.periodIndex).toBe(1);
-		expect(game.cashCents).toBe(OPENING_COMMERCIAL_STUB.recurringCentsPerPeriod);
+		expect(game.cashCents).toBe(
+			-IDLE_BRONZE_OPEX_CENTS * BILLING_PERIOD_HOURS +
+				OPENING_COMMERCIAL_STUB.recurringCentsPerPeriod,
+		);
 	});
 
 	it("leaves Bronze 1400 physics unchanged after 168 ticks", () => {
@@ -277,13 +396,15 @@ describe("Game - billing close", () => {
 
 	it("does not accrue PAYG-only recurring at close", () => {
 		const game = tickHours(
-			new Game(emptyFleetInitial([constantProject("project-1", 0, "served")])),
+			new Game(oneBronzeWith([constantProject("project-1", 0, "served", "server-1")])),
 			BILLING_PERIOD_HOURS,
 		);
 		const settlement = allProjects(game)[0]?.settlements[0];
 
 		expect(settlement?.recurringCents).toBe(PAYG_ONLY_COMMERCIAL_STUB.recurringCentsPerPeriod);
 		expect(settlement?.paygCents).toBe(0);
-		expect(game.cashCents).toBe(STARTING_CASH_CENTS);
+		expect(game.cashCents).toBe(
+			STARTING_CASH_CENTS - IDLE_BRONZE_OPEX_CENTS * BILLING_PERIOD_HOURS,
+		);
 	});
 });

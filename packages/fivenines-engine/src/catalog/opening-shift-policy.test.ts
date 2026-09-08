@@ -57,20 +57,48 @@ describe("opening-shift-policy - outcome", () => {
 		expect(outcome.failed).toContain("contracts");
 	});
 
-	it("loses when any settlement credited the full period revenue", () => {
+	it("loses when any settlement landed in the catastrophe credit band", () => {
 		const outcome = openingShiftOutcome(
 			snapshot({
-				projects: [
-					HEALTHY,
-					{
-						...HEALTHY,
-						settlements: [{ periodRevenueCents: 1_000, creditCents: 1_000 }],
-					},
-				],
+				projects: [HEALTHY, { ...HEALTHY, settlements: [{ periodPpm: 700_000 }] }],
 			}),
 		);
 
 		expect(outcome.status).toBe("lost");
 		expect(outcome.failed).toContain("catastrophe");
+	});
+
+	it("still loses when the catastrophic period was parked end to end", () => {
+		// A week parked start to finish bills nothing, so a revenue-keyed check
+		// would let the player dodge the loss on a contract they were failing.
+		const outcome = openingShiftOutcome(
+			snapshot({
+				projects: [HEALTHY, { ...HEALTHY, settlements: [{ periodPpm: 0 }] }],
+			}),
+		);
+
+		expect(outcome.status).toBe("lost");
+		expect(outcome.failed).toContain("catastrophe");
+	});
+
+	it("ignores settlements that only earned a partial credit", () => {
+		const outcome = openingShiftOutcome(
+			snapshot({
+				projects: [HEALTHY, { ...HEALTHY, settlements: [{ periodPpm: 985_000 }] }],
+			}),
+		);
+
+		expect(outcome.status).toBe("won");
+		expect(outcome.failed).toEqual([]);
+	});
+
+	it("ignores a period that never emitted demand", () => {
+		const outcome = openingShiftOutcome(
+			snapshot({
+				projects: [HEALTHY, { ...HEALTHY, settlements: [{ periodPpm: null }] }],
+			}),
+		);
+
+		expect(outcome.status).toBe("won");
 	});
 });

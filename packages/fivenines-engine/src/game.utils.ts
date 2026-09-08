@@ -2,7 +2,7 @@ import { SKU_ECONOMY, salvageCents } from "./catalog/economy-policy";
 import type { ServerCatalogId } from "./catalog/kernel";
 import type { RegionId } from "./catalog/regions";
 import { Customer } from "./customer";
-import type { Project } from "./project";
+import type { Project, ProjectStatus } from "./project";
 import { Server } from "./server";
 
 export type AssetInitial = {
@@ -15,8 +15,11 @@ export type AssetInitial = {
 export type GameAsset = Server;
 
 export type EngineCommand =
-	| { type: "acceptProject"; payload: { projectId: string } }
+	| { type: "acceptProject"; payload: { projectId: string; serverId: string } }
 	| { type: "declineProject"; payload: { projectId: string } }
+	| { type: "moveProject"; payload: { projectId: string; serverId: string } }
+	| { type: "unassignProject"; payload: { projectId: string } }
+	| { type: "assignProject"; payload: { projectId: string; serverId: string } }
 	| { type: "buyServer"; payload: { serverType: ServerCatalogId; region: RegionId } }
 	| { type: "sellServer"; payload: { serverId: string } };
 
@@ -29,20 +32,54 @@ export interface GameGraph {
 
 export function applyCommand(graph: GameGraph, command: EngineCommand): GameGraph {
 	switch (command.type) {
-		case "acceptProject":
+		case "acceptProject": {
 			if (graph.jailed) {
 				throw new Error("cannot acceptProject while jailed");
 			}
 
+			assertServerExists(graph.assets, command.payload.serverId);
+
 			return {
 				...graph,
-				customers: acceptProject(graph.customers, command.payload.projectId),
+				customers: mapProject(graph.customers, command.payload.projectId, "offered", (project) =>
+					project.asServed(command.payload.serverId),
+				),
 			};
+		}
 		case "declineProject":
 			return {
 				...graph,
-				customers: declineProject(graph.customers, command.payload.projectId),
+				customers: mapProject(graph.customers, command.payload.projectId, "offered", (project) =>
+					project.asDeclined(),
+				),
 			};
+		case "moveProject": {
+			assertServerExists(graph.assets, command.payload.serverId);
+
+			return {
+				...graph,
+				customers: mapProject(graph.customers, command.payload.projectId, "served", (project) =>
+					project.asRoutedTo(command.payload.serverId),
+				),
+			};
+		}
+		case "unassignProject":
+			return {
+				...graph,
+				customers: mapProject(graph.customers, command.payload.projectId, "served", (project) =>
+					project.asOffline(),
+				),
+			};
+		case "assignProject": {
+			assertServerExists(graph.assets, command.payload.serverId);
+
+			return {
+				...graph,
+				customers: mapProject(graph.customers, command.payload.projectId, "offline", (project) =>
+					project.asRoutedTo(command.payload.serverId),
+				),
+			};
+		}
 		case "buyServer": {
 			if (graph.jailed) {
 				throw new Error("cannot buyServer while jailed");
@@ -61,11 +98,9 @@ export function applyCommand(graph: GameGraph, command: EngineCommand): GameGrap
 			};
 		}
 		case "sellServer": {
-			const sold = graph.assets.find((asset) => asset.id === command.payload.serverId);
+			const sold = assertServerExists(graph.assets, command.payload.serverId);
 
-			if (sold === undefined) {
-				throw new Error(`unknown server id: ${command.payload.serverId}`);
-			}
+			assertNoServedRoute(graph.customers, command.payload.serverId);
 
 			return {
 				...graph,
@@ -83,23 +118,58 @@ export function createAsset(initial: AssetInitial): GameAsset {
 	return new Server({ id: initial.id, catalogId: initial.catalogId, region: initial.region });
 }
 
-function acceptProject(customers: readonly Customer[], projectId: string): readonly Customer[] {
-	return mapOfferedProject(customers, projectId, (project) => project.asServed());
+function assertServerExists(assets: readonly GameAsset[], serverId: string): GameAsset {
+	const server = assets.find((asset) => asset.id === serverId);
+
+	if (server === undefined) {
+		throw new Error(`unknown server id: ${serverId}`);
+	}
+
+	return server;
 }
 
-function declineProject(customers: readonly Customer[], projectId: string): readonly Customer[] {
-	return mapOfferedProject(customers, projectId, (project) => project.asDeclined());
+/**
+ * Every route must name a box the game still owns. Pure over the candidate graph
+ * so callers can check a command's result before committing it.
+ */
+export function assertRoutesResolve(
+	customers: readonly Customer[],
+	assets: readonly GameAsset[],
+): void {
+	const serverIds = new Set(assets.map((asset) => asset.id));
+
+	for (const customer of customers) {
+		for (const project of customer.projects) {
+			const route = project.route;
+
+			if (route !== undefined && !serverIds.has(route.serverId)) {
+				throw new Error(`unknown server id for project route: ${project.id}`);
+			}
+		}
+	}
 }
 
-function mapOfferedProject(
+/** A parked project does not pin its old box — only a live route blocks the sale. */
+function assertNoServedRoute(customers: readonly Customer[], serverId: string): void {
+	for (const customer of customers) {
+		for (const project of customer.projects) {
+			if (project.status === "served" && project.route?.serverId === serverId) {
+				throw new Error(`server has a served project routed to it: ${project.id}`);
+			}
+		}
+	}
+}
+
+function mapProject(
 	customers: readonly Customer[],
 	projectId: string,
+	requiredStatus: ProjectStatus,
 	nextProject: (project: Project) => Project,
 ): readonly Customer[] {
 	const current = findProject(customers, projectId);
 
-	if (current.status !== "offered") {
-		throw new Error(`project is not offered: ${current.id}`);
+	if (current.status !== requiredStatus) {
+		throw new Error(`project is not ${requiredStatus}: ${current.id}`);
 	}
 
 	return customers.map((customer) => {

@@ -6,7 +6,7 @@ import { DEBT_LIMIT_CENTS, STARTING_CASH_CENTS } from "./catalog/economy-policy"
 import { Customer, type CustomerInitial } from "./customer";
 import { placeProjectDemand } from "./demand";
 import {
-	accrueServedPayg,
+	accruePeriodPayg,
 	closeBillingPeriodIfDue,
 	settlePaygReceivableIfDue,
 } from "./game.commercial";
@@ -22,6 +22,7 @@ import { applyProjectSla } from "./game.sla";
 import {
 	type AssetInitial,
 	applyCommand,
+	assertRoutesResolve,
 	createAsset,
 	type EngineCommand,
 	type GameAsset,
@@ -81,6 +82,7 @@ export class Game {
 		);
 		this.#jailed = initial.jailed ?? false;
 		this.#syncDerivedState();
+		assertRoutesResolve(this.#customers, this.#assets);
 	}
 
 	get customers(): readonly Customer[] {
@@ -149,6 +151,10 @@ export class Game {
 			command,
 		);
 
+		// Validate the candidate graph before touching any field, so a rejected
+		// command leaves the game exactly as it was rather than half applied.
+		assertRoutesResolve(next.customers, next.assets);
+
 		this.#customers = [...next.customers];
 		this.#assets = [...next.assets];
 		this.#cashCents = next.cashCents;
@@ -193,13 +199,17 @@ export class Game {
 					continue;
 				}
 
-				if (servers.length === 0) {
+				const route = project.route;
+				const routedServer =
+					route === undefined ? undefined : this.#serversById.get(route.serverId);
+
+				if (routedServer === undefined) {
 					unroutableDemand += demand;
 					continue;
 				}
 
 				unroutableDemand += placeProjectDemand(
-					servers,
+					routedServer,
 					demand,
 					project.region,
 					project.category,
@@ -262,7 +272,7 @@ export class Game {
 
 		this.#opex = measureGameOpex(servers);
 		this.#cashCents -= this.#opex.opexCents;
-		this.#accountsReceivableCents += accrueServedPayg(projects);
+		this.#accountsReceivableCents += accruePeriodPayg(projects);
 
 		if (this.#cashCents <= -DEBT_LIMIT_CENTS) {
 			this.#jailed = true;

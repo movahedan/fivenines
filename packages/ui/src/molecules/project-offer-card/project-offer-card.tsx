@@ -5,6 +5,9 @@ import { Button } from "../../atoms/button";
 import { Card } from "../../atoms/card";
 import { Text } from "../../atoms/text";
 import { MetricStat } from "../metric-stat/metric-stat";
+import { type ServerOption, ServerSelect } from "../server-select/server-select";
+
+export type { ServerOption } from "../server-select/server-select";
 
 export interface ProjectOfferCardProps {
 	readonly customerName: string;
@@ -18,6 +21,11 @@ export interface ProjectOfferCardProps {
 	readonly onDecline: () => void;
 	readonly disabled?: boolean;
 	readonly className?: string;
+	readonly serverOptions?: readonly ServerOption[];
+	readonly selectedServerId?: string;
+	readonly onSelectServer?: (serverId: string) => void;
+	readonly serverSelectLabel?: string;
+	readonly noServersLabel?: string;
 }
 
 export function ProjectOfferCard({
@@ -32,7 +40,15 @@ export function ProjectOfferCard({
 	onDecline,
 	disabled,
 	className,
+	serverOptions,
+	selectedServerId,
+	onSelectServer,
+	serverSelectLabel = "Server",
+	noServersLabel = "No servers",
 }: ProjectOfferCardProps) {
+	const serverUnresolved =
+		serverOptions !== undefined && (serverOptions.length === 0 || selectedServerId === undefined);
+
 	return (
 		<Card className={cn("gap-2 p-3", className)}>
 			<View className="flex-row items-start justify-between gap-2">
@@ -58,10 +74,19 @@ export function ProjectOfferCard({
 				<MetricStat className="flex-1" label="PAYG" tone="primary" value={paygLabel} />
 				<MetricStat className="flex-1" label="SLA" tone="warning" value={slaLabel} />
 			</View>
+			{serverOptions === undefined ? null : (
+				<ServerSelect
+					emptyLabel={noServersLabel}
+					label={serverSelectLabel}
+					onSelect={onSelectServer}
+					options={serverOptions}
+					selectedId={selectedServerId}
+				/>
+			)}
 			<View className="flex-row gap-1.5">
 				<Button
 					className="flex-1"
-					disabled={disabled}
+					disabled={serverUnresolved ? true : disabled}
 					onClick={onAccept}
 					size="sm"
 					variant="outline"

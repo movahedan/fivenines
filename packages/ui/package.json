@@ -42,6 +42,11 @@
 			"import": "./src/molecules/project-offer-card/project-offer-card.tsx",
 			"default": "./src/molecules/project-offer-card/project-offer-card.tsx"
 		},
+		"./molecules/server-select": {
+			"types": "./src/molecules/server-select/server-select.tsx",
+			"import": "./src/molecules/server-select/server-select.tsx",
+			"default": "./src/molecules/server-select/server-select.tsx"
+		},
 		"./molecules/server-card": {
 			"types": "./src/molecules/server-card/server-card.tsx",
 			"import": "./src/molecules/server-card/server-card.tsx",

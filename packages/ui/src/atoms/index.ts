@@ -22,6 +22,7 @@ export * from "./popover";
 export * from "./progress";
 export * from "./radio-group";
 export * from "./select";
+export * from "./select-field";
 export * from "./separator";
 export * from "./skeleton";
 export * from "./switch";

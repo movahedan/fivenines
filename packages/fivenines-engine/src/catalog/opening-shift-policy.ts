@@ -1,12 +1,12 @@
 import type { ProjectStatus } from "../project";
+import { SLA_CREDIT_CATASTROPHE_PPM, slaCreditPpm } from "./commercial-policy";
 
 export const OPENING_SHIFT_HOURS = 14 * 24;
 
 export type OpeningShiftStatus = "in_progress" | "won" | "lost";
 
 export interface OpeningShiftSettlementView {
-	readonly periodRevenueCents: number;
-	readonly creditCents: number;
+	readonly periodPpm: number | null;
 }
 
 export interface OpeningShiftProjectView {
@@ -61,11 +61,13 @@ export function openingShiftOutcome(snapshot: OpeningShiftSnapshot): OpeningShif
 		failed.push("contracts");
 	}
 
+	// Keyed on the credit band, not on revenue: a week parked end to end bills
+	// nothing, so a revenue test would let the player dodge the loss by parking
+	// a doomed contract — the worst possible week for the customer.
 	const catastrophe = snapshot.projects.some((project) =>
 		project.settlements.some(
 			(settlement) =>
-				settlement.periodRevenueCents > 0 &&
-				settlement.creditCents === settlement.periodRevenueCents,
+				slaCreditPpm(settlement.periodPpm, project.targetPpm) === SLA_CREDIT_CATASTROPHE_PPM,
 		),
 	);
 

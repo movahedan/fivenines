@@ -1,4 +1,5 @@
 import type {
+	EngineCommand,
 	EngineEvent,
 	Game,
 	OpeningShiftFailReason,
@@ -133,16 +134,18 @@ export function axisPercent(load: number, cap: number): number {
 	return units.ratioPercent(load, cap);
 }
 
-export function commandLogTone(commandType: string): EventLogTone {
-	if (commandType === "sellServer" || commandType === "declineProject") {
-		return "warn";
-	}
+const COMMAND_LOG_TONE: Record<EngineCommand["type"], EventLogTone> = {
+	acceptProject: "info",
+	declineProject: "warn",
+	moveProject: "info",
+	unassignProject: "warn",
+	assignProject: "success",
+	buyServer: "success",
+	sellServer: "warn",
+};
 
-	if (commandType === "buyServer") {
-		return "success";
-	}
-
-	return "info";
+export function commandLogTone(commandType: EngineCommand["type"]): EventLogTone {
+	return COMMAND_LOG_TONE[commandType];
 }
 
 export function engineEventTone(event: EngineEvent): EventLogTone {
@@ -193,8 +196,7 @@ export function openingShiftSnapshot(game: Game): OpeningShiftSnapshot {
 				windowAvailabilityPpm: project.metrics.windowAvailabilityPpm,
 				targetPpm: project.commercial.targetPpm,
 				settlements: project.settlements.map((settlement) => ({
-					periodRevenueCents: settlement.periodRevenueCents,
-					creditCents: settlement.creditCents,
+					periodPpm: settlement.periodPpm,
 				})),
 			})),
 		),

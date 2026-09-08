@@ -5,6 +5,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { AuthProvider } from "@packages/auth/react";
 import {
 	OPENING_COMMERCIAL_STUB,
+	PAYG_SETTLE_HOURS,
 	paygCentsForHandled,
 	SKU_ECONOMY,
 	STARTING_CASH_CENTS,
@@ -36,6 +37,16 @@ async function waitForLab(): Promise<void> {
 	await waitFor(() => {
 		expect(screen.getByRole("heading", { name: "Lab" })).toBeTruthy();
 	});
+}
+
+function projectRow(match: RegExp): HTMLElement {
+	const row = screen.getByText(match).closest("li");
+
+	if (!(row instanceof HTMLElement)) {
+		throw new Error(`expected a project row matching ${String(match)}`);
+	}
+
+	return row;
 }
 
 describe("LabPage - session gate", () => {
@@ -88,14 +99,16 @@ describe("LabPage - tick metrics", () => {
 		expect(Number(value.textContent)).toBe(0);
 	});
 
-	it("shows droppedRequests above zero after an offered project is accepted and Tick runs with no servers", async () => {
+	it("shows droppedRequests above zero after a served project is parked and Tick runs", async () => {
 		stubLoggedInHint(true);
 
 		renderLab();
 
 		await waitForLab();
 
+		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
 		fireEvent.click(screen.getByRole("button", { name: "Accept globex-portal" }));
+		fireEvent.click(screen.getByRole("button", { name: "Park globex-portal" }));
 		fireEvent.click(screen.getByRole("button", { name: "Tick" }));
 
 		const row = screen.getByRole("row", { name: /droppedRequests/ });
@@ -110,8 +123,8 @@ describe("LabPage - tick metrics", () => {
 
 		await waitForLab();
 
-		fireEvent.click(screen.getByRole("button", { name: "Accept globex-portal" }));
 		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
+		fireEvent.click(screen.getByRole("button", { name: "Accept globex-portal" }));
 		fireEvent.click(screen.getByRole("button", { name: "Tick" }));
 
 		const handled = screen.getByRole("row", { name: /handledRequests/ });
@@ -183,24 +196,27 @@ describe("LabPage - tick metrics", () => {
 		expect(screen.getByRole("button", { name: "Buy Gold" })).toBeDisabled();
 	});
 
-	it("shows 0 this-hour ppm on a served project after accept and Tick with an empty fleet", async () => {
+	it("shows 0 this-hour ppm on a parked project after Tick", async () => {
 		stubLoggedInHint(true);
 
 		renderLab();
 
 		await waitForLab();
 
+		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
 		fireEvent.click(screen.getByRole("button", { name: "Accept globex-portal" }));
+		fireEvent.click(screen.getByRole("button", { name: "Park globex-portal" }));
 		fireEvent.click(screen.getByRole("button", { name: "Tick" }));
 
-		const served = screen.getByText(/globex-portal served/).closest("li");
-		expect(served instanceof HTMLElement).toBe(true);
-		if (!(served instanceof HTMLElement)) {
+		const parked = screen.getByText(/globex-portal offline/).closest("li");
+		expect(parked instanceof HTMLElement).toBe(true);
+		if (!(parked instanceof HTMLElement)) {
 			return;
 		}
 
-		expect(within(served).getByText("this-hour 0 ppm")).toBeTruthy();
-		expect(within(served).getByText("window 0 ppm")).toBeTruthy();
+		expect(within(parked).getByText("routed parked")).toBeTruthy();
+		expect(within(parked).getByText("this-hour 0 ppm")).toBeTruthy();
+		expect(within(parked).getByText("window 0 ppm")).toBeTruthy();
 	});
 
 	it("credits this-period PAYG and cash after Buy Bronze, Accept, and Tick", async () => {
@@ -317,5 +333,74 @@ describe("LabPage - tick metrics", () => {
 		fireEvent.click(screen.getByRole("button", { name: "Delete server-1" }));
 
 		expect(screen.getByText("No servers")).toBeTruthy();
+	});
+});
+
+describe("LabPage - project routing", () => {
+	afterEach(() => {
+		mock.restore();
+		Reflect.deleteProperty(document, "cookie");
+	});
+
+	it("disables Accept while the fleet is empty", async () => {
+		stubLoggedInHint(true);
+
+		renderLab();
+
+		await waitForLab();
+
+		expect(screen.getByRole("button", { name: "Accept globex-portal" })).toBeDisabled();
+	});
+
+	it("shows the routed server on a project accepted onto the selected box", async () => {
+		stubLoggedInHint(true);
+
+		renderLab();
+
+		await waitForLab();
+
+		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
+		fireEvent.click(screen.getByRole("button", { name: "Accept globex-portal" }));
+
+		expect(within(projectRow(/globex-portal served/)).getByText("routed server-1")).toBeTruthy();
+	});
+
+	it("parks a served project and assigns it back onto a server", async () => {
+		stubLoggedInHint(true);
+
+		renderLab();
+
+		await waitForLab();
+
+		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
+		fireEvent.click(screen.getByRole("button", { name: "Accept globex-portal" }));
+		fireEvent.click(screen.getByRole("button", { name: "Park globex-portal" }));
+
+		expect(within(projectRow(/globex-portal offline/)).getByText("routed parked")).toBeTruthy();
+
+		fireEvent.click(screen.getByRole("button", { name: "Assign globex-portal" }));
+
+		expect(within(projectRow(/globex-portal served/)).getByText("routed server-1")).toBeTruthy();
+	});
+
+	it("shows the new routed server after a served project is moved", async () => {
+		stubLoggedInHint(true);
+
+		renderLab();
+
+		await waitForLab();
+
+		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
+		fireEvent.click(screen.getByRole("button", { name: "Accept acme-web" }));
+
+		for (let hour = 0; hour < PAYG_SETTLE_HOURS; hour += 1) {
+			fireEvent.click(screen.getByRole("button", { name: "Tick" }));
+		}
+
+		fireEvent.click(screen.getByRole("button", { name: "Buy Thin RAM" }));
+		fireEvent.change(screen.getByLabelText("Server"), { target: { value: "server-2" } });
+		fireEvent.click(screen.getByRole("button", { name: "Move acme-web" }));
+
+		expect(within(projectRow(/acme-web served/)).getByText("routed server-2")).toBeTruthy();
 	});
 });

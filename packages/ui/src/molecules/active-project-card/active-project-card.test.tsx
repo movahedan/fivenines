@@ -1,6 +1,6 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it, mock } from "bun:test";
 
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
 import { ActiveProjectCard } from "./active-project-card";
 
@@ -19,6 +19,11 @@ const ACTIVE = {
 	serverLabel: "m5.large #A1F2",
 	paygLabel: "+$12/hr",
 } as const;
+
+const SERVER_OPTIONS = [
+	{ id: "srv-a", label: "t3.small #D4E9" },
+	{ id: "srv-b", label: "c5.xlarge #B7C3" },
+] as const;
 
 describe("ActiveProjectCard", () => {
 	it("renders identity, SLA, server, and payg when given props", () => {
@@ -53,5 +58,126 @@ describe("ActiveProjectCard", () => {
 		expect(screen.getByText("Rolling 168h")).toBeInTheDocument();
 		expect(screen.getByText("Target")).toBeInTheDocument();
 		expect(screen.getByText("Recovery ETA")).toBeInTheDocument();
+	});
+
+	it("renders no picker and no actions row without the routing props", () => {
+		render(<ActiveProjectCard {...ACTIVE} sparkline={[0.8]} />);
+
+		expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+		expect(screen.queryByRole("button")).not.toBeInTheDocument();
+		expect(screen.getByText("m5.large #A1F2")).toBeInTheDocument();
+	});
+
+	it("renders a labelled server picker when serverOptions is given", () => {
+		render(<ActiveProjectCard {...ACTIVE} serverOptions={SERVER_OPTIONS} sparkline={[0.8]} />);
+
+		expect(screen.getByLabelText("Server")).toBeInTheDocument();
+		expect(screen.getByRole("option", { name: "t3.small #D4E9" })).toBeInTheDocument();
+		expect(screen.getByRole("option", { name: "c5.xlarge #B7C3" })).toBeInTheDocument();
+	});
+
+	it("calls onSelectServer with the picked id when the picker changes", () => {
+		const onSelectServer = mock();
+
+		render(
+			<ActiveProjectCard
+				{...ACTIVE}
+				onSelectServer={onSelectServer}
+				serverOptions={SERVER_OPTIONS}
+				sparkline={[0.8]}
+			/>,
+		);
+
+		fireEvent.change(screen.getByLabelText("Server"), { target: { value: "srv-b" } });
+
+		expect(onSelectServer).toHaveBeenCalledTimes(1);
+		expect(onSelectServer).toHaveBeenCalledWith("srv-b");
+	});
+
+	it("renders an enabled route button when onRoute is given without serverOptions", () => {
+		const onRoute = mock();
+
+		render(<ActiveProjectCard {...ACTIVE} onRoute={onRoute} sparkline={[0.8]} />);
+
+		expect(screen.queryByRole("button", { name: "PARK" })).not.toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "MOVE" })).toBeEnabled();
+
+		fireEvent.click(screen.getByRole("button", { name: "MOVE" }));
+
+		expect(onRoute).toHaveBeenCalledTimes(1);
+	});
+
+	it("renders only the unassign button when onUnassign is given", () => {
+		const onUnassign = mock();
+
+		render(<ActiveProjectCard {...ACTIVE} onUnassign={onUnassign} sparkline={[0.8]} />);
+
+		expect(screen.queryByRole("button", { name: "MOVE" })).not.toBeInTheDocument();
+
+		fireEvent.click(screen.getByRole("button", { name: "PARK" }));
+
+		expect(onUnassign).toHaveBeenCalledTimes(1);
+	});
+
+	it("uses routeLabel and unassignLabel when given", () => {
+		render(
+			<ActiveProjectCard
+				{...ACTIVE}
+				onRoute={mock()}
+				onUnassign={mock()}
+				routeLabel="ASSIGN"
+				sparkline={[0.8]}
+				unassignLabel="RELEASE"
+			/>,
+		);
+
+		expect(screen.getByRole("button", { name: "ASSIGN" })).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "RELEASE" })).toBeInTheDocument();
+	});
+
+	it("disables the route button until a server is selected", () => {
+		const onRoute = mock();
+		const { unmount } = render(
+			<ActiveProjectCard
+				{...ACTIVE}
+				onRoute={onRoute}
+				serverOptions={SERVER_OPTIONS}
+				sparkline={[0.8]}
+			/>,
+		);
+
+		expect(screen.getByRole("button", { name: "MOVE" })).toBeDisabled();
+
+		unmount();
+
+		render(
+			<ActiveProjectCard
+				{...ACTIVE}
+				onRoute={onRoute}
+				selectedServerId="srv-a"
+				serverOptions={SERVER_OPTIONS}
+				sparkline={[0.8]}
+			/>,
+		);
+
+		expect(screen.getByRole("button", { name: "MOVE" })).toBeEnabled();
+
+		fireEvent.click(screen.getByRole("button", { name: "MOVE" }));
+
+		expect(onRoute).toHaveBeenCalledTimes(1);
+	});
+
+	it("disables the route button when serverOptions is empty", () => {
+		render(
+			<ActiveProjectCard
+				{...ACTIVE}
+				onRoute={mock()}
+				selectedServerId="srv-a"
+				serverOptions={[]}
+				sparkline={[0.8]}
+			/>,
+		);
+
+		expect(screen.getByRole("button", { name: "MOVE" })).toBeDisabled();
 	});
 });

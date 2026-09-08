@@ -111,7 +111,7 @@ describe("HubPage - ops landmarks", () => {
 
 		await waitForOpsFloor();
 		fireEvent.click(screen.getByRole("button", { name: "Pause" }));
-		expect(screen.getByRole("button", { name: "Resume" })).toBeTruthy();
+		expect(screen.getByRole("button", { name: "Play" })).toBeTruthy();
 		expect(screen.getByText("Incoming (10)")).toBeTruthy();
 	});
 

@@ -23,6 +23,8 @@ mock.module("lucide-react-native", () => ({
 	Eye: () => null,
 	EyeOff: () => null,
 	Loader2: () => null,
+	Pause: () => null,
+	Play: () => null,
 }));
 
 function MockBox({ children, ...props }: { children?: ReactNode }) {

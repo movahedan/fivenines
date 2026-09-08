@@ -8,12 +8,17 @@ import {
 } from "@packages/fivenines-engine";
 
 export const HUB_TICK_MS = 1000;
+export const HUB_TICK_SPEEDS = [1, 2, 4] as const;
+
+export type HubTickSpeed = (typeof HUB_TICK_SPEEDS)[number];
 
 export interface UseHubGameResult {
 	readonly game: Game;
 	readonly lastError: string | null;
 	readonly running: boolean;
+	readonly speed: HubTickSpeed;
 	readonly toggleRunning: () => void;
+	readonly setSpeed: (speed: HubTickSpeed) => void;
 	readonly dispatch: (command: EngineCommand) => void;
 	readonly reset: () => void;
 }
@@ -27,6 +32,7 @@ export function useHubGame(): UseHubGameResult {
 	const [, setVersion] = useState(0);
 	const [lastError, setLastError] = useState<string | null>(null);
 	const [running, setRunning] = useState(true);
+	const [speed, setSpeed] = useState<HubTickSpeed>(1);
 
 	const bump = (): void => {
 		setVersion((version) => version + 1);
@@ -45,12 +51,12 @@ export function useHubGame(): UseHubGameResult {
 			gameRef.current.tick();
 			setLastError(null);
 			setVersion((version) => version + 1);
-		}, HUB_TICK_MS);
+		}, HUB_TICK_MS / speed);
 
 		return () => {
 			clearInterval(timer);
 		};
-	}, [running]);
+	}, [running, speed]);
 
 	const toggleRunning = (): void => {
 		if (gameRef.current.hourIndex >= OPENING_SHIFT_HOURS) {
@@ -75,6 +81,7 @@ export function useHubGame(): UseHubGameResult {
 		gameRef.current = new Game(openingInitial);
 		setLastError(null);
 		setRunning(true);
+		setSpeed(1);
 		bump();
 	};
 
@@ -82,7 +89,9 @@ export function useHubGame(): UseHubGameResult {
 		game: gameRef.current,
 		lastError,
 		running,
+		speed,
 		toggleRunning,
+		setSpeed,
 		dispatch,
 		reset,
 	};

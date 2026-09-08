@@ -77,7 +77,8 @@ function collectServed(customers: Game["customers"]): readonly ServedRow[] {
 
 export function HubSession() {
 	const { user, logoutHref } = useAuth();
-	const { game, lastError, running, toggleRunning, dispatch, reset } = useHubGame();
+	const { game, lastError, running, speed, toggleRunning, setSpeed, dispatch, reset } =
+		useHubGame();
 	const [buyRegion, setBuyRegion] = useState<RegionId>(DEFAULT_REGION);
 	const [entries, setEntries] = useState<readonly EventLogEntry[]>([]);
 	const regionSelectId = useId();
@@ -149,8 +150,10 @@ export function HubSession() {
 					},
 					{ label: "OPEX / hour", value: formatters.cents(opexCents), tone: "warning" },
 				]}
+				onSpeedChange={setSpeed}
 				onToggleRunning={toggleRunning}
 				running={running}
+				speed={speed}
 				subtitle="Opening Shift"
 				tickLabel={formatters.hourTick(game.hourIndex)}
 				title="Five Nines"

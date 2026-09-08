@@ -55,17 +55,7 @@ export function sparklineFromSlaHours(project: Project): readonly number[] {
 }
 
 export function slaShareLabel(availabilityPpm: number | null): string {
-	if (availabilityPpm === null) {
-		return "—";
-	}
-
-	const percent = availabilityPpm / 10_000;
-
-	if (Number.isInteger(percent)) {
-		return `${String(percent)}%`;
-	}
-
-	return `${percent.toFixed(2)}%`;
+	return formatters.ppm(availabilityPpm);
 }
 
 export function recoveryEtaLabel(project: Project): string {
@@ -128,7 +118,7 @@ export function skuOpexLabel(catalogId: ServerCatalogId): string {
 }
 
 export function skuCpuLabel(catalogId: ServerCatalogId): string {
-	return `${String(SERVER_CATALOG[catalogId].computeUnitsPerHour)} cu`;
+	return formatters.cores(SERVER_CATALOG[catalogId].computeUnitsPerHour);
 }
 
 export function skuRamLabel(catalogId: ServerCatalogId): string {

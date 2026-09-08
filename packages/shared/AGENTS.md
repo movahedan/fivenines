@@ -4,7 +4,7 @@ Guidance for `@packages/shared`. Repo map: [root AGENTS.md](../../AGENTS.md). Co
 
 ## Role
 
-Cross-app helpers that are not UI-specific: logging, cookies, integer units, id uniqueness, and display formatters (cents, padded tick, clock label, ppm). No product/engine types.
+Cross-app helpers that are not UI-specific: logging, cookies, integer units, id uniqueness, and display formatters (cents, `TICK`/`DAY · HR` clock, ppm as percent, cores). No product/engine types.
 
 CSS class merging lives in `@packages/ui/utils` (`cn`).
 
@@ -33,4 +33,4 @@ import { formatters } from "@packages/shared/formatters";
 
 `ids.assertUnique(values, label)` throws `duplicate ${label} id: …` when a string appears twice.
 
-`formatters` is display-only (`cents`, `hourTick`, `clockLabel`, `ppm`). It must not import engine, auth, or UI.
+`formatters` is display-only (`cents`, `hourTick` → `TICK 0000`, `clockLabel` → `DAY 01 · HR 00:00` with 1-based day, `ppm` → `99.00%` from integer ppm/10_000, `cores` / `coresCompact`). Kernel values stay integers; these functions only shape strings. It must not import engine, auth, or UI.

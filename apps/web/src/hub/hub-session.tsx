@@ -169,7 +169,7 @@ export function HubSession() {
 					<div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
 						{offers.map(({ customerId, project }) => (
 							<ProjectOfferCard
-								cpuLabel={`${String(project.estimatedRequestsPerHour)} /h`}
+								cpuLabel={formatters.coresCompact(project.estimatedRequestsPerHour)}
 								customerName={customerId}
 								disabled={jailed}
 								key={project.id}

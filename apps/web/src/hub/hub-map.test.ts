@@ -26,7 +26,7 @@ describe("hub-map - sla and sku labels", () => {
 
 	it("formats idle SKU money and compute labels", () => {
 		expect(skuCostLabel("bronze")).toBe("$180.00");
-		expect(skuCpuLabel("bronze")).toBe("1000 cu");
+		expect(skuCpuLabel("bronze")).toBe("1000 cores");
 		expect(skuNetLabel("bronze")).toBe("1000000 B/h");
 		expect(SKU_DOT_CLASS.bronze).toContain("shadow-glow-warning");
 	});
@@ -39,7 +39,7 @@ describe("hub-map - sla and sku labels", () => {
 
 	it("formats availability ppm as a percent share", () => {
 		expect(slaShareLabel(null)).toBe("—");
-		expect(slaShareLabel(1_000_000)).toBe("100%");
+		expect(slaShareLabel(1_000_000)).toBe("100.00%");
 		expect(slaShareLabel(822_700)).toBe("82.27%");
 		expect(sparklineTargetFromPpm(990_000)).toBe(0.99);
 	});

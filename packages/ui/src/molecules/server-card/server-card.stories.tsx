@@ -27,7 +27,7 @@ export const Fleet: Story = {
 		variant: "fleet",
 		label: "m5.large",
 		idLabel: "#A1F2",
-		cpuLabel: "1000 cu",
+		cpuLabel: "1000 cores",
 		netLabel: "1000000 B/h",
 		ramLabel: "4096 MiB",
 		opexLabel: "opex -$4/hr",
@@ -43,7 +43,7 @@ export const Fleet: Story = {
 export const FleetHot: Story = {
 	args: {
 		...Fleet.args,
-		cpuLabel: "1000 cu",
+		cpuLabel: "1000 cores",
 		cpuPercent: 96,
 		netPercent: 40,
 		ramPercent: 22,

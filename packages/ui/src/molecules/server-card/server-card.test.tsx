@@ -10,7 +10,7 @@ describe("ServerCard", () => {
 
 		render(
 			<ServerCard
-				cpuLabel="1000 cu"
+				cpuLabel="1000 cores"
 				cpuPercent={40}
 				idLabel="#A1F2"
 				label="m5.large"
@@ -29,7 +29,7 @@ describe("ServerCard", () => {
 		expect(screen.getByText("CPU")).toBeInTheDocument();
 		expect(screen.getByText("NET")).toBeInTheDocument();
 		expect(screen.getByText("RAM")).toBeInTheDocument();
-		expect(screen.getByText("1000 cu")).toBeInTheDocument();
+		expect(screen.getByText("1000 cores")).toBeInTheDocument();
 		expect(screen.getByText("1000000 B/h")).toBeInTheDocument();
 		expect(screen.getByText("4096 MiB")).toBeInTheDocument();
 		expect(screen.getByText("40%")).toBeInTheDocument();
@@ -95,7 +95,7 @@ describe("ServerCard", () => {
 	it("applies a custom SKU marker class when given", () => {
 		render(
 			<ServerCard
-				cpuLabel="1000 cu"
+				cpuLabel="1000 cores"
 				dotClassName="bg-warning shadow-glow-warning"
 				label="m5.large"
 				opexLabel="opex -$4/hr"

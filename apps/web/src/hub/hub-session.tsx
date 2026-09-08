@@ -266,7 +266,10 @@ export function HubSession() {
 							</span>
 						}
 					/>
-					<div className="grid min-h-0 flex-1 grid-cols-2 gap-2 overflow-y-auto p-2">
+					{/* auto-rows-min is load-bearing: with default auto rows the tracks divide
+					    the panel height instead of fitting the cards, and RN-web Views do not
+					    clip, so taller cards paint straight over the row below. */}
+					<div className="grid min-h-0 flex-1 auto-rows-min grid-cols-2 gap-2 overflow-y-auto p-2">
 						{served.length === 0 && parked.length === 0 ? (
 							<p className="col-span-2 font-mono text-sm text-muted-foreground">
 								No served projects
@@ -328,7 +331,7 @@ export function HubSession() {
 						))}
 					</div>
 					<PanelHeader count={game.assets.length} label="Fleet" tone="info" />
-					<div className="grid min-h-0 flex-1 grid-cols-2 gap-2 overflow-y-auto p-2">
+					<div className="grid max-h-[40%] min-h-0 auto-rows-min grid-cols-2 gap-2 overflow-y-auto p-2">
 						{game.assets.length === 0 ? (
 							<p className="col-span-2 font-mono text-sm text-muted-foreground">No servers</p>
 						) : (

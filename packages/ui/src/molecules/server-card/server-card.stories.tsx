@@ -35,6 +35,7 @@ export const Fleet: Story = {
 		netPercent: 12,
 		ramPercent: 8,
 		onSell: () => undefined,
+		dotClassName: "bg-info shadow-glow-info",
 		className: "w-80",
 	},
 };
@@ -59,6 +60,7 @@ export const Market: Story = {
 		costLabel: "$800",
 		canAfford: true,
 		onBuy: () => undefined,
+		dotClassName: "bg-warning shadow-glow-warning",
 		className: "w-80",
 	},
 };

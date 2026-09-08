@@ -36,6 +36,7 @@ describe("ServerCard", () => {
 		expect(screen.getByText("10%")).toBeInTheDocument();
 		expect(screen.getByText("6%")).toBeInTheDocument();
 		expect(screen.getByText("opex -$4/hr")).toBeInTheDocument();
+		expect(screen.getByLabelText("SKU marker")).toBeInTheDocument();
 
 		fireEvent.click(screen.getByRole("button", { name: "SELL" }));
 
@@ -89,5 +90,19 @@ describe("ServerCard", () => {
 		fireEvent.click(screen.getByRole("button", { name: "BUY" }));
 
 		expect(onBuy).not.toHaveBeenCalled();
+	});
+
+	it("applies a custom SKU marker class when given", () => {
+		render(
+			<ServerCard
+				cpuLabel="1000 cu"
+				dotClassName="bg-warning shadow-glow-warning"
+				label="m5.large"
+				opexLabel="opex -$4/hr"
+				variant="fleet"
+			/>,
+		);
+
+		expect(screen.getByTestId("sku-marker-custom")).toBeInTheDocument();
 	});
 });

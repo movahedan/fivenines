@@ -34,6 +34,7 @@ import {
 	openingShiftResultCopy,
 	REGION_CLASS,
 	recoveryEtaLabel,
+	SKU_DOT_CLASS,
 	skuCostLabel,
 	skuCpuLabel,
 	skuNetLabel,
@@ -243,6 +244,7 @@ export function HubSession() {
 								<ServerCard
 									cpuLabel={skuCpuLabel(asset.catalogId)}
 									cpuPercent={axisPercent(asset.metrics.cpuLoad, asset.computeUnitsPerHour)}
+									dotClassName={SKU_DOT_CLASS[asset.catalogId]}
 									idLabel={asset.id}
 									key={asset.id}
 									label={`${SERVER_TIER_LABEL[asset.catalogId]} · ${asset.region}`}
@@ -299,6 +301,7 @@ export function HubSession() {
 									canAfford={canAfford}
 									costLabel={skuCostLabel(catalogId)}
 									cpuLabel={skuCpuLabel(catalogId)}
+									dotClassName={SKU_DOT_CLASS[catalogId]}
 									key={catalogId}
 									label={SERVER_TIER_LABEL[catalogId]}
 									onBuy={() => {

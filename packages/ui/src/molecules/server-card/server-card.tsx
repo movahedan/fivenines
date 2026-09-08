@@ -31,6 +31,7 @@ export interface ServerCardProps {
 	readonly canAfford?: boolean;
 	readonly onSell?: () => void;
 	readonly onBuy?: () => void;
+	readonly dotClassName?: string;
 	readonly className?: string;
 }
 
@@ -49,14 +50,19 @@ export function ServerCard({
 	canAfford,
 	onSell,
 	onBuy,
+	dotClassName,
 	className,
 }: ServerCardProps) {
 	const unaffordable = variant === "market" && canAfford === false;
+	const skuDot = <SkuDot className={dotClassName} />;
 
 	if (variant === "market") {
 		return (
 			<Card className={cn("gap-2 p-3", unaffordable && "opacity-60", className)}>
-				<Text className="font-mono text-sm font-bold text-card-foreground">{label}</Text>
+				<View className="flex-row items-center gap-1.5">
+					{skuDot}
+					<Text className="font-mono text-sm font-bold text-card-foreground">{label}</Text>
+				</View>
 				<View className="flex-row flex-wrap gap-x-2 gap-y-1">
 					{costLabel ? (
 						<MetricStat className="w-1/2" label="COST" tone="warning" value={costLabel} />
@@ -80,6 +86,7 @@ export function ServerCard({
 		<Card className={cn("gap-2 p-3", className)}>
 			<View className="flex-row items-center justify-between gap-2">
 				<View className="min-w-0 flex-1 flex-row items-center gap-1.5">
+					{skuDot}
 					<Text className="font-mono text-sm font-semibold text-card-foreground">{label}</Text>
 					{idLabel ? (
 						<Text className="font-mono text-xs text-muted-foreground">{idLabel}</Text>
@@ -96,6 +103,20 @@ export function ServerCard({
 			<FleetAxis capLabel={ramLabel} name="RAM" percent={ramPercent ?? 0} />
 			<Text className="font-mono text-xs text-muted-foreground">{opexLabel}</Text>
 		</Card>
+	);
+}
+
+interface SkuDotProps {
+	readonly className?: string;
+}
+
+function SkuDot({ className }: SkuDotProps) {
+	return (
+		<View
+			accessibilityLabel="SKU marker"
+			className={cn("h-2 w-2 shrink-0 rounded-full bg-info shadow-glow-info", className)}
+			testID={className === undefined ? "sku-marker" : "sku-marker-custom"}
+		/>
 	);
 }
 

@@ -22,6 +22,7 @@ export interface HudProps {
 	readonly jailed?: boolean;
 	readonly onToggleRunning: () => void;
 	readonly account?: ReactNode;
+	readonly logo?: ReactNode;
 	readonly className?: string;
 }
 
@@ -35,6 +36,7 @@ function Hud({
 	jailed,
 	onToggleRunning,
 	account,
+	logo,
 	className,
 }: HudProps) {
 	return (
@@ -45,7 +47,16 @@ function Hud({
 			)}
 		>
 			<View className="flex-row items-center gap-3">
-				<View className="h-6 w-6 bg-primary" />
+				{logo ?? (
+					<View
+						accessibilityLabel="Five Nines mark"
+						className="h-8 w-8 items-center justify-center rounded-md bg-primary shadow-glow-primary"
+					>
+						<Text className="font-mono text-[11px] font-bold tracking-tighter text-primary-foreground">
+							9s
+						</Text>
+					</View>
+				)}
 				<View className="flex-col">
 					<Text className="text-sm font-semibold text-foreground">{title}</Text>
 					{subtitle ? <Text className="text-xs text-muted-foreground">{subtitle}</Text> : null}

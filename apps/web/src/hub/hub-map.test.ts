@@ -4,6 +4,7 @@ import {
 	axisPercent,
 	engineEventMessage,
 	openingShiftResultCopy,
+	SKU_DOT_CLASS,
 	skuCostLabel,
 	skuCpuLabel,
 	skuNetLabel,
@@ -27,6 +28,7 @@ describe("hub-map - sla and sku labels", () => {
 		expect(skuCostLabel("bronze")).toBe("$180.00");
 		expect(skuCpuLabel("bronze")).toBe("1000 cu");
 		expect(skuNetLabel("bronze")).toBe("1000000 B/h");
+		expect(SKU_DOT_CLASS.bronze).toContain("shadow-glow-warning");
 	});
 
 	it("maps load versus cap onto an integer percent", () => {

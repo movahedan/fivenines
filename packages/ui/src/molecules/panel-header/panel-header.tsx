@@ -15,10 +15,10 @@ export interface PanelHeaderProps {
 }
 
 const PANEL_DOT_CLASS = {
-	primary: "bg-primary",
-	warning: "bg-warning",
-	info: "bg-info",
-	destructive: "bg-destructive",
+	primary: "bg-primary shadow-glow-primary",
+	warning: "bg-warning shadow-glow-warning",
+	info: "bg-info shadow-glow-info",
+	destructive: "bg-destructive shadow-glow-danger",
 } as const;
 
 function panelDotClass(tone: PanelHeaderTone = "primary"): string {
@@ -33,7 +33,10 @@ function PanelHeader({ label, count, tone = "primary", trailing, className }: Pa
 				className,
 			)}
 		>
-			<View className={cn("h-1.5 w-1.5 rounded-full", panelDotClass(tone))} />
+			<View
+				accessibilityLabel={`${tone} panel marker`}
+				className={cn("h-1.5 w-1.5 rounded-full", panelDotClass(tone))}
+			/>
 			<Text className="flex-1 text-xs uppercase tracking-widest text-muted-foreground">
 				{count === undefined ? label : `${label} (${count})`}
 			</Text>

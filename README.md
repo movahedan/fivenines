@@ -53,13 +53,13 @@ Docker is the foundation for running the full multi-service layout: use **`bun r
 
 ### ⚡ **Homogeneous Framework Stack**
 
-<img src="https://img.shields.io/badge/Vite%20SPA-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite SPA" />
+<img src="https://img.shields.io/badge/TanStack%20Start-646CFF?style=for-the-badge&logo=react&logoColor=white" alt="TanStack Start" />
 <img src="https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS" />
 <img src="https://img.shields.io/badge/Bun%20Optimized-Perfect%20Fit-000000?style=for-the-badge&logo=bun&logoColor=white" alt="Bun Optimized" />
 
 > **Curated frameworks** that **naturally align** with Bun's philosophy and performance
 
-Player UI is a **Vite SPA** (`@apps/web`, TanStack Router, static `dist/` in prod). The control plane is **NestJS** plus an **Orval** SDK. Auth is a separate SSR app. Shared UI lives in Storybook. No extra marketing apps in this repo.
+Player UI is **TanStack Start in SPA mode** (`@apps/web`, static `dist/client` in prod, no Node). The control plane is **NestJS** plus an **Orval** SDK. Auth is a separate SSR app. Shared UI lives in Storybook. No extra marketing apps in this repo.
 
 </div>
 
@@ -130,7 +130,7 @@ Everything you need to build rock-solid applications is right here! We've kept i
 
 ## 📦 **What's Inside**
 
-**🎮 web** (`apps/web`) — **Port 3000** - Player UI (Vite SPA); **`/hub`** ops console, **`/lab`** client engine harness
+**🎮 web** (`apps/web`) — **Port 3000** - Player UI (TanStack Start SPA); **`/hub`** ops console, **`/lab`** client engine harness
 
 **⚙️ engine** (`packages/fivenines-engine`) — Simulation kernel (`Game.tick` / `dispatch`): demand, capacity, wallet, SLA, PAYG week close
 

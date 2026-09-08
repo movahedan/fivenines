@@ -35,7 +35,7 @@ Setup: [README.md](README.md#quick-start) · Commands: [docs/CHEATSHEET.md](docs
 
 - `bun run overall` — quality gate (Lefthook pre-push runs the same with `--quiet`)
 - `bun test` — tests (`bunfig.toml` + `tools/tests-preset`)
-- `bun run turbo run dev --filter=@apps/web` — player UI SPA (hub/lab need Nest on :3002)
+- `bun run turbo run dev --filter=@apps/web` — player UI Start SPA (hub/lab need Nest on :3002)
 - `bun run precommit` — staged files, branch name, commit message
 
 ## Architecture overview
@@ -74,7 +74,7 @@ Nested `AGENTS.md` under each app, package, and tool workspace.
 
 | Path | `name` | Port | Role | Guide |
 |------|--------|------|------|-------|
-| `apps/web` | `@apps/web` | 3000 | Player UI (Vite SPA, nginx `dist/` in prod); `/hub` ops console + `/lab` debug, both client `Game` | [AGENTS.md](apps/web/AGENTS.md) |
+| `apps/web` | `@apps/web` | 3000 | Player UI (TanStack Start SPA, nginx `dist/client` in prod); `/hub` ops console + `/lab` debug, both client `Game` | [AGENTS.md](apps/web/AGENTS.md) |
 | `apps/nestjs` | `@apps/nestjs` | 3002 | Feature flags control plane (OpenAPI) | [AGENTS.md](apps/nestjs/AGENTS.md) |
 | `apps/auth` | `@apps/auth` | 3001 | Auth (JWT, refresh, M2M) | [AGENTS.md](apps/auth/AGENTS.md) |
 | `packages/ui` | `@packages/ui` | 9000 | React + Storybook | [AGENTS.md](packages/ui/AGENTS.md) |
@@ -121,7 +121,7 @@ Dependabot: [`.github/dependabot.yml`](.github/dependabot.yml) · [docs/DEPENDAB
 
 ### Stack notes
 
-React 19, Vite + TanStack Router (`@apps/web` static SPA), NestJS, Orval, Tailwind, Biome, Lefthook, Docker Compose (`bun run container …`). Auth stays SSR in `@apps/auth`.
+React 19, TanStack Start SPA (`@apps/web` static `dist/client`), NestJS, Orval, Tailwind, Biome, Lefthook, Docker Compose (`bun run container …`). Auth stays SSR in `@apps/auth`.
 
 Read the **nested `AGENTS.md`** for the area you touch before editing.
 

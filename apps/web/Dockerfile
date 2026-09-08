@@ -30,7 +30,7 @@ FROM nginx:alpine AS runner
 USER root
 RUN apk add --no-cache curl
 COPY --chown=nginx:nginx --chmod=644 apps/web/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build --chown=nginx:nginx --chmod=755 /app/apps/web/dist/ /usr/share/nginx/html/
+COPY --from=build --chown=nginx:nginx --chmod=755 /app/apps/web/dist/client/ /usr/share/nginx/html/
 RUN chown -R nginx:nginx /var/cache/nginx /var/log/nginx /etc/nginx/conf.d /run && \
 	chmod -R 755 /var/cache/nginx /var/log/nginx /etc/nginx/conf.d /run && \
 	find /usr/share/nginx/html -type d -exec chmod 755 {} \; && \

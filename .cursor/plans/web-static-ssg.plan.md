@@ -1,9 +1,9 @@
 ---
 name: Web static SSG
-overview: "Four PRs: static Vite dist + nginx, auth only on /hub /lab, marketing site + prerender SEO, then PWA and GTM consent analytics — one @apps/web, no second landings app, no blog."
+overview: "Four PRs: TanStack Start SPA + nginx dist/client, auth only on /hub /lab, marketing site + Start prerender SEO, then PWA and GTM consent analytics — one @apps/web, no second landings app, no blog."
 todos:
   - id: phase-1-static-nginx
-    content: "Phase 1: Vite SPA dist/ + nginx; drop TanStack Start and createServerFn; /status JSON only"
+    content: "Phase 1: TanStack Start SPA dist/client + nginx; no createServerFn; /status JSON only"
     status: pending
   - id: phase-1-verify
     content: "Phase 1 gate: rg createServerFn apps/web empty; bun test apps/web; bun run turbo run typecheck --filter=@apps/web; bun run turbo run build --filter=@apps/web"
@@ -57,7 +57,7 @@ isProject: false
 
 ## Design agreement
 
-**Outcome:** `@apps/web` is a **static `dist/`** (Vite client build + later prerender). **nginx** serves it. No Node/Vite process in production. **`/hub` and `/lab`** stay **client-only** (lazy `Game`). **`@apps/auth`** remains the SSR auth app. Marketing HTML is crawlable (home + required legal). **Blog is out.** No second `apps/landings`.
+**Outcome:** `@apps/web` is **TanStack Start SPA mode**. Production serves **`dist/client`** with **nginx**. No Node process at runtime. **`/hub` and `/lab`** stay **client-only** (lazy `Game`). **`@apps/auth`** remains the SSR auth app. Marketing HTML is crawlable (home + required legal). **Blog is out.** No second `apps/landings`.
 
 **Model:** Xpertell `apps/landings` (Vite + TanStack Router + post-build prerender + nginx) plus PWA/analytics from `apps/xpertell` / `packages/analytics` — **without** FCM, Firebase, campaigns, start-selling, Apple IAP, help-center, or a second workspace.
 
@@ -67,7 +67,7 @@ isProject: false
 - Stay in **one** `@apps/web`.
 - `trailingSlash: "never"`.
 - Do not construct `Game` outside `/hub` and `/lab`.
-- Do not add `createServerFn` or `@tanstack/react-start` after Phase 1 removes them.
+- Do not add `createServerFn` or a Node runtime for `@apps/web`. Keep `@tanstack/react-start` in SPA mode.
 - Legal copy may be honest placeholders; contact is **mailto + GitHub/wiki**, no form backend.
 - Home CTA is **Play → `/hub`**, not app stores.
 

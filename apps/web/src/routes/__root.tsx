@@ -4,6 +4,7 @@ import {
 	type ErrorComponentProps,
 	HeadContent,
 	Outlet,
+	Scripts,
 } from "@tanstack/react-router";
 import type { ReactElement } from "react";
 
@@ -35,33 +36,38 @@ function RootDocument(): ReactElement {
 	const { queryClient } = Route.useRouteContext();
 
 	return (
-		<>
-			<HeadContent />
-			<QueryClientProvider client={queryClient}>
-				<AuthProvider
-					session={playerAuthSession}
-					restoreOnMount={false}
-					authOrigin={import.meta.env.VITE_AUTH_URL}
-					appOrigin={import.meta.env.VITE_APP_ORIGIN}
-				>
-					<FetcherSettingsProvider
-						initialSettings={{
-							config: {
-								...defaultFetcherSettingsInput.config,
-								...authFetch,
-								baseRequestConfig: {
-									...defaultFetcherSettingsInput.config?.baseRequestConfig,
-									baseURL: getBrowserApiBaseUrl(),
-									credentials: "include",
-								},
-							},
-						}}
+		<html lang="en" className="h-full bg-background">
+			<head>
+				<HeadContent />
+			</head>
+			<body className="min-h-full bg-background font-sans text-foreground">
+				<QueryClientProvider client={queryClient}>
+					<AuthProvider
+						session={playerAuthSession}
+						restoreOnMount={false}
+						authOrigin={import.meta.env.VITE_AUTH_URL}
+						appOrigin={import.meta.env.VITE_APP_ORIGIN}
 					>
-						<Outlet />
-					</FetcherSettingsProvider>
-				</AuthProvider>
-			</QueryClientProvider>
-		</>
+						<FetcherSettingsProvider
+							initialSettings={{
+								config: {
+									...defaultFetcherSettingsInput.config,
+									...authFetch,
+									baseRequestConfig: {
+										...defaultFetcherSettingsInput.config?.baseRequestConfig,
+										baseURL: getBrowserApiBaseUrl(),
+										credentials: "include",
+									},
+								},
+							}}
+						>
+							<Outlet />
+						</FetcherSettingsProvider>
+					</AuthProvider>
+				</QueryClientProvider>
+				<Scripts />
+			</body>
+		</html>
 	);
 }
 

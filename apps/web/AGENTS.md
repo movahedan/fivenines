@@ -24,7 +24,7 @@ Routes live under `src/routes/` (same convention as xpertell product apps):
 | `src/routes/hub.tsx` | `/hub` — session gate + clock-SSE health; renders `HubSession` (ops floor) |
 | `src/routes/lab.tsx` | `/lab` — session-gated verbose engine harness (`LabSession`) |
 
-`src/router.tsx` exports `getRouter()` (required by Start). Use `trailingSlash: "never"`. `src/routeTree.gen.ts` is generated on Vite build/dev — do not hand-edit. There is no React `/status` route: process-up JSON is Vite middleware (dev) or nginx (`location = /status`). SPA fallback is `dist/client/_shell.html`.
+`src/router.tsx` exports `getRouter()` (required by Start). Use `trailingSlash: "never"`. `src/routeTree.gen.ts` is generated on Vite build/dev — do not hand-edit. SPA fallback is `dist/client/_shell.html` (copied to `index.html` after build). There is no JSON `/status` on web.
 
 ## Hub
 
@@ -53,14 +53,14 @@ bun test apps/web/src/routes/lab.test.tsx
 ```bash
 bun run turbo run dev --filter=@apps/web   # http://play.fivenines.com:3000 (hosts file; hub/lab need Nest :3002 + auth :3001)
 bun run turbo run build --filter=@apps/web
-bun run --filter=@apps/web preview:static  # serve dist/client locally (not nginx /status JSON)
+bun run --filter=@apps/web preview:static  # bunx serve dist/client -s
 bun run typecheck --filter=@apps/web
 bun test apps/web
 ```
 
 Browser API origin: `VITE_NESTJS_API_URL` (default `http://api.fivenines.com:3002`). Auth origin: `VITE_AUTH_URL`. Player origin: `VITE_APP_ORIGIN`. Vite `allowedHosts` includes `play.fivenines.com`. Home must not `restore()`.
 
-Health: `GET /status` returns JSON `{ "ok": true }` (Vite middleware also includes `timestamp`). Compose HEALTHCHECK probes `/status`. `/` is HTML.
+Health: prod nginx and Check probe `GET /` for the string `Five Nines` in the built shell HTML. Dev Vite is the same (`<title>` / home copy). Auth, Nest, and Storybook still use JSON `GET /status`.
 
 ## Docker
 
@@ -68,4 +68,4 @@ Health: `GET /status` returns JSON `{ "ok": true }` (Vite middleware also includ
 bun run container up -- --profile web   # postgres + nestjs + Vite web (dev)
 ```
 
-Compose `all` also starts web. Prod-shaped `docker-compose.yml` serves nginx + `dist/client` (`listen 3000`, SPA `_shell.html`); that service does not `depends_on` nestjs. Do not copy `dist/server` into the image.
+Compose `all` also starts web. Prod-shaped `docker-compose.yml` serves nginx + `dist/client` (`listen 3000`); that service does not `depends_on` nestjs. Do not copy `dist/server` into the image. `VITE_*` is bake-time (`.env.sample` in the image build), not compose runtime.

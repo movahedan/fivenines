@@ -136,24 +136,16 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
     ports:
-      - "13000:${WEB_PORT:-3000}"
+      - "13000:3000"
     networks:
       - prod-network
-    environment:
-      HOST: ${HOST:-0.0.0.0}
-      PORT: ${WEB_PORT:-3000}
-      WEB_PORT: ${WEB_PORT:-3000}
-      NODE_ENV: production
-      VITE_NESTJS_API_URL: ${VITE_NESTJS_API_URL:-http://api.fivenines.com:3002}
-      VITE_AUTH_URL: ${VITE_AUTH_URL:-http://auth.fivenines.com:3001}
-      VITE_APP_ORIGIN: ${VITE_APP_ORIGIN:-http://play.fivenines.com:3000}
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "curl -sf -H 'Accept: application/json' http://127.0.0.1:${WEB_PORT:-3000}/status | grep -Eq '\"ok\"[[:space:]]*:[[:space:]]*true'",
+          "curl -sf http://127.0.0.1:3000/ | grep -qF 'Five Nines'",
         ]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 90s
+      start_period: 15s

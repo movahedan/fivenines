@@ -1,11 +1,10 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
 import { createRequire } from "node:module";
 import path from "node:path";
 
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
-import { defineConfig, type PreviewServer, type ViteDevServer } from "vite";
+import { defineConfig } from "vite";
 
 import {
 	esmifyReactNativeSvgTransform,
@@ -24,31 +23,8 @@ import {
 	transpileCjsNodeModules,
 	transpileRnPrimitivesJsx,
 } from "../../packages/ui/scripts/rn-web.ts";
-import { isLivenessPath, processStatusBody } from "./src/liveness.ts";
 
 const webPort = Number(process.env.WEB_PORT ?? process.env.PORT ?? "3000");
-
-function requestPathname(req: IncomingMessage): string {
-	const path = req.url?.split("?")[0];
-	return path === undefined || path === "" ? "/" : path;
-}
-
-function sendStatusJson(res: ServerResponse): void {
-	res.statusCode = 200;
-	res.setHeader("Content-Type", "application/json");
-	res.end(JSON.stringify(processStatusBody()));
-}
-
-function attachJsonStatus(server: ViteDevServer | PreviewServer): void {
-	server.middlewares.use((req, res, next) => {
-		if (req.method === "GET" && isLivenessPath(requestPathname(req))) {
-			sendStatusJson(res);
-			return;
-		}
-
-		next();
-	});
-}
 
 const requireFromWeb = createRequire(import.meta.url);
 
@@ -128,11 +104,6 @@ export default defineConfig(({ command }) => {
 			resolveStyleqStubs(),
 			transpileRnPrimitivesJsx(),
 			transpileCjsNodeModules(),
-			{
-				name: "status-json",
-				configureServer: attachJsonStatus,
-				configurePreviewServer: attachJsonStatus,
-			},
 			tanstackStart({
 				spa: {
 					enabled: true,

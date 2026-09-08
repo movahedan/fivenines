@@ -13,6 +13,11 @@ const OFFER = {
 	slaLabel: "99.9%",
 } as const;
 
+const SERVER_OPTIONS = [
+	{ id: "srv-a", label: "m5.large #A1F2" },
+	{ id: "srv-b", label: "c5.xlarge #B7C3" },
+] as const;
+
 describe("ProjectOfferCard", () => {
 	it("renders customer, name, region, and metrics when given props", () => {
 		render(<ProjectOfferCard {...OFFER} onAccept={mock()} onDecline={mock()} />);
@@ -56,5 +61,106 @@ describe("ProjectOfferCard", () => {
 		fireEvent.click(screen.getByRole("button", { name: "DECLINE" }));
 
 		expect(onDecline).toHaveBeenCalledTimes(1);
+	});
+
+	it("renders no server picker when serverOptions is omitted", () => {
+		render(<ProjectOfferCard {...OFFER} onAccept={mock()} onDecline={mock()} />);
+
+		expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+		expect(screen.queryByText("Server")).not.toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "ACCEPT" })).toBeEnabled();
+	});
+
+	it("renders a labelled server picker when serverOptions is given", () => {
+		render(
+			<ProjectOfferCard
+				{...OFFER}
+				onAccept={mock()}
+				onDecline={mock()}
+				serverOptions={SERVER_OPTIONS}
+			/>,
+		);
+
+		expect(screen.getByLabelText("Server")).toBeInTheDocument();
+		expect(screen.getByRole("option", { name: "m5.large #A1F2" })).toBeInTheDocument();
+		expect(screen.getByRole("option", { name: "c5.xlarge #B7C3" })).toBeInTheDocument();
+	});
+
+	it("uses serverSelectLabel as the picker accessible name when given", () => {
+		render(
+			<ProjectOfferCard
+				{...OFFER}
+				onAccept={mock()}
+				onDecline={mock()}
+				serverOptions={SERVER_OPTIONS}
+				serverSelectLabel="Target box"
+			/>,
+		);
+
+		expect(screen.getByLabelText("Target box")).toBeInTheDocument();
+	});
+
+	it("calls onSelectServer with the picked id when the picker changes", () => {
+		const onSelectServer = mock();
+
+		render(
+			<ProjectOfferCard
+				{...OFFER}
+				onAccept={mock()}
+				onDecline={mock()}
+				onSelectServer={onSelectServer}
+				serverOptions={SERVER_OPTIONS}
+			/>,
+		);
+
+		fireEvent.change(screen.getByLabelText("Server"), { target: { value: "srv-b" } });
+
+		expect(onSelectServer).toHaveBeenCalledTimes(1);
+		expect(onSelectServer).toHaveBeenCalledWith("srv-b");
+	});
+
+	it("disables ACCEPT until a server is selected", () => {
+		const { unmount } = render(
+			<ProjectOfferCard
+				{...OFFER}
+				onAccept={mock()}
+				onDecline={mock()}
+				serverOptions={SERVER_OPTIONS}
+			/>,
+		);
+
+		expect(screen.getByRole("button", { name: "ACCEPT" })).toBeDisabled();
+		expect(screen.getByRole("button", { name: "DECLINE" })).toBeEnabled();
+
+		unmount();
+
+		render(
+			<ProjectOfferCard
+				{...OFFER}
+				onAccept={mock()}
+				onDecline={mock()}
+				selectedServerId="srv-a"
+				serverOptions={SERVER_OPTIONS}
+			/>,
+		);
+
+		expect(screen.getByRole("button", { name: "ACCEPT" })).toBeEnabled();
+	});
+
+	it("renders noServersLabel and disables ACCEPT when serverOptions is empty", () => {
+		render(
+			<ProjectOfferCard
+				{...OFFER}
+				noServersLabel="NO BOXES"
+				onAccept={mock()}
+				onDecline={mock()}
+				serverOptions={[]}
+			/>,
+		);
+
+		expect(screen.getByText("NO BOXES")).toBeInTheDocument();
+		expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "ACCEPT" })).toBeDisabled();
+		expect(screen.getByRole("button", { name: "DECLINE" })).toBeEnabled();
 	});
 });

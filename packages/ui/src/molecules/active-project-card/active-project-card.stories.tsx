@@ -4,6 +4,11 @@ import { ActiveProjectCard } from "./active-project-card";
 
 const SPARKLINE = [0.82, 0.9, 0.74, 0.88, 0.41, 0.93, 0.86, 0.91];
 
+const SERVER_OPTIONS = [
+	{ id: "srv-a", label: "m5.large #A1F2" },
+	{ id: "srv-b", label: "c5.xlarge #B7C3" },
+];
+
 const meta: Meta<typeof ActiveProjectCard> = {
 	title: "Components/ActiveProjectCard",
 	component: ActiveProjectCard,
@@ -57,5 +62,26 @@ export const Warming: Story = {
 	args: {
 		sparkline: [],
 		sparklineWarmingLabel: "WARMING UP...",
+	},
+};
+
+export const WithServerSelected: Story = {
+	args: {
+		serverOptions: SERVER_OPTIONS,
+		selectedServerId: "srv-b",
+		onSelectServer: () => undefined,
+		onRoute: () => undefined,
+		onUnassign: () => undefined,
+	},
+};
+
+export const Parked: Story = {
+	args: {
+		serverLabel: "UNASSIGNED",
+		serverOptions: SERVER_OPTIONS,
+		selectedServerId: "srv-a",
+		onSelectServer: () => undefined,
+		onRoute: () => undefined,
+		routeLabel: "ASSIGN",
 	},
 };

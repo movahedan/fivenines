@@ -1,17 +1,17 @@
 # AGENTS.md
 
-**@apps/web** — Five Nines player UI (TanStack Start SSR, file-based router).
+**@apps/web** — Five Nines player UI (Vite SPA, file-based router). Production is static `dist/` behind nginx.
 
 **Code review:** [`.github/instructions/web.instructions.md`](../../.github/instructions/web.instructions.md) (shared with GitHub Copilot).
 
 ## Overview
 
 - **Port:** 3000 (`WEB_PORT`)
-- **Stack:** Vite + `@tanstack/react-start` + `@tanstack/react-router` file routes
+- **Stack:** Vite + `@tanstack/router-plugin` + `@tanstack/react-router` file routes. No TanStack Start and no server functions.
 - Production routes must not construct `Game` or `tick()` in the browser, except the temporary `/hub` and `/lab` clients below.
 - **`/hub` and `/lab` exceptions:** `src/hub/` and `src/lab/` construct `@packages/fivenines-engine` `Game` on the client (Opening Shift). Nest campaign/SSE is the future production caller. Clock SSE on `/hub` is session health (unauthenticated → login), not the sim clock.
-- Nest reads in loaders go through `createServerFn` + `@packages/nestjs-sdk/server` (loaders are isomorphic; keep private I/O in server functions).
-- Pin `@tanstack/react-router` to the version `@tanstack/react-start` depends on (currently `1.170.32`). Do not reuse `@packages/shared-tanstack`'s older router pin in this app.
+- Hub talks to Nest from the **browser** (`VITE_NESTJS_API_URL`). Do not add server loaders or `@packages/nestjs-sdk/server`.
+- Pin `@tanstack/react-router` to the version `@tanstack/router-plugin` depends on (currently `1.170.33`). Do not reuse `@packages/shared-tanstack`'s older router pin in this app.
 
 ## File routes
 
@@ -19,13 +19,12 @@ Routes live under `src/routes/` (same convention as xpertell product apps):
 
 | File | Route |
 |------|--------|
-| `src/routes/__root.tsx` | Root document, Query + `FetcherSettingsProvider` + `AuthProvider` (`restoreOnMount={false}`) |
-| `src/routes/index.tsx` | `/` — SSR health check against Nest; Play links to `/hub` |
-| `src/routes/status.tsx` | `/status` — process-up HTML page |
+| `src/routes/__root.tsx` | Root shell, Query + `FetcherSettingsProvider` + `AuthProvider` (`restoreOnMount={false}`) |
+| `src/routes/index.tsx` | `/` — stub home (Play → `/hub`, Lab) |
 | `src/routes/hub.tsx` | `/hub` — session gate + clock-SSE health; renders `HubSession` (ops floor) |
 | `src/routes/lab.tsx` | `/lab` — session-gated verbose engine harness (`LabSession`) |
 
-`src/router.tsx` exports `getRouter()` (required by Start). Use `trailingSlash: "never"`. `src/routeTree.gen.ts` is generated on Vite build/dev — do not hand-edit.
+`index.html` + `src/main.tsx` mount `RouterProvider`. `src/router.tsx` exports `getRouter()`. Use `trailingSlash: "never"`. `src/routeTree.gen.ts` is generated on Vite build/dev — do not hand-edit. There is no React `/status` route: process-up JSON is Vite middleware (dev) or nginx (`location = /status`).
 
 ## Hub
 
@@ -52,19 +51,21 @@ bun test apps/web/src/routes/lab.test.tsx
 ## Essential commands
 
 ```bash
-bun run turbo run dev --filter=@apps/web   # http://play.fivenines.com:3000 (hosts file; needs Nest :3002 + auth :3001)
+bun run turbo run dev --filter=@apps/web   # http://play.fivenines.com:3000 (hosts file; hub/lab need Nest :3002 + auth :3001)
+bun run turbo run build --filter=@apps/web
+bun run --filter=@apps/web preview:static  # serve dist/ locally (not nginx /status JSON)
 bun run typecheck --filter=@apps/web
 bun test apps/web
 ```
 
-Browser API origin: `VITE_NESTJS_API_URL` (default `http://api.fivenines.com:3002`). SSR fetch uses `NESTJS_API_URL` (same URL). Auth origin: `VITE_AUTH_URL`. Player origin: `VITE_APP_ORIGIN`. Vite `allowedHosts` includes `play.fivenines.com`. Home must not `restore()`.
+Browser API origin: `VITE_NESTJS_API_URL` (default `http://api.fivenines.com:3002`). Auth origin: `VITE_AUTH_URL`. Player origin: `VITE_APP_ORIGIN`. Vite `allowedHosts` includes `play.fivenines.com`. Home must not `restore()`.
 
-Health: `GET /` or `GET /status` with `Accept: application/json` returns `{ ok, timestamp }` (process-up). The `/status` page is HTML for humans. Compose HEALTHCHECK probes `/`.
+Health: `GET /status` returns JSON `{ "ok": true }` (Vite middleware also includes `timestamp`). Compose HEALTHCHECK probes `/status`. `/` is HTML.
 
 ## Docker
 
 ```bash
-bun run container up -- --profile web   # postgres + nestjs + web
+bun run container up -- --profile web   # postgres + nestjs + Vite web (dev)
 ```
 
-Compose `all` also starts web. Prod-shaped `docker-compose.yml` includes this app (`x-fivenines-package: "@apps/web"`).
+Compose `all` also starts web. Prod-shaped `docker-compose.yml` serves nginx + `dist/` (`listen 3000`); that service does not `depends_on` nestjs.

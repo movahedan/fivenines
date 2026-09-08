@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
-import { acceptIncludesJson, isLivenessPath, processStatusBody } from "./liveness";
+import { isLivenessPath, processStatusBody } from "./liveness";
 
 describe("processStatusBody - process up", () => {
 	it("returns ok and an ISO timestamp", () => {
@@ -12,17 +12,9 @@ describe("processStatusBody - process up", () => {
 });
 
 describe("isLivenessPath - probe URLs", () => {
-	it("treats home and status as liveness", () => {
-		expect(isLivenessPath("/")).toBe(true);
+	it("treats only status as liveness", () => {
+		expect(isLivenessPath("/")).toBe(false);
 		expect(isLivenessPath("/status")).toBe(true);
 		expect(isLivenessPath("/hub")).toBe(false);
-	});
-});
-
-describe("acceptIncludesJson - negotiate JSON", () => {
-	it("is true when Accept lists application/json", () => {
-		expect(acceptIncludesJson("application/json")).toBe(true);
-		expect(acceptIncludesJson("text/html")).toBe(false);
-		expect(acceptIncludesJson(undefined)).toBe(false);
 	});
 });

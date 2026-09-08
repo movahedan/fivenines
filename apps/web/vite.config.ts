@@ -3,7 +3,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 
 import tailwindcss from "@tailwindcss/vite";
-import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { defineConfig, type PreviewServer, type ViteDevServer } from "vite";
 
@@ -18,13 +18,12 @@ import {
 	rnWebExtensions,
 	rnWebGlobalDefines,
 	rnWebOptimizeDeps,
-	rnWebSsrNoExternal,
 	shareSingleReact,
 	stubReanimatedWorkletsVersionCheck,
 	transpileCjsNodeModules,
 	transpileRnPrimitivesJsx,
 } from "../../packages/ui/scripts/rn-web.ts";
-import { acceptIncludesJson, isLivenessPath, processStatusBody } from "./src/liveness.ts";
+import { isLivenessPath, processStatusBody } from "./src/liveness.ts";
 
 const webPort = Number(process.env.WEB_PORT ?? process.env.PORT ?? "3000");
 
@@ -39,13 +38,9 @@ function sendStatusJson(res: ServerResponse): void {
 	res.end(JSON.stringify(processStatusBody()));
 }
 
-function attachJsonStatusWhenAccepted(server: ViteDevServer | PreviewServer): void {
+function attachJsonStatus(server: ViteDevServer | PreviewServer): void {
 	server.middlewares.use((req, res, next) => {
-		if (
-			req.method === "GET" &&
-			isLivenessPath(requestPathname(req)) &&
-			acceptIncludesJson(req.headers.accept)
-		) {
+		if (req.method === "GET" && isLivenessPath(requestPathname(req))) {
 			sendStatusJson(res);
 			return;
 		}
@@ -115,12 +110,6 @@ export default defineConfig(({ command }) => {
 			],
 			exclude: shareReact ? [...rnJsxExclude, ...reactPrebundleIds] : rnJsxExclude,
 		},
-		ssr: {
-			noExternal: rnWebSsrNoExternal,
-			optimizeDeps: {
-				exclude: shareReact ? [...rnJsxExclude, ...reactPrebundleIds] : rnJsxExclude,
-			},
-		},
 		plugins: [
 			...(shareReact ? [shareSingleReact()] : []),
 			preferNodeModuleEsmPlugin(),
@@ -134,13 +123,12 @@ export default defineConfig(({ command }) => {
 			transpileCjsNodeModules(),
 			{
 				name: "status-json",
-				configureServer: attachJsonStatusWhenAccepted,
-				configurePreviewServer: attachJsonStatusWhenAccepted,
+				configureServer: attachJsonStatus,
+				configurePreviewServer: attachJsonStatus,
 			},
-			tanstackStart({
-				router: {
-					routeFileIgnorePattern: String.raw`\.test\.tsx$`,
-				},
+			tanstackRouter({
+				target: "react",
+				routeFileIgnorePattern: String.raw`\.test\.tsx$`,
 			}),
 			viteReact(),
 			tailwindcss(),

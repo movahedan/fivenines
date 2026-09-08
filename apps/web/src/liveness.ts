@@ -3,9 +3,5 @@ export function processStatusBody(): { readonly ok: true; readonly timestamp: st
 }
 
 export function isLivenessPath(pathname: string): boolean {
-	return pathname === "/" || pathname === "/status";
-}
-
-export function acceptIncludesJson(acceptHeader: string | undefined): boolean {
-	return typeof acceptHeader === "string" && acceptHeader.includes("application/json");
+	return pathname === "/status";
 }

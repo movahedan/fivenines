@@ -91,7 +91,7 @@ Then open `http://play.fivenines.com:3000` (Play), login at `http://auth.fivenin
 
 Compose Postgres is **18**. Volume mounts at `/var/lib/postgresql`; `PGDATA` is `/var/lib/postgresql/18/docker`. A **17** volume at `/var/lib/postgresql/data` will not start. Reset (`bun run container cleanup`) or dump/restore.
 
-Process-up probe (JSON): `curl -sf -H 'Accept: application/json' http://localhost:3000/` (web), `:3001/status` (auth), `:3002/status` (nest), `:9000/status` (Storybook). Compose HEALTHCHECK and `bun run container check` use the same contract (`"ok":true`, 3 retries).
+Process-up probe (JSON): `curl -sf http://localhost:3000/status` (web), `:3001/status` (auth), `:3002/status` (nest), `:9000/status` (Storybook). Compose HEALTHCHECK and `bun run container check` use the same contract (`"ok":true`, 3 retries). Web `/` is HTML.
 
 ### Auth + NestJS smoke
 

@@ -3,14 +3,25 @@ import { lazy, Suspense, useEffect, useState } from "react";
 
 import { useAuth } from "@packages/auth/react";
 
+import { PlayProviders } from "../play/play-providers";
+
 const LabSession = lazy(async () => {
 	const module = await import("../lab/lab-session");
 	return { default: module.LabSession };
 });
 
 export const Route = createFileRoute("/lab")({
-	component: LabPage,
+	ssr: false,
+	component: LabRoute,
 });
+
+function LabRoute() {
+	return (
+		<PlayProviders>
+			<LabPage />
+		</PlayProviders>
+	);
+}
 
 export function LabPage() {
 	const { wasLoggedIn, loginHref } = useAuth();

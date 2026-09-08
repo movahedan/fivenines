@@ -7,7 +7,7 @@
 ## Overview
 
 - **Port:** 3000 (`WEB_PORT`)
-- **Stack:** Vite + `@tanstack/react-start` (`spa.enabled`) + `@tanstack/react-router` file routes. No runtime Node and no server functions.
+- **Stack:** Vite + `@tanstack/react-start` (`spa.enabled`) + `@tanstack/react-router` file routes. No runtime Node and no server functions. SPA shell prerender (`/_shell.html`) must not execute `react-native-web` (SSR aliases a stub; `/hub` `/lab` `/` are `ssr: false`). Login `redirect_uri` uses the play page origin, never the auth origin (`:3001`).
 - Production routes must not construct `Game` or `tick()` in the browser, except the temporary `/hub` and `/lab` clients below.
 - **`/hub` and `/lab` exceptions:** `src/hub/` and `src/lab/` construct `@packages/fivenines-engine` `Game` on the client (Opening Shift). Nest campaign/SSE is the future production caller. Clock SSE on `/hub` is session health (unauthenticated → login), not the sim clock.
 - Hub talks to Nest from the **browser** (`VITE_NESTJS_API_URL`). Do not add Start server functions or `@packages/nestjs-sdk/server`.
@@ -19,10 +19,12 @@ Routes live under `src/routes/` (same convention as xpertell product apps):
 
 | File | Route |
 |------|--------|
-| `src/routes/__root.tsx` | Root document, Query + `FetcherSettingsProvider` + `AuthProvider` (`restoreOnMount={false}`) |
-| `src/routes/index.tsx` | `/` — stub home (Play → `/hub`, Lab) |
-| `src/routes/hub.tsx` | `/hub` — session gate + clock-SSE health; renders `HubSession` (ops floor) |
-| `src/routes/lab.tsx` | `/lab` — session-gated verbose engine harness (`LabSession`) |
+| `src/routes/__root.tsx` | Root document shell (`html` / `head` / `Outlet`). No `AuthProvider`, fetcher, or `QueryClient`. |
+| `src/routes/index.tsx` | `/` — stub home (Play → `/hub`, Lab). Must not `restore()` or import `@packages/auth`. |
+| `src/routes/hub.tsx` | `/hub` — `PlayProviders` + session gate + clock-SSE health; renders `HubSession` (ops floor) |
+| `src/routes/lab.tsx` | `/lab` — `PlayProviders` + session-gated verbose engine harness (`LabSession`) |
+
+`src/play/play-providers.tsx` mounts `QueryClientProvider`, `AuthProvider` (`restoreOnMount={false}`, `playerAuthSession`), and `FetcherSettingsProvider` (Nest `baseURL` + `createAuthFetcherBindings`). Hub/lab tests wrap `AuthProvider` only; they do not need the Nest fetcher.
 
 `src/router.tsx` exports `getRouter()` (required by Start). Use `trailingSlash: "never"`. `src/routeTree.gen.ts` is generated on Vite build/dev — do not hand-edit. SPA fallback is `dist/client/_shell.html` (copied to `index.html` after build). There is no JSON `/status` on web.
 

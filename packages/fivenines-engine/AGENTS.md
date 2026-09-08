@@ -63,7 +63,7 @@ const healthy = new Game(twoBronzeInitial).tick();
 
 `GameInitial`: `{ customers, assets, cashCents?, accountsReceivableCents?, jailed? }`. Empty `assets` is valid. Defaults: `cashCents = STARTING_CASH_CENTS` (25_000), `accountsReceivableCents = 0`, `jailed = false` (`src/catalog/economy-policy.ts`). Cash is signed integer cents. Opening cash buys one Bronze (18_000) with runway; Silver and above stay out of reach at start.
 
-A `served` `ProjectInitial` requires a `route`, and a non-served one must not carry one — construct throws either way. `Game` additionally throws when a route names an id absent from `assets`, and re-checks that after every `dispatch`.
+A `served` `ProjectInitial` requires a `route`, and a non-served one must not carry one — construct throws either way. `Game` additionally throws when a route names an id absent from `assets`, and re-checks that on every `dispatch`. The check (`assertRoutesResolve` in `game.utils.ts`) runs against the **candidate** graph returned by `applyCommand`, before any field is written, so a rejected command leaves the game exactly as it was instead of half applied.
 
 After `tick()`, `game.metrics` (`src/game.metrics.ts`), each `server.metrics` (`src/server.metrics.ts`), and each `project.metrics` (`src/project.metrics.ts`) hold that hour’s snapshot. `game.finance` (`src/game.finance.ts`) is the last-hour money snapshot: `cashCents`, `accountsReceivableCents`, `jailed`, fleet totals `opexCents` / `maintenanceCents` / `powerCents`.
 

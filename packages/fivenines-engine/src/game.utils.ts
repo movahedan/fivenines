@@ -128,6 +128,27 @@ function assertServerExists(assets: readonly GameAsset[], serverId: string): Gam
 	return server;
 }
 
+/**
+ * Every route must name a box the game still owns. Pure over the candidate graph
+ * so callers can check a command's result before committing it.
+ */
+export function assertRoutesResolve(
+	customers: readonly Customer[],
+	assets: readonly GameAsset[],
+): void {
+	const serverIds = new Set(assets.map((asset) => asset.id));
+
+	for (const customer of customers) {
+		for (const project of customer.projects) {
+			const route = project.route;
+
+			if (route !== undefined && !serverIds.has(route.serverId)) {
+				throw new Error(`unknown server id for project route: ${project.id}`);
+			}
+		}
+	}
+}
+
 /** A parked project does not pin its old box — only a live route blocks the sale. */
 function assertNoServedRoute(customers: readonly Customer[], serverId: string): void {
 	for (const customer of customers) {

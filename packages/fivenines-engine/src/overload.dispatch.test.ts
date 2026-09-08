@@ -208,6 +208,43 @@ describe("Game - dispatch", () => {
 
 		expect(game.assets).toHaveLength(0);
 	});
+
+	it("leaves the game untouched when a command is rejected", () => {
+		const game = new Game(oneBronzeInitial);
+		const before = {
+			assetIds: game.assets.map((asset) => asset.id),
+			statuses: game.customers.flatMap((customer) =>
+				customer.projects.map((project) => project.status),
+			),
+			routes: game.customers.flatMap((customer) =>
+				customer.projects.map((project) => project.route?.serverId),
+			),
+			cashCents: game.cashCents,
+			jailed: game.jailed,
+		};
+
+		const rejected: readonly EngineCommand[] = [
+			{ type: "sellServer", payload: { serverId: "server-1" } },
+			{ type: "moveProject", payload: { projectId: "project-1", serverId: "server-404" } },
+			{ type: "unassignProject", payload: { projectId: "project-404" } },
+		];
+
+		for (const command of rejected) {
+			expect(() => game.dispatch(command)).toThrow();
+		}
+
+		expect({
+			assetIds: game.assets.map((asset) => asset.id),
+			statuses: game.customers.flatMap((customer) =>
+				customer.projects.map((project) => project.status),
+			),
+			routes: game.customers.flatMap((customer) =>
+				customer.projects.map((project) => project.route?.serverId),
+			),
+			cashCents: game.cashCents,
+			jailed: game.jailed,
+		}).toEqual(before);
+	});
 });
 
 describe("Game - routing round trip", () => {

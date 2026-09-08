@@ -22,6 +22,7 @@ import { applyProjectSla } from "./game.sla";
 import {
 	type AssetInitial,
 	applyCommand,
+	assertRoutesResolve,
 	createAsset,
 	type EngineCommand,
 	type GameAsset,
@@ -81,7 +82,7 @@ export class Game {
 		);
 		this.#jailed = initial.jailed ?? false;
 		this.#syncDerivedState();
-		this.#assertRoutesResolve();
+		assertRoutesResolve(this.#customers, this.#assets);
 	}
 
 	get customers(): readonly Customer[] {
@@ -150,12 +151,15 @@ export class Game {
 			command,
 		);
 
+		// Validate the candidate graph before touching any field, so a rejected
+		// command leaves the game exactly as it was rather than half applied.
+		assertRoutesResolve(next.customers, next.assets);
+
 		this.#customers = [...next.customers];
 		this.#assets = [...next.assets];
 		this.#cashCents = next.cashCents;
 		this.#jailed = next.jailed;
 		this.#syncDerivedState();
-		this.#assertRoutesResolve();
 
 		return this;
 	}
@@ -331,18 +335,5 @@ export class Game {
 		}
 
 		this.#serversById = serversById;
-	}
-
-	/** Every route must name a box the game still owns, at construct and after every command. */
-	#assertRoutesResolve(): void {
-		for (const customer of this.#customers) {
-			for (const project of customer.projects) {
-				const route = project.route;
-
-				if (route !== undefined && !this.#serversById.has(route.serverId)) {
-					throw new Error(`unknown server id for project route: ${project.id}`);
-				}
-			}
-		}
 	}
 }

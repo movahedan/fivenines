@@ -5,3 +5,4 @@ export * from "./metric-stat/metric-stat";
 export * from "./panel-header/panel-header";
 export * from "./project-offer-card/project-offer-card";
 export * from "./server-card/server-card";
+export * from "./server-select/server-select";

@@ -94,11 +94,17 @@ describe("ActiveProjectCard", () => {
 		expect(onSelectServer).toHaveBeenCalledWith("srv-b");
 	});
 
-	it("renders only the route button when onRoute is given", () => {
-		render(<ActiveProjectCard {...ACTIVE} onRoute={mock()} sparkline={[0.8]} />);
+	it("renders an enabled route button when onRoute is given without serverOptions", () => {
+		const onRoute = mock();
 
-		expect(screen.getByRole("button", { name: "MOVE" })).toBeInTheDocument();
+		render(<ActiveProjectCard {...ACTIVE} onRoute={onRoute} sparkline={[0.8]} />);
+
 		expect(screen.queryByRole("button", { name: "PARK" })).not.toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "MOVE" })).toBeEnabled();
+
+		fireEvent.click(screen.getByRole("button", { name: "MOVE" }));
+
+		expect(onRoute).toHaveBeenCalledTimes(1);
 	});
 
 	it("renders only the unassign button when onUnassign is given", () => {

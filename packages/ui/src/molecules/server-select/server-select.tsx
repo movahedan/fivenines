@@ -2,7 +2,7 @@ import type { ChangeEvent } from "react";
 import { useId } from "react";
 import { View } from "react-native";
 
-import { Text } from "../atoms/text";
+import { Text } from "../../atoms/text";
 
 export interface ServerOption {
 	readonly id: string;

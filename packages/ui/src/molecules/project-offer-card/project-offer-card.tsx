@@ -5,9 +5,9 @@ import { Button } from "../../atoms/button";
 import { Card } from "../../atoms/card";
 import { Text } from "../../atoms/text";
 import { MetricStat } from "../metric-stat/metric-stat";
-import { type ServerOption, ServerSelect } from "../server-select";
+import { type ServerOption, ServerSelect } from "../server-select/server-select";
 
-export type { ServerOption } from "../server-select";
+export type { ServerOption } from "../server-select/server-select";
 
 export interface ProjectOfferCardProps {
 	readonly customerName: string;

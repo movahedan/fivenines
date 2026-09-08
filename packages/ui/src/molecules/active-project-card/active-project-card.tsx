@@ -5,9 +5,9 @@ import { Button } from "../../atoms/button";
 import { Card } from "../../atoms/card";
 import { Progress } from "../../atoms/progress";
 import { Text } from "../../atoms/text";
-import { type ServerOption, ServerSelect } from "../server-select";
+import { type ServerOption, ServerSelect } from "../server-select/server-select";
 
-export type { ServerOption } from "../server-select";
+export type { ServerOption } from "../server-select/server-select";
 
 const SLA_INDICATOR_CLASS = {
 	primary: "bg-primary",
@@ -75,7 +75,8 @@ export function ActiveProjectCard({
 }: ActiveProjectCardProps) {
 	const hasSparkline = sparkline.length > 0;
 	const hasActions = onRoute !== undefined || onUnassign !== undefined;
-	const routeDisabled = selectedServerId === undefined || serverOptions?.length === 0;
+	const routeDisabled =
+		serverOptions !== undefined && (serverOptions.length === 0 || selectedServerId === undefined);
 
 	return (
 		<Card className={cn("gap-2 p-3", className)}>

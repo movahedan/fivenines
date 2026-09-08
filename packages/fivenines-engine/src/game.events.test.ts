@@ -9,10 +9,17 @@ import { constantProject, oneBronzeInitial, twoBronzeInitial } from "./fixtures"
 import type { EngineEvent, GameInitial } from "./game";
 import { Game } from "./game";
 
-function emptyFleetServed(projects: GameInitial["customers"][number]["projects"]): GameInitial {
+function emptyFleetInitial(projects: GameInitial["customers"][number]["projects"]): GameInitial {
 	return {
 		customers: [{ id: "customer-1", projects }],
 		assets: [],
+	};
+}
+
+function oneBronzeWith(projects: GameInitial["customers"][number]["projects"]): GameInitial {
+	return {
+		customers: [{ id: "customer-1", projects }],
+		assets: [{ kind: "server", id: "server-1", catalogId: "bronze", region: "utc+0" }],
 	};
 }
 
@@ -38,8 +45,8 @@ describe("Game - events", () => {
 		expect(new Game(twoBronzeInitial).events).toEqual([]);
 	});
 
-	it("emits slaBreached on the first empty-fleet tick of a served constant project", () => {
-		const game = new Game(emptyFleetServed([constantProject("project-1", 700, "served")])).tick();
+	it("emits slaBreached on the first tick of a parked constant project", () => {
+		const game = new Game(emptyFleetInitial([constantProject("project-1", 700, "offline")])).tick();
 
 		expect(game.events).toContainEqual({
 			type: "slaBreached",
@@ -87,11 +94,11 @@ describe("Game - events", () => {
 		expect(game.events.find((event) => event.type === "paygSettled")?.cents).toBeGreaterThan(0);
 	});
 
-	it("emits weeklyCreditCharged after an empty-fleet served week with credits", () => {
+	it("emits weeklyCreditCharged after a week of overloaded served hours", () => {
 		const game = new Game(
-			emptyFleetServed([
+			oneBronzeWith([
 				{
-					...constantProject("project-1", 700, "served"),
+					...constantProject("project-1", 2_000, "served", "server-1"),
 					commercial: OPENING_COMMERCIAL_STUB,
 				},
 			]),
@@ -114,24 +121,21 @@ describe("Game - events", () => {
 	});
 
 	it("does not append sim events when decline or accept is dispatched", () => {
-		const game = new Game({
-			customers: [
-				{
-					id: "customer-1",
-					projects: [
-						constantProject("project-1", 700, "offered"),
-						constantProject("project-2", 700, "offered"),
-					],
-				},
-			],
-			assets: [],
-		});
+		const game = new Game(
+			oneBronzeWith([
+				constantProject("project-1", 700, "offered"),
+				constantProject("project-2", 700, "offered"),
+			]),
+		);
 
 		game.tick();
 		const afterTick = game.events;
 
 		game.dispatch({ type: "declineProject", payload: { projectId: "project-1" } });
-		game.dispatch({ type: "acceptProject", payload: { projectId: "project-2" } });
+		game.dispatch({
+			type: "acceptProject",
+			payload: { projectId: "project-2", serverId: "server-1" },
+		});
 
 		expect(game.events).toBe(afterTick);
 		expect(eventTypes(game.events)).not.toContain("weeklyCreditCharged");

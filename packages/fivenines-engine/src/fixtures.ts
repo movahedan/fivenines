@@ -7,6 +7,7 @@ export function constantProject(
 	id: string,
 	estimatedRequestsPerHour: number,
 	status: ProjectStatus,
+	serverId?: string,
 ): ProjectInitial {
 	return {
 		id,
@@ -17,6 +18,7 @@ export function constantProject(
 		region: "utc+0",
 		campaignProne: false,
 		commercial: PAYG_ONLY_COMMERCIAL_STUB,
+		...(serverId === undefined ? {} : { route: { kind: "server", serverId } }),
 	};
 }
 
@@ -49,23 +51,34 @@ function shapedProject(
 	};
 }
 
-const twoServedProjects = [
-	constantProject("project-1", 700, "served"),
-	constantProject("project-2", 700, "served"),
-];
-
+/** Both 700 RPS projects share one Bronze: 1400 against a 1000 cap, CPU-bound. */
 export const oneBronzeInitial: GameInitial = {
 	customers: [
 		{
 			id: "customer-1",
-			projects: twoServedProjects,
+			projects: [
+				constantProject("project-1", 700, "served", "server-1"),
+				constantProject("project-2", 700, "served", "server-1"),
+			],
 		},
 	],
 	assets: [{ kind: "server", id: "server-1", catalogId: "bronze", region: "utc+0" }],
 };
 
+/**
+ * Isolation fixture: one project per Bronze. Saturating one box must never let
+ * the other project's demand spill onto it, and vice versa.
+ */
 export const twoBronzeInitial: GameInitial = {
-	customers: oneBronzeInitial.customers,
+	customers: [
+		{
+			id: "customer-1",
+			projects: [
+				constantProject("project-1", 700, "served", "server-1"),
+				constantProject("project-2", 700, "served", "server-2"),
+			],
+		},
+	],
 	assets: [
 		{ kind: "server", id: "server-1", catalogId: "bronze", region: "utc+0" },
 		{ kind: "server", id: "server-2", catalogId: "bronze", region: "utc+0" },

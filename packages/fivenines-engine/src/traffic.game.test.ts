@@ -6,11 +6,11 @@ import { Game } from "./game";
 import type { ProjectInitial } from "./project";
 import { FixedRandomSource } from "./traffic/random-source";
 
-function shoppingServedProject(region: ProjectInitial["region"]): ProjectInitial {
+function parkedShoppingProject(region: ProjectInitial["region"]): ProjectInitial {
 	return {
 		id: "shop",
 		estimatedRequestsPerHour: 1000,
-		status: "served",
+		status: "offline",
 		demand: "shaped",
 		category: "shopping",
 		region,
@@ -24,7 +24,7 @@ function unroutableShoppingGame(region: ProjectInitial["region"]): Game {
 		customers: [
 			{
 				id: "customer-1",
-				projects: [shoppingServedProject(region)],
+				projects: [parkedShoppingProject(region)],
 			},
 		],
 		assets: [],

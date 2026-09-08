@@ -1,11 +1,11 @@
 import { BILLING_PERIOD_HOURS, PAYG_SETTLE_HOURS } from "./catalog/commercial-policy";
 import type { Project } from "./project";
 
-export function accrueServedPayg(projects: readonly Project[]): number {
+export function accruePeriodPayg(projects: readonly Project[]): number {
 	let paygCents = 0;
 
 	for (const project of projects) {
-		paygCents += project.accrueServedPayg();
+		paygCents += project.accruePeriodPayg();
 	}
 
 	return paygCents;

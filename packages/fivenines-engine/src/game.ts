@@ -6,7 +6,7 @@ import { DEBT_LIMIT_CENTS, STARTING_CASH_CENTS } from "./catalog/economy-policy"
 import { Customer, type CustomerInitial } from "./customer";
 import { placeProjectDemand } from "./demand";
 import {
-	accrueServedPayg,
+	accruePeriodPayg,
 	closeBillingPeriodIfDue,
 	settlePaygReceivableIfDue,
 } from "./game.commercial";
@@ -81,6 +81,7 @@ export class Game {
 		);
 		this.#jailed = initial.jailed ?? false;
 		this.#syncDerivedState();
+		this.#assertRoutesResolve();
 	}
 
 	get customers(): readonly Customer[] {
@@ -154,6 +155,7 @@ export class Game {
 		this.#cashCents = next.cashCents;
 		this.#jailed = next.jailed;
 		this.#syncDerivedState();
+		this.#assertRoutesResolve();
 
 		return this;
 	}
@@ -193,13 +195,17 @@ export class Game {
 					continue;
 				}
 
-				if (servers.length === 0) {
+				const route = project.route;
+				const routedServer =
+					route === undefined ? undefined : this.#serversById.get(route.serverId);
+
+				if (routedServer === undefined) {
 					unroutableDemand += demand;
 					continue;
 				}
 
 				unroutableDemand += placeProjectDemand(
-					servers,
+					routedServer,
 					demand,
 					project.region,
 					project.category,
@@ -262,7 +268,7 @@ export class Game {
 
 		this.#opex = measureGameOpex(servers);
 		this.#cashCents -= this.#opex.opexCents;
-		this.#accountsReceivableCents += accrueServedPayg(projects);
+		this.#accountsReceivableCents += accruePeriodPayg(projects);
 
 		if (this.#cashCents <= -DEBT_LIMIT_CENTS) {
 			this.#jailed = true;
@@ -325,5 +331,18 @@ export class Game {
 		}
 
 		this.#serversById = serversById;
+	}
+
+	/** Every route must name a box the game still owns, at construct and after every command. */
+	#assertRoutesResolve(): void {
+		for (const customer of this.#customers) {
+			for (const project of customer.projects) {
+				const route = project.route;
+
+				if (route !== undefined && !this.#serversById.has(route.serverId)) {
+					throw new Error(`unknown server id for project route: ${project.id}`);
+				}
+			}
+		}
 	}
 }

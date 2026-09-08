@@ -1,9 +1,13 @@
 import { View } from "react-native";
 
 import { cn } from "@/utils";
+import { Button } from "../../atoms/button";
 import { Card } from "../../atoms/card";
 import { Progress } from "../../atoms/progress";
 import { Text } from "../../atoms/text";
+import { type ServerOption, ServerSelect } from "../server-select";
+
+export type { ServerOption } from "../server-select";
 
 const SLA_INDICATOR_CLASS = {
 	primary: "bg-primary",
@@ -31,6 +35,14 @@ export interface ActiveProjectCardProps {
 	readonly serverLabel: string;
 	readonly paygLabel: string;
 	readonly className?: string;
+	readonly serverOptions?: readonly ServerOption[];
+	readonly selectedServerId?: string;
+	readonly onSelectServer?: (serverId: string) => void;
+	readonly serverSelectLabel?: string;
+	readonly onRoute?: () => void;
+	readonly routeLabel?: string;
+	readonly onUnassign?: () => void;
+	readonly unassignLabel?: string;
 }
 
 export function ActiveProjectCard({
@@ -52,8 +64,18 @@ export function ActiveProjectCard({
 	serverLabel,
 	paygLabel,
 	className,
+	serverOptions,
+	selectedServerId,
+	onSelectServer,
+	serverSelectLabel = "Server",
+	onRoute,
+	routeLabel = "MOVE",
+	onUnassign,
+	unassignLabel = "PARK",
 }: ActiveProjectCardProps) {
 	const hasSparkline = sparkline.length > 0;
+	const hasActions = onRoute !== undefined || onUnassign !== undefined;
+	const routeDisabled = selectedServerId === undefined || serverOptions?.length === 0;
 
 	return (
 		<Card className={cn("gap-2 p-3", className)}>
@@ -117,6 +139,34 @@ export function ActiveProjectCard({
 					<Text className="font-mono text-xs text-muted-foreground">WTD revenue</Text>
 				</View>
 			</View>
+			{serverOptions === undefined ? null : (
+				<ServerSelect
+					label={serverSelectLabel}
+					onSelect={onSelectServer}
+					options={serverOptions}
+					selectedId={selectedServerId}
+				/>
+			)}
+			{hasActions ? (
+				<View className="flex-row gap-1.5">
+					{onRoute ? (
+						<Button
+							className="flex-1"
+							disabled={routeDisabled}
+							onClick={onRoute}
+							size="sm"
+							variant="outline"
+						>
+							{routeLabel}
+						</Button>
+					) : null}
+					{onUnassign ? (
+						<Button className="flex-1" onClick={onUnassign} size="sm" variant="ghost">
+							{unassignLabel}
+						</Button>
+					) : null}
+				</View>
+			) : null}
 		</Card>
 	);
 }

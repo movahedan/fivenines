@@ -57,6 +57,7 @@ export type {
 	ProjectCategory,
 	ProjectInitial,
 	ProjectStatus,
+	RouteTarget,
 } from "./project";
 export { Project } from "./project";
 export type { ProjectTickMetrics, SlaHourSample } from "./project.metrics";

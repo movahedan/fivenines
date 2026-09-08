@@ -50,6 +50,18 @@ todos:
   - id: phase-4-pr
     content: "Phase 4: git-pr-workflow"
     status: pending
+  - id: phase-4-hud-speed
+    content: "Phase 4: HUD Pause/Play lucide icon + ×1 ×2 ×4 tick-speed controls; UI interval only"
+    status: pending
+  - id: phase-4-verify
+    content: "Phase 4 gate: bun test packages/ui && bun test apps/web && bun run typecheck --filter=@packages/ui && bun run typecheck --filter=@apps/web"
+    status: pending
+  - id: phase-4-docs
+    content: "Phase 4: documentation-sync (after build, before PR)"
+    status: pending
+  - id: phase-4-pr
+    content: "Phase 4: git-pr-workflow"
+    status: pending
 isProject: false
 ---
 

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for agents working in this monorepo. **Map and pointers** — standards in rules; procedures in skills; human setup in [README.md](README.md#quick-start); commands in [docs/CHEATSHEET.md](docs/CHEATSHEET.md). Human product pitch and how-to-play: [wiki](https://github.com/movahedan/fivenines/wiki). Do not copy kernel formulas, ports, or cheatsheet tables into the wiki; do not treat the wiki as tick/economy truth.
+Guidance for agents working in this monorepo. **Map and pointers** — standards in rules; procedures in skills; human setup in [README.md](README.md#quick-start); commands in [docs/CHEATSHEET.md](docs/CHEATSHEET.md). Human product pitch and how-to-play: [wiki](https://github.com/movahedan/fivenines/wiki). Do not copy kernel formulas, ports, or cheatsheet tables into the wiki; do not treat the wiki as tick/economy truth. License: [LICENSE](LICENSE) (PolyForm Noncommercial 1.0.0).
 
 **Code review (Cursor and GitHub Copilot):** the rubric lives in [`.github/copilot-instructions.md`](.github/copilot-instructions.md) and path files under [`.github/instructions/`](.github/instructions/). Read those when reviewing a diff or PR — do not invent a second checklist. Nested `AGENTS.md` files are implementation truth; they point at the matching instruction file. Copilot loads the `.github` files natively ([settings](https://github.com/movahedan/fivenines/settings/copilot/code_review)). Cursor loads them because this map and [code-review.mdc](.cursor/rules/code-review.mdc) say to. Do not copy `.cursor/rules/*.mdc` into Copilot files.
 

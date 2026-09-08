@@ -185,7 +185,9 @@ All commands: [docs/CHEATSHEET.md](./docs/CHEATSHEET.md) · Repo map, ports, tro
 
 **Built with ❤️ using modern development tools**
 
-[![License](https://img.shields.io/badge/License-MIT-00D4AA?style=flat)](LICENSE)
+This repo is **source-available** under [PolyForm Noncommercial 1.0.0](LICENSE) (not OSI open source). Personal, hobby, and listed noncommercial uses are allowed. Commercial use of this code by others is not. The copyright holder can still use it commercially.
+
+[![License](https://img.shields.io/badge/License-PolyForm%20Noncommercial-00D4AA?style=flat)](LICENSE)
 
 </div>
 

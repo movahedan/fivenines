@@ -1,5 +1,6 @@
 import { units } from "@packages/shared/units";
 
+import { SKU_ECONOMY } from "./catalog/economy-policy";
 import { SERVER_CATALOG, type ServerCatalogId } from "./catalog/kernel";
 import { type RegionId, regions } from "./catalog/regions";
 import {
@@ -12,10 +13,15 @@ import {
 
 export type { ServerTickMetrics } from "./server.metrics";
 
+export type ServerTenure =
+	| { kind: "owned"; purchaseCents: number }
+	| { kind: "leased"; hourlyCents: number };
+
 export interface ServerInitial {
 	id: string;
 	catalogId: ServerCatalogId;
 	region: RegionId;
+	tenure?: ServerTenure;
 }
 
 export interface DemandSlice extends ServerDemandSlice {
@@ -27,6 +33,7 @@ export class Server {
 	readonly kind = "server" as const;
 	readonly catalogId: ServerCatalogId;
 	readonly region: RegionId;
+	readonly tenure: ServerTenure;
 	readonly computeUnitsPerHour: number;
 	readonly networkBytesPerHour: number;
 	readonly memoryMiB: number;
@@ -41,6 +48,7 @@ export class Server {
 		this.id = initial.id;
 		this.catalogId = initial.catalogId;
 		this.region = regions.parseRegionId(initial.region);
+		this.tenure = parseTenure(initial.catalogId, initial.tenure);
 		this.computeUnitsPerHour = units.asNonNegativeInteger(
 			spec.computeUnitsPerHour,
 			"computeUnitsPerHour",
@@ -96,4 +104,25 @@ export class Server {
 
 		return this.#metrics;
 	}
+}
+
+function parseTenure(catalogId: ServerCatalogId, tenure: ServerTenure | undefined): ServerTenure {
+	const resolved =
+		tenure ??
+		({
+			kind: "owned",
+			purchaseCents: SKU_ECONOMY[catalogId].purchaseCents,
+		} satisfies ServerTenure);
+
+	if (resolved.kind === "owned") {
+		return {
+			kind: "owned",
+			purchaseCents: units.asNonNegativeInteger(resolved.purchaseCents, "purchaseCents"),
+		};
+	}
+
+	return {
+		kind: "leased",
+		hourlyCents: units.asNonNegativeInteger(resolved.hourlyCents, "hourlyCents"),
+	};
 }

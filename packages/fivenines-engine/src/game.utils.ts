@@ -3,13 +3,14 @@ import type { ServerCatalogId } from "./catalog/kernel";
 import type { RegionId } from "./catalog/regions";
 import { Customer } from "./customer";
 import type { Project, ProjectStatus } from "./project";
-import { Server } from "./server";
+import { Server, type ServerTenure } from "./server";
 
 export type AssetInitial = {
 	kind: "server";
 	id: string;
 	catalogId: ServerCatalogId;
 	region: RegionId;
+	tenure?: ServerTenure;
 };
 
 export type GameAsset = Server;
@@ -21,7 +22,9 @@ export type EngineCommand =
 	| { type: "unassignProject"; payload: { projectId: string } }
 	| { type: "assignProject"; payload: { projectId: string; serverId: string } }
 	| { type: "buyServer"; payload: { serverType: ServerCatalogId; region: RegionId } }
-	| { type: "sellServer"; payload: { serverId: string } };
+	| { type: "leaseServer"; payload: { serverType: ServerCatalogId; region: RegionId } }
+	| { type: "sellServer"; payload: { serverId: string } }
+	| { type: "releaseServer"; payload: { serverId: string } };
 
 export interface GameGraph {
 	readonly customers: readonly Customer[];
@@ -94,18 +97,54 @@ export function applyCommand(graph: GameGraph, command: EngineCommand): GameGrap
 			return {
 				...graph,
 				cashCents: graph.cashCents - purchaseCents,
-				assets: buyServer(graph.assets, command.payload),
+				assets: addCatalogServer(graph.assets, command.payload, {
+					kind: "owned",
+					purchaseCents,
+				}),
+			};
+		}
+		case "leaseServer": {
+			if (graph.jailed) {
+				throw new Error("cannot leaseServer while jailed");
+			}
+
+			const hourlyCents = SKU_ECONOMY[command.payload.serverType].leaseHourlyCents;
+
+			return {
+				...graph,
+				assets: addCatalogServer(graph.assets, command.payload, {
+					kind: "leased",
+					hourlyCents,
+				}),
 			};
 		}
 		case "sellServer": {
 			const sold = assertServerExists(graph.assets, command.payload.serverId);
 
+			if (sold.tenure.kind === "leased") {
+				throw new Error(`server is leased: ${sold.id}`);
+			}
+
 			assertNoServedRoute(graph.customers, command.payload.serverId);
 
 			return {
 				...graph,
-				cashCents: graph.cashCents + salvageCents(SKU_ECONOMY[sold.catalogId].purchaseCents),
-				assets: sellServer(graph.assets, command.payload.serverId),
+				cashCents: graph.cashCents + salvageCents(sold.tenure.purchaseCents),
+				assets: removeServer(graph.assets, command.payload.serverId),
+			};
+		}
+		case "releaseServer": {
+			const released = assertServerExists(graph.assets, command.payload.serverId);
+
+			if (released.tenure.kind === "owned") {
+				throw new Error(`server is owned: ${released.id}`);
+			}
+
+			assertNoServedRoute(graph.customers, command.payload.serverId);
+
+			return {
+				...graph,
+				assets: removeServer(graph.assets, command.payload.serverId),
 			};
 		}
 		default: {
@@ -115,7 +154,17 @@ export function applyCommand(graph: GameGraph, command: EngineCommand): GameGrap
 }
 
 export function createAsset(initial: AssetInitial): GameAsset {
-	return new Server({ id: initial.id, catalogId: initial.catalogId, region: initial.region });
+	return new Server({
+		id: initial.id,
+		catalogId: initial.catalogId,
+		region: initial.region,
+		tenure:
+			initial.tenure ??
+			({
+				kind: "owned",
+				purchaseCents: SKU_ECONOMY[initial.catalogId].purchaseCents,
+			} satisfies ServerTenure),
+	});
 }
 
 function assertServerExists(assets: readonly GameAsset[], serverId: string): GameAsset {
@@ -186,9 +235,10 @@ function mapProject(
 	});
 }
 
-function buyServer(
+function addCatalogServer(
 	assets: readonly GameAsset[],
 	payload: { serverType: ServerCatalogId; region: RegionId },
+	tenure: ServerTenure,
 ): readonly GameAsset[] {
 	return [
 		...assets,
@@ -196,11 +246,12 @@ function buyServer(
 			id: nextAssetId("server", assets),
 			catalogId: payload.serverType,
 			region: payload.region,
+			tenure,
 		}),
 	];
 }
 
-function sellServer(assets: readonly GameAsset[], serverId: string): readonly GameAsset[] {
+function removeServer(assets: readonly GameAsset[], serverId: string): readonly GameAsset[] {
 	return assets.filter((asset) => asset.id !== serverId);
 }
 

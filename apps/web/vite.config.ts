@@ -1,10 +1,11 @@
 import { createRequire } from "node:module";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 
 import {
 	esmifyReactNativeSvgTransform,
@@ -23,6 +24,30 @@ import {
 	transpileCjsNodeModules,
 	transpileRnPrimitivesJsx,
 } from "../../packages/ui/scripts/rn-web.ts";
+
+const webConfigDir = path.dirname(fileURLToPath(import.meta.url));
+const ssrRnWebStub = path.join(webConfigDir, "src/ssr-rn-web-stub.tsx");
+
+function stubRnWebOnSsr(): Plugin {
+	return {
+		name: "stub-rn-web-on-ssr",
+		enforce: "pre",
+		resolveId(source) {
+			if (this.environment.name !== "ssr") {
+				return;
+			}
+			if (
+				source === "react-native" ||
+				source === "react-native-web" ||
+				source.startsWith("react-native-web/") ||
+				source === "react-native-css" ||
+				source.startsWith("react-native-css/")
+			) {
+				return ssrRnWebStub;
+			}
+		},
+	};
+}
 
 const webPort = Number(process.env.WEB_PORT ?? process.env.PORT ?? "3000");
 
@@ -93,7 +118,18 @@ export default defineConfig(({ command }) => {
 				exclude: shareReact ? [...rnJsxExclude, ...reactPrebundleIds] : rnJsxExclude,
 			},
 		},
+		environments: {
+			ssr: {
+				resolve: {
+					alias: {
+						"react-native": ssrRnWebStub,
+						"react-native-web": ssrRnWebStub,
+					},
+				},
+			},
+		},
 		plugins: [
+			stubRnWebOnSsr(),
 			...(shareReact ? [shareSingleReact()] : []),
 			preferNodeModuleEsmPlugin(),
 			stubReanimatedWorkletsVersionCheck(),

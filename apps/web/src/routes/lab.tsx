@@ -11,6 +11,7 @@ const LabSession = lazy(async () => {
 });
 
 export const Route = createFileRoute("/lab")({
+	ssr: false,
 	component: LabRoute,
 });
 

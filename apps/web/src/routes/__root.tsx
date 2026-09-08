@@ -5,7 +5,7 @@ import {
 	Outlet,
 	Scripts,
 } from "@tanstack/react-router";
-import type { ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
 
 import "@packages/ui/style.css";
 
@@ -20,21 +20,27 @@ function RootError({ error }: ErrorComponentProps) {
 	);
 }
 
-function RootDocument(): ReactElement {
+function RootShell({ children }: { readonly children: ReactNode }): ReactElement {
 	return (
 		<html lang="en" className="h-full bg-background">
 			<head>
 				<HeadContent />
 			</head>
 			<body className="min-h-full bg-background font-sans text-foreground">
-				<Outlet />
+				{children}
 				<Scripts />
 			</body>
 		</html>
 	);
 }
 
+function RootComponent(): ReactElement {
+	return <Outlet />;
+}
+
 export const Route = createRootRoute({
+	shellComponent: RootShell,
+	component: RootComponent,
 	head: () => ({
 		meta: [
 			{ charSet: "utf-8" },
@@ -42,7 +48,6 @@ export const Route = createRootRoute({
 			{ title: "Five Nines" },
 		],
 	}),
-	component: RootDocument,
 	errorComponent: RootError,
 	notFoundComponent: () => <p>Not found</p>,
 });

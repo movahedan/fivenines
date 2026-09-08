@@ -12,6 +12,7 @@ const HubSession = lazy(async () => {
 });
 
 export const Route = createFileRoute("/hub")({
+	ssr: false,
 	component: HubRoute,
 });
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 
 import type {
 	BillingSettlement,
@@ -37,11 +37,25 @@ function lastSettlementLabel(settlements: readonly BillingSettlement[]): string 
 	return last === undefined ? "—" : String(last.periodRevenueCents);
 }
 
+function assetTenureKind(asset: {
+	readonly tenure?: { readonly kind: string };
+}): "owned" | "leased" {
+	return asset.tenure?.kind === "leased" ? "leased" : "owned";
+}
+
 export function LabSession() {
 	const { game, lastError, tick, dispatch, reset } = useLabGame();
 	const [region, setRegion] = useState<RegionId>(DEFAULT_REGION);
 	const [pickedServerId, setPickedServerId] = useState<string | undefined>(undefined);
-	const { cashCents, accountsReceivableCents, jailed, maintenanceCents, powerCents } = game.finance;
+	const {
+		cashCents,
+		accountsReceivableCents,
+		jailed,
+		maintenanceCents,
+		powerCents,
+		leaseCents,
+		opexCents,
+	} = game.finance;
 	const serverId = game.assets.some((asset) => asset.id === pickedServerId)
 		? pickedServerId
 		: game.assets.at(0)?.id;
@@ -79,6 +93,14 @@ export function LabSession() {
 						<tr>
 							<th scope="row">Last opex power</th>
 							<td>{powerCents}</td>
+						</tr>
+						<tr>
+							<th scope="row">Last opex lease</th>
+							<td>{leaseCents}</td>
+						</tr>
+						<tr>
+							<th scope="row">Last opex total</th>
+							<td>{opexCents}</td>
 						</tr>
 					</tbody>
 				</table>
@@ -118,14 +140,21 @@ export function LabSession() {
 						Reset
 					</Button>
 					{SERVER_CATALOG_IDS.map((serverType) => (
-						<BuyServerButton
-							key={serverType}
-							serverType={serverType}
-							region={region}
-							cashCents={cashCents}
-							jailed={jailed}
-							onDispatch={dispatch}
-						/>
+						<Fragment key={serverType}>
+							<BuyServerButton
+								serverType={serverType}
+								region={region}
+								cashCents={cashCents}
+								jailed={jailed}
+								onDispatch={dispatch}
+							/>
+							<LeaseServerButton
+								serverType={serverType}
+								region={region}
+								jailed={jailed}
+								onDispatch={dispatch}
+							/>
+						</Fragment>
 					))}
 				</div>
 			</section>
@@ -209,17 +238,28 @@ export function LabSession() {
 					<p>No servers</p>
 				) : (
 					<ul>
-						{game.assets.map((asset) => (
-							<li key={asset.id}>
-								{asset.id} {SERVER_TIER_LABEL[asset.catalogId]} {asset.region}
-								<Button
-									variant="outline"
-									onClick={() => dispatch({ type: "sellServer", payload: { serverId: asset.id } })}
-								>
-									{`Delete ${asset.id}`}
-								</Button>
-							</li>
-						))}
+						{game.assets.map((asset) => {
+							const leased = assetTenureKind(asset) === "leased";
+
+							return (
+								<li key={asset.id}>
+									{asset.id} {SERVER_TIER_LABEL[asset.catalogId]} {asset.region}{" "}
+									{assetTenureKind(asset)}
+									<Button
+										variant="outline"
+										onClick={() =>
+											dispatch(
+												leased
+													? { type: "releaseServer", payload: { serverId: asset.id } }
+													: { type: "sellServer", payload: { serverId: asset.id } },
+											)
+										}
+									>
+										{leased ? `Release ${asset.id}` : `Delete ${asset.id}`}
+									</Button>
+								</li>
+							);
+						})}
 					</ul>
 				)}
 			</section>
@@ -273,6 +313,25 @@ function BuyServerButton({
 			onClick={() => onDispatch({ type: "buyServer", payload: { serverType, region } })}
 		>
 			{`Buy ${SERVER_TIER_LABEL[serverType]}`}
+		</Button>
+	);
+}
+
+interface LeaseServerButtonProps {
+	readonly serverType: ServerCatalogId;
+	readonly region: RegionId;
+	readonly jailed: boolean;
+	readonly onDispatch: (command: EngineCommand) => void;
+}
+
+function LeaseServerButton({ serverType, region, jailed, onDispatch }: LeaseServerButtonProps) {
+	return (
+		<Button
+			variant="outline"
+			disabled={jailed}
+			onClick={() => onDispatch({ type: "leaseServer", payload: { serverType, region } })}
+		>
+			{`Lease ${SERVER_TIER_LABEL[serverType]}`}
 		</Button>
 	);
 }

@@ -30,6 +30,8 @@ import { PanelHeader } from "@/molecules/panel-header/panel-header";
 import { ProjectOfferCard } from "@/molecules/project-offer-card/project-offer-card";
 import { ServerCard } from "@/molecules/server-card/server-card";
 import {
+	addedAssetId,
+	assetTenureKind,
 	axisPercent,
 	commandLogTone,
 	engineEventMessage,
@@ -41,6 +43,8 @@ import {
 	SKU_DOT_CLASS,
 	skuCostLabel,
 	skuCpuLabel,
+	skuFleetOpexLabel,
+	skuLeaseLabel,
 	skuNetLabel,
 	skuOpexLabel,
 	skuRamLabel,
@@ -123,6 +127,23 @@ export function HubSession() {
 	const runCommand = (command: EngineCommand, message: string): void => {
 		dispatch(command);
 		pushEntry(commandLogTone(command.type), message, game.hourIndex);
+	};
+
+	const leaseCatalog = (catalogId: ServerCatalogId): void => {
+		const previousIds = new Set(game.assets.map((asset) => asset.id));
+
+		dispatch({
+			type: "leaseServer",
+			payload: { serverType: catalogId, region: buyRegion },
+		});
+
+		const leasedId = addedAssetId(previousIds, game.assets);
+
+		pushEntry(
+			commandLogTone("leaseServer"),
+			`Leased ${leasedId ?? SERVER_TIER_LABEL[catalogId]}`,
+			game.hourIndex,
+		);
 	};
 
 	const offers = collectOffers(game.customers);
@@ -338,28 +359,46 @@ export function HubSession() {
 						{game.assets.length === 0 ? (
 							<p className="col-span-2 font-mono text-sm text-muted-foreground">No servers</p>
 						) : (
-							game.assets.map((asset) => (
-								<ServerCard
-									cpuLabel={skuCpuLabel(asset.catalogId)}
-									cpuPercent={axisPercent(asset.metrics.cpuLoad, asset.computeUnitsPerHour)}
-									dotClassName={SKU_DOT_CLASS[asset.catalogId]}
-									idLabel={asset.id}
-									key={asset.id}
-									label={`${SERVER_TIER_LABEL[asset.catalogId]} · ${asset.region}`}
-									netLabel={skuNetLabel(asset.catalogId)}
-									netPercent={axisPercent(asset.metrics.netLoad, asset.networkBytesPerHour)}
-									onSell={() => {
-										runCommand(
-											{ type: "sellServer", payload: { serverId: asset.id } },
-											`Sold ${asset.id}`,
-										);
-									}}
-									opexLabel={skuOpexLabel(asset.catalogId)}
-									ramLabel={skuRamLabel(asset.catalogId)}
-									ramPercent={axisPercent(asset.metrics.memOcc, asset.memoryMiB)}
-									variant="fleet"
-								/>
-							))
+							game.assets.map((asset) => {
+								const leased = assetTenureKind(asset) === "leased";
+
+								return (
+									<ServerCard
+										cpuLabel={skuCpuLabel(asset.catalogId)}
+										cpuPercent={axisPercent(asset.metrics.cpuLoad, asset.computeUnitsPerHour)}
+										dotClassName={SKU_DOT_CLASS[asset.catalogId]}
+										idLabel={`${asset.id} · ${assetTenureKind(asset)}`}
+										key={asset.id}
+										label={`${SERVER_TIER_LABEL[asset.catalogId]} · ${asset.region}`}
+										netLabel={skuNetLabel(asset.catalogId)}
+										netPercent={axisPercent(asset.metrics.netLoad, asset.networkBytesPerHour)}
+										onRelease={
+											leased
+												? () => {
+														runCommand(
+															{ type: "releaseServer", payload: { serverId: asset.id } },
+															`Released ${asset.id}`,
+														);
+													}
+												: undefined
+										}
+										onSell={
+											leased
+												? undefined
+												: () => {
+														runCommand(
+															{ type: "sellServer", payload: { serverId: asset.id } },
+															`Sold ${asset.id}`,
+														);
+													}
+										}
+										opexLabel={skuFleetOpexLabel(asset.catalogId, asset.tenure)}
+										ramLabel={skuRamLabel(asset.catalogId)}
+										ramPercent={axisPercent(asset.metrics.memOcc, asset.memoryMiB)}
+										variant="fleet"
+									/>
+								);
+							})
 						)}
 					</div>
 				</section>
@@ -393,15 +432,18 @@ export function HubSession() {
 					<div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
 						{SERVER_CATALOG_IDS.map((catalogId: ServerCatalogId) => {
 							const canAfford = !jailed && cashCents >= SKU_ECONOMY[catalogId].purchaseCents;
+							const canAffordLease = !jailed;
 
 							return (
 								<ServerCard
 									canAfford={canAfford}
+									canAffordLease={canAffordLease}
 									costLabel={skuCostLabel(catalogId)}
 									cpuLabel={skuCpuLabel(catalogId)}
 									dotClassName={SKU_DOT_CLASS[catalogId]}
 									key={catalogId}
 									label={SERVER_TIER_LABEL[catalogId]}
+									leaseLabel={skuLeaseLabel(catalogId)}
 									onBuy={() => {
 										runCommand(
 											{
@@ -410,6 +452,9 @@ export function HubSession() {
 											},
 											`Bought ${SERVER_TIER_LABEL[catalogId]} in ${buyRegion}`,
 										);
+									}}
+									onLease={() => {
+										leaseCatalog(catalogId);
 									}}
 									opexLabel={skuOpexLabel(catalogId)}
 									ramLabel={skuRamLabel(catalogId)}

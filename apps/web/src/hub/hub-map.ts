@@ -8,6 +8,7 @@ import type {
 	Project,
 	RegionId,
 	ServerCatalogId,
+	ServerTenure,
 } from "@packages/fivenines-engine";
 import {
 	openingShiftOutcome,
@@ -118,6 +119,33 @@ export function skuOpexLabel(catalogId: ServerCatalogId): string {
 	return `${formatters.cents(sku.maintenanceCentsPerHour + sku.idlePowerCentsPerHour)}/h idle`;
 }
 
+export function skuLeaseLabel(catalogId: ServerCatalogId): string {
+	return `${formatters.cents(SKU_ECONOMY[catalogId].leaseHourlyCents)}/h rent`;
+}
+
+export function skuFleetOpexLabel(catalogId: ServerCatalogId, tenure: ServerTenure): string {
+	if (tenure.kind !== "leased") {
+		return skuOpexLabel(catalogId);
+	}
+
+	const sku = SKU_ECONOMY[catalogId];
+
+	return `${formatters.cents(sku.maintenanceCentsPerHour + sku.idlePowerCentsPerHour + tenure.hourlyCents)}/h idle+rent`;
+}
+
+export function addedAssetId(
+	previousIds: ReadonlySet<string>,
+	assets: readonly { readonly id: string }[],
+): string | undefined {
+	return assets.find((asset) => !previousIds.has(asset.id))?.id;
+}
+
+export function assetTenureKind(asset: {
+	readonly tenure?: { readonly kind: string };
+}): "owned" | "leased" {
+	return asset.tenure?.kind === "leased" ? "leased" : "owned";
+}
+
 export function skuCpuLabel(catalogId: ServerCatalogId): string {
 	return formatters.cores(SERVER_CATALOG[catalogId].computeUnitsPerHour);
 }
@@ -142,6 +170,8 @@ const COMMAND_LOG_TONE: Record<EngineCommand["type"], EventLogTone> = {
 	assignProject: "success",
 	buyServer: "success",
 	sellServer: "warn",
+	leaseServer: "success",
+	releaseServer: "warn",
 };
 
 export function commandLogTone(commandType: EngineCommand["type"]): EventLogTone {

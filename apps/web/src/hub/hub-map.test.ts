@@ -1,12 +1,15 @@
 import { describe, expect, it } from "bun:test";
 
 import {
+	addedAssetId,
 	axisPercent,
 	engineEventMessage,
 	openingShiftResultCopy,
 	SKU_DOT_CLASS,
 	skuCostLabel,
 	skuCpuLabel,
+	skuFleetOpexLabel,
+	skuLeaseLabel,
 	skuNetLabel,
 	slaPercent,
 	slaShareLabel,
@@ -29,6 +32,25 @@ describe("hub-map - sla and sku labels", () => {
 		expect(skuCpuLabel("bronze")).toBe("1000 cores");
 		expect(skuNetLabel("bronze")).toBe("1000000 B/h");
 		expect(SKU_DOT_CLASS.bronze).toContain("shadow-glow-warning");
+	});
+
+	it("formats lease rent from catalog hourly cents", () => {
+		expect(skuLeaseLabel("bronze")).toBe("$1.47/h rent");
+	});
+
+	it("adds rent into the fleet opex label for a leased box", () => {
+		expect(skuFleetOpexLabel("bronze", { kind: "leased", hourlyCents: 147 })).toBe(
+			"$2.62/h idle+rent",
+		);
+		expect(skuFleetOpexLabel("bronze", { kind: "owned", purchaseCents: 18_000 })).toBe(
+			"$1.15/h idle",
+		);
+	});
+
+	it("returns the id that was not in the previous set", () => {
+		expect(addedAssetId(new Set(["server-1"]), [{ id: "server-1" }, { id: "server-2" }])).toBe(
+			"server-2",
+		);
 	});
 
 	it("maps load versus cap onto an integer percent", () => {

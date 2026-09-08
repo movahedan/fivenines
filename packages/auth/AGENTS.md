@@ -25,11 +25,13 @@
 - **Access JWT** — HttpOnly cookie (`auth_access`, `Domain=.fivenines.com` locally) for Play → Nest. Bearer still used for M2M and tests.
 - **`wasLoggedIn`** — public cookie hint on `useAuth()`; not proof of a valid session.
 - **Session / refresh** — HttpOnly cookies; `POST /api/refresh` with `credentials: "include"` rotates them. JSON may be `{ ok: true }` with no tokens.
-- Play home sets `AuthProvider` `restoreOnMount={false}`. Guarded `/hub` owns login/refresh.
+- `@apps/web` home and `__root` do **not** mount `AuthProvider`. `/hub` and `/lab` own `AuthProvider` (`restoreOnMount={false}`) plus login/refresh.
 
 Play navigates to `/hub`. Hub sends the browser to `@apps/auth` `/login` when the hint cookie is missing (`loginHref({ redirectUri: "/hub" })`). Sign out uses `logoutHref({ redirectUri: "/" })` so auth `/logout` 302s to the allowlisted `redirect_uri`. Do not proxy `/auth` through Vite.
 
 ## App wiring
+
+Compose in `@apps/web` **play routes only** (`src/play/play-providers.tsx` on `/hub` and `/lab`), not on marketing/`__root`:
 
 ```tsx
 import { authSession, createAuthFetcherBindings } from "@packages/auth";

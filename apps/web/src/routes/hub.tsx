@@ -4,6 +4,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { useAuth } from "@packages/auth/react";
 
 import { useGameClock } from "../clock/use-game-clock";
+import { PlayProviders } from "../play/play-providers";
 
 const HubSession = lazy(async () => {
 	const module = await import("../hub/hub-session");
@@ -11,8 +12,16 @@ const HubSession = lazy(async () => {
 });
 
 export const Route = createFileRoute("/hub")({
-	component: HubPage,
+	component: HubRoute,
 });
+
+function HubRoute() {
+	return (
+		<PlayProviders>
+			<HubPage />
+		</PlayProviders>
+	);
+}
 
 export function PlayButton() {
 	return <a href="/hub">Play</a>;

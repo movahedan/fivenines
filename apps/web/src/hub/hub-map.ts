@@ -196,8 +196,7 @@ export function openingShiftSnapshot(game: Game): OpeningShiftSnapshot {
 				windowAvailabilityPpm: project.metrics.windowAvailabilityPpm,
 				targetPpm: project.commercial.targetPpm,
 				settlements: project.settlements.map((settlement) => ({
-					periodRevenueCents: settlement.periodRevenueCents,
-					creditCents: settlement.creditCents,
+					periodPpm: settlement.periodPpm,
 				})),
 			})),
 		),

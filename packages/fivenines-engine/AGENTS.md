@@ -42,7 +42,9 @@ Runtime: `@packages/shared/units`, `@packages/shared/ids`. Integers only at the 
 
 `new Game(initial, { random?: RandomSource })`. Default wraps `Math.random`. Demand code calls `random.nextUnit()` only.
 
-Opening Shift lasts `OPENING_SHIFT_HOURS` (336 = 14×24) in `src/catalog/opening-shift-policy.ts`. `openingShiftOutcome(snapshot)` is **in_progress** until `hourIndex >= 336`. After that it is **won** only if cash `> 0`, `jailed` is false, at least two **served** projects have `windowAvailabilityPpm >= targetPpm`, and no settlement has `creditCents === periodRevenueCents` with `periodRevenueCents > 0`. Otherwise **lost** (failed reasons: `jailed` / `cash` / `contracts` / `catastrophe`). Pure helper — do not tick 336 hours in tests.
+Opening Shift lasts `OPENING_SHIFT_HOURS` (336 = 14×24) in `src/catalog/opening-shift-policy.ts`. `openingShiftOutcome(snapshot)` is **in_progress** until `hourIndex >= 336`. After that it is **won** only if cash `> 0`, `jailed` is false, at least two **served** projects have `windowAvailabilityPpm >= targetPpm`, and no settlement landed in the catastrophe credit band (`slaCreditPpm(settlement.periodPpm, targetPpm) === SLA_CREDIT_CATASTROPHE_PPM`). Otherwise **lost** (failed reasons: `jailed` / `cash` / `contracts` / `catastrophe`). Pure helper — do not tick 336 hours in tests.
+
+The catastrophe check reads the **credit band, not revenue**. A period spent entirely `offline` bills nothing, so a revenue test (`creditCents === periodRevenueCents && periodRevenueCents > 0`) could never fire on it and parking a failing contract for a whole period would dodge the loss for free. Rating the band instead treats a fully parked period as the total outage it is.
 
 ## Project demand
 

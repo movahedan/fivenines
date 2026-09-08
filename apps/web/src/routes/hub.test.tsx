@@ -279,6 +279,24 @@ describe("HubPage - project routing", () => {
 		expect(within(activeFloor()).getByText("server-1 · Bronze")).toBeTruthy();
 	});
 
+	it("does not log a move when MOVE is clicked with the picker still on the current server", async () => {
+		stubSession();
+
+		renderHub();
+
+		await waitForOpsFloor();
+		await serveFirstOffer();
+
+		fireEvent.click(within(activeFloor()).getByRole("button", { name: "MOVE" }));
+
+		const log = screen.getByRole("region", { name: "Event log" });
+
+		await waitFor(() => {
+			expect(within(log).queryByText(/^Moved /)).toBeNull();
+		});
+		expect(within(activeFloor()).getByText("server-1 · Bronze")).toBeTruthy();
+	});
+
 	it("refuses to sell a server while a served project routes to it, then sells once parked", async () => {
 		stubSession();
 

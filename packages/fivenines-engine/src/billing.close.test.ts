@@ -302,6 +302,64 @@ describe("Game - billing close", () => {
 		expect(game.cashCents).toBe(STARTING_CASH_CENTS);
 	});
 
+	it("prorates recurring over the served half of a period but rates SLA over all of it", () => {
+		const halfPeriod = BILLING_PERIOD_HOURS / 2;
+		const game = new Game(
+			oneBronzeWith([
+				{
+					...constantProject("project-1", 100, "served", "server-1"),
+					commercial: OPENING_COMMERCIAL_STUB,
+				},
+			]),
+		);
+
+		let servedHandled = 0;
+		let servedEmitted = 0;
+		let totalEmitted = 0;
+
+		for (let hour = 0; hour < BILLING_PERIOD_HOURS; hour++) {
+			if (hour === halfPeriod) {
+				game.dispatch({ type: "unassignProject", payload: { projectId: "project-1" } });
+			}
+
+			game.tick();
+
+			const metrics = allProjects(game)[0]?.metrics;
+			totalEmitted += metrics?.emittedRequests ?? 0;
+
+			if (hour < halfPeriod) {
+				servedHandled += metrics?.handledRequests ?? 0;
+				servedEmitted += metrics?.emittedRequests ?? 0;
+			}
+		}
+
+		const project = allProjects(game)[0];
+		const settlement = project?.settlements.at(-1);
+		const periodPpm = slaAvailabilityPpm(servedHandled, totalEmitted);
+
+		expect(project?.status).toBe("offline");
+		expect(settlement?.hoursServedInPeriod).toBe(halfPeriod);
+		expect(settlement?.recurringCents).toBe(
+			Math.floor((OPENING_COMMERCIAL_STUB.recurringCentsPerPeriod * halfPeriod) / 168),
+		);
+		expect(settlement?.periodPpm).toBe(periodPpm);
+		expect(settlement?.creditCents).toBe(
+			expectedCredit(
+				settlement?.periodRevenueCents ?? 0,
+				periodPpm,
+				OPENING_COMMERCIAL_STUB.targetPpm,
+			),
+		);
+
+		// The parked half is downtime the customer felt, so it has to drag the
+		// period rating below what the served half alone would have scored.
+		expect(periodPpm).toBeLessThan(slaAvailabilityPpm(servedHandled, servedEmitted) ?? 0);
+
+		expect(project?.hoursServedInPeriod).toBe(0);
+		expect(project?.periodHandled).toBe(0);
+		expect(project?.periodEmitted).toBe(0);
+	});
+
 	it("still closes while jailed", () => {
 		const game = tickHours(
 			new Game({

@@ -137,7 +137,9 @@ export function HubSession() {
 
 	/**
 	 * Defaults to the box the project already runs on, so MOVE without touching
-	 * the picker is a no-op rather than a silent relocation to the first server.
+	 * the picker targets the current server rather than silently relocating to
+	 * the first one. Offered and parked projects fall back to the first box,
+	 * which the picker shows selected before the player commits.
 	 */
 	const pickedServerId = (project: Project): string | undefined => {
 		const picked = routePicks.get(project.id);
@@ -276,6 +278,10 @@ export function HubSession() {
 								key={project.id}
 								onRoute={() => {
 									withPickedServer(project, (serverId) => {
+										if (serverId === project.route?.serverId) {
+											return;
+										}
+
 										runCommand(
 											{ type: "moveProject", payload: { projectId: project.id, serverId } },
 											`Moved ${project.id} to ${serverId}`,

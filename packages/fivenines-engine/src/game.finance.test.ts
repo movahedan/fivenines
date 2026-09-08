@@ -22,6 +22,7 @@ describe("Game - construct wallet", () => {
 			opexCents: 0,
 			maintenanceCents: 0,
 			powerCents: 0,
+			leaseCents: 0,
 		});
 	});
 
@@ -47,6 +48,7 @@ describe("Game - opex", () => {
 		expect(game.finance.opexCents).toBe(
 			bronze.maintenanceCentsPerHour + bronze.idlePowerCentsPerHour,
 		);
+		expect(game.finance.leaseCents).toBe(0);
 		expect(game.cashCents).toBe(
 			STARTING_CASH_CENTS - bronze.maintenanceCentsPerHour - bronze.idlePowerCentsPerHour,
 		);
@@ -80,6 +82,7 @@ describe("Game - opex", () => {
 		expect(game.finance.opexCents).toBe(0);
 		expect(game.finance.maintenanceCents).toBe(0);
 		expect(game.finance.powerCents).toBe(0);
+		expect(game.finance.leaseCents).toBe(0);
 		expect(game.cashCents).toBe(STARTING_CASH_CENTS);
 	});
 

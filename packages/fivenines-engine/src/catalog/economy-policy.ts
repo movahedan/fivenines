@@ -6,6 +6,7 @@ export const SALVAGE_PERCENT = 70;
 
 export interface SkuEconomy {
 	purchaseCents: number;
+	leaseHourlyCents: number;
 	maintenanceCentsPerHour: number;
 	idlePowerCentsPerHour: number;
 	maxPowerCentsPerHour: number;
@@ -14,36 +15,42 @@ export interface SkuEconomy {
 export const SKU_ECONOMY: Record<ServerCatalogId, SkuEconomy> = {
 	bronze: {
 		purchaseCents: 18_000,
+		leaseHourlyCents: 147,
 		maintenanceCentsPerHour: 80,
 		idlePowerCentsPerHour: 35,
 		maxPowerCentsPerHour: 120,
 	},
 	silver: {
 		purchaseCents: 28_000,
+		leaseHourlyCents: 260,
 		maintenanceCentsPerHour: 150,
 		idlePowerCentsPerHour: 60,
 		maxPowerCentsPerHour: 220,
 	},
 	gold: {
 		purchaseCents: 48_000,
+		leaseHourlyCents: 466,
 		maintenanceCentsPerHour: 280,
 		idlePowerCentsPerHour: 100,
 		maxPowerCentsPerHour: 380,
 	},
 	platinum: {
 		purchaseCents: 72_000,
+		leaseHourlyCents: 809,
 		maintenanceCentsPerHour: 520,
 		idlePowerCentsPerHour: 160,
 		maxPowerCentsPerHour: 600,
 	},
 	diamond: {
 		purchaseCents: 120_000,
+		leaseHourlyCents: 1455,
 		maintenanceCentsPerHour: 960,
 		idlePowerCentsPerHour: 280,
 		maxPowerCentsPerHour: 1_000,
 	},
 	"thin-ram": {
 		purchaseCents: 14_000,
+		leaseHourlyCents: 270,
 		maintenanceCentsPerHour: 200,
 		idlePowerCentsPerHour: 45,
 		maxPowerCentsPerHour: 150,

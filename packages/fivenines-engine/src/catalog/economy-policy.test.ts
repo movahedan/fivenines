@@ -6,6 +6,7 @@ import {
 	SKU_ECONOMY,
 	STARTING_CASH_CENTS,
 	salvageCents,
+	skuHourlyOpex,
 } from "./economy-policy";
 import { SERVER_CATALOG_IDS, type ServerCatalogId } from "./kernel";
 
@@ -22,6 +23,7 @@ describe("economy-policy - v1 tables", () => {
 			ServerCatalogId,
 			{
 				purchaseCents: number;
+				leaseHourlyCents: number;
 				maintenanceCentsPerHour: number;
 				idlePowerCentsPerHour: number;
 				maxPowerCentsPerHour: number;
@@ -29,36 +31,42 @@ describe("economy-policy - v1 tables", () => {
 		> = {
 			bronze: {
 				purchaseCents: 18_000,
+				leaseHourlyCents: 147,
 				maintenanceCentsPerHour: 80,
 				idlePowerCentsPerHour: 35,
 				maxPowerCentsPerHour: 120,
 			},
 			silver: {
 				purchaseCents: 28_000,
+				leaseHourlyCents: 260,
 				maintenanceCentsPerHour: 150,
 				idlePowerCentsPerHour: 60,
 				maxPowerCentsPerHour: 220,
 			},
 			gold: {
 				purchaseCents: 48_000,
+				leaseHourlyCents: 466,
 				maintenanceCentsPerHour: 280,
 				idlePowerCentsPerHour: 100,
 				maxPowerCentsPerHour: 380,
 			},
 			platinum: {
 				purchaseCents: 72_000,
+				leaseHourlyCents: 809,
 				maintenanceCentsPerHour: 520,
 				idlePowerCentsPerHour: 160,
 				maxPowerCentsPerHour: 600,
 			},
 			diamond: {
 				purchaseCents: 120_000,
+				leaseHourlyCents: 1455,
 				maintenanceCentsPerHour: 960,
 				idlePowerCentsPerHour: 280,
 				maxPowerCentsPerHour: 1_000,
 			},
 			"thin-ram": {
 				purchaseCents: 14_000,
+				leaseHourlyCents: 270,
 				maintenanceCentsPerHour: 200,
 				idlePowerCentsPerHour: 45,
 				maxPowerCentsPerHour: 150,
@@ -104,5 +112,15 @@ describe("economy-policy - v1 tables", () => {
 		expect(powerCentsPerHour("bronze", 50)).toBe(35 + Math.floor((85 * 50) / 100));
 		expect(powerCentsPerHour("bronze", 100)).toBe(120);
 		expect(powerCentsPerHour("bronze", 140)).toBe(120);
+	});
+
+	it("keeps skuHourlyOpex as maintenance plus power without lease rent", () => {
+		const bronze = SKU_ECONOMY.bronze;
+
+		expect(skuHourlyOpex("bronze", 0)).toEqual({
+			maintenanceCents: bronze.maintenanceCentsPerHour,
+			powerCents: bronze.idlePowerCentsPerHour,
+			opexCents: bronze.maintenanceCentsPerHour + bronze.idlePowerCentsPerHour,
+		});
 	});
 });

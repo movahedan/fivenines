@@ -199,7 +199,7 @@ describe("applyCommand - status guards", () => {
 });
 
 describe("applyCommand - jail guards", () => {
-	it("throws when acceptProject or buyServer runs while jailed", () => {
+	it("throws when acceptProject, buyServer, or leaseServer runs while jailed", () => {
 		expect(() =>
 			applyCommand(graphOf("offered", { jailed: true }), {
 				type: "acceptProject",
@@ -212,6 +212,12 @@ describe("applyCommand - jail guards", () => {
 				payload: { serverType: "bronze", region: "utc+0" },
 			}),
 		).toThrow("cannot buyServer while jailed");
+		expect(() =>
+			applyCommand(graphOf("offered", { jailed: true }), {
+				type: "leaseServer",
+				payload: { serverType: "bronze", region: "utc+0" },
+			}),
+		).toThrow("cannot leaseServer while jailed");
 	});
 
 	it("moves, parks, reassigns and sells while jailed", () => {

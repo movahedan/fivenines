@@ -1,8 +1,5 @@
-import type { ChangeEvent } from "react";
-import { useId } from "react";
-import { View } from "react-native";
-
-import { Text } from "../../atoms/text";
+import { SelectField } from "@/atoms/select-field";
+import { Text } from "@/atoms/text";
 
 export interface ServerOption {
 	readonly id: string;
@@ -24,8 +21,6 @@ export function ServerSelect({
 	label,
 	emptyLabel,
 }: ServerSelectProps) {
-	const selectId = useId();
-
 	if (options.length === 0) {
 		return emptyLabel === undefined ? null : (
 			<Text className="font-mono text-xs tracking-wide text-muted-foreground">{emptyLabel}</Text>
@@ -33,23 +28,11 @@ export function ServerSelect({
 	}
 
 	return (
-		<View className="gap-1">
-			<label className="font-mono text-xs tracking-wide text-muted-foreground" htmlFor={selectId}>
-				{label}
-			</label>
-			<select
-				className="h-8 rounded-md border border-border bg-background px-2 font-mono text-xs text-card-foreground"
-				id={selectId}
-				onChange={(event: ChangeEvent<HTMLSelectElement>) => onSelect?.(event.target.value)}
-				value={selectedId ?? ""}
-			>
-				{selectedId === undefined ? <option disabled value="" /> : null}
-				{options.map((option) => (
-					<option key={option.id} value={option.id}>
-						{option.label}
-					</option>
-				))}
-			</select>
-		</View>
+		<SelectField
+			label={label}
+			onValueChange={onSelect}
+			options={options.map((option) => ({ value: option.id, label: option.label }))}
+			value={selectedId}
+		/>
 	);
 }

@@ -22,10 +22,12 @@ import "@packages/ui/style.css";
 const authFetch = createAuthFetcherBindings(playerAuthSession);
 
 function RootError({ error }: ErrorComponentProps) {
+	const message = error instanceof Error ? error.message : String(error);
+
 	return (
 		<main className="min-h-screen bg-background p-8 font-sans text-foreground">
 			<h1 className="text-lg font-semibold">Something went wrong</h1>
-			<p className="mt-4 font-mono text-sm text-destructive">{error.message}</p>
+			<p className="mt-4 font-mono text-sm text-destructive">{message}</p>
 		</main>
 	);
 }

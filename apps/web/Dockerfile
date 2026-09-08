@@ -26,25 +26,16 @@ COPY --from=pruner /app/tools ./tools
 COPY --from=installer /app/ .
 RUN cp apps/web/.env.sample apps/web/.env && bun run build --filter=@apps/web
 
-FROM oven/bun:1.4.2-alpine AS runner
-WORKDIR /app
-RUN apk add --no-cache curl \
-	&& addgroup --system --gid 1001 runner-group \
-	&& adduser --system --uid 1001 runner-user \
-	&& chown runner-user:runner-group /app
+FROM nginx:alpine AS runner
+USER root
+RUN apk add --no-cache curl
+COPY --chown=nginx:nginx --chmod=644 apps/web/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build --chown=nginx:nginx --chmod=755 /app/apps/web/dist/client/ /usr/share/nginx/html/
+RUN chown -R nginx:nginx /var/cache/nginx /var/log/nginx /etc/nginx/conf.d /run && \
+	chmod -R 755 /var/cache/nginx /var/log/nginx /etc/nginx/conf.d /run && \
+	find /usr/share/nginx/html -type d -exec chmod 755 {} \; && \
+	find /usr/share/nginx/html -type f -exec chmod 444 {} \;
 
-COPY --from=pruner /app/out/json/ .
-COPY --from=installer /app/node_modules ./node_modules
-COPY --from=build /app/packages ./packages
-COPY --from=build /app/tools ./tools
-COPY --from=build /app/apps/web ./apps/web
-
-RUN mkdir -p /app/apps/web/node_modules/.vite-temp /app/node_modules/.vite-temp \
-	&& chmod -R a-w /app \
-	&& chmod -R u+wx /app/apps/web/node_modules/.vite-temp /app/node_modules/.vite-temp \
-	&& chown -R runner-user:runner-group /app
-
-USER runner-user
-ENV HOST=0.0.0.0
-WORKDIR /app/apps/web
-CMD ["sh", "-c", "exec bun --bun vite preview --host 0.0.0.0 --port \"${WEB_PORT:-${PORT:-3000}}\""]
+USER nginx
+EXPOSE 3000
+CMD ["nginx", "-g", "daemon off;"]

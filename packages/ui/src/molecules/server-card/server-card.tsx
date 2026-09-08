@@ -29,8 +29,12 @@ export interface ServerCardProps {
 	readonly netPercent?: number;
 	readonly ramPercent?: number;
 	readonly canAfford?: boolean;
+	readonly canAffordLease?: boolean;
+	readonly leaseLabel?: string;
 	readonly onSell?: () => void;
+	readonly onRelease?: () => void;
 	readonly onBuy?: () => void;
+	readonly onLease?: () => void;
 	readonly dotClassName?: string;
 	readonly className?: string;
 }
@@ -48,35 +52,68 @@ export function ServerCard({
 	netPercent,
 	ramPercent,
 	canAfford,
+	canAffordLease,
+	leaseLabel,
 	onSell,
+	onRelease,
 	onBuy,
+	onLease,
 	dotClassName,
 	className,
 }: ServerCardProps) {
-	const unaffordable = variant === "market" && canAfford === false;
+	const buyDisabled = canAfford === false;
+	const leaseDisabled = canAffordLease === false;
+	const marketMuted =
+		variant === "market" &&
+		(onBuy === undefined || buyDisabled) &&
+		(onLease === undefined || leaseDisabled);
 	const skuDot = <SkuDot className={dotClassName} />;
+	const statWidth = leaseLabel === undefined ? "w-1/2" : "min-w-0 flex-1";
 
 	if (variant === "market") {
 		return (
-			<Card className={cn("gap-2 p-3", unaffordable && "opacity-60", className)}>
+			<Card className={cn("gap-2 p-3", marketMuted && "opacity-60", className)}>
 				<View className="flex-row items-center gap-1.5">
 					{skuDot}
 					<Text className="font-mono text-sm font-bold text-card-foreground">{label}</Text>
 				</View>
 				<View className="flex-row flex-wrap gap-x-2 gap-y-1">
-					{costLabel ? (
-						<MetricStat className="w-1/2" label="COST" tone="warning" value={costLabel} />
-					) : null}
-					<MetricStat className="w-1/2" label="OPEX" tone="destructive" value={opexLabel} />
-					<MetricStat className="w-1/2" label="CPU" tone="info" value={cpuLabel} />
+					<MetricStat className={statWidth} label="CPU" tone="info" value={cpuLabel} />
 					{ramLabel ? (
-						<MetricStat className="w-1/2" label="RAM" tone="info" value={ramLabel} />
+						<MetricStat className={statWidth} label="RAM" tone="info" value={ramLabel} />
 					) : null}
 				</View>
-				{onBuy ? (
-					<Button className="w-full" disabled={unaffordable} onClick={onBuy} size="sm">
-						BUY
-					</Button>
+				<View className="flex-row flex-wrap gap-x-2 gap-y-1">
+					{costLabel ? (
+						<MetricStat className={statWidth} label="COST" tone="warning" value={costLabel} />
+					) : null}
+					{opexLabel ? (
+						<MetricStat className={statWidth} label="OPEX" tone="destructive" value={opexLabel} />
+					) : null}
+					{leaseLabel ? (
+						<MetricStat className={statWidth} label="RENT" tone="warning" value={leaseLabel} />
+					) : null}
+				</View>
+
+				{onBuy || onLease ? (
+					<View className="flex-row gap-1.5">
+						{onBuy ? (
+							<Button className="min-w-0 flex-1" disabled={buyDisabled} onClick={onBuy} size="sm">
+								BUY
+							</Button>
+						) : null}
+						{onLease ? (
+							<Button
+								className="min-w-0 flex-1"
+								disabled={leaseDisabled}
+								onClick={onLease}
+								size="sm"
+								variant="outline"
+							>
+								LEASE
+							</Button>
+						) : null}
+					</View>
 				) : null}
 			</Card>
 		);
@@ -92,7 +129,11 @@ export function ServerCard({
 						<Text className="font-mono text-xs text-muted-foreground">{idLabel}</Text>
 					) : null}
 				</View>
-				{onSell ? (
+				{onRelease ? (
+					<Button className="text-destructive" onClick={onRelease} size="sm" variant="ghost">
+						RELEASE
+					</Button>
+				) : onSell ? (
 					<Button className="text-destructive" onClick={onSell} size="sm" variant="ghost">
 						SELL
 					</Button>

@@ -334,6 +334,51 @@ describe("LabPage - tick metrics", () => {
 
 		expect(screen.getByText("No servers")).toBeTruthy();
 	});
+
+	it("leases a Bronze without debiting purchase and releases without salvage", async () => {
+		stubLoggedInHint(true);
+
+		renderLab();
+
+		await waitForLab();
+
+		expect(screen.getByRole("button", { name: "Lease Gold" })).toBeEnabled();
+
+		fireEvent.click(screen.getByRole("button", { name: "Lease Bronze" }));
+
+		expect(screen.getByText(/server-1 Bronze utc\+0 leased/)).toBeTruthy();
+		expect(screen.getByRole("button", { name: "Release server-1" })).toBeTruthy();
+		expect(screen.queryByRole("button", { name: "Delete server-1" })).toBeNull();
+
+		const afterLease = Number(
+			within(screen.getByRole("row", { name: /Cash/ })).getByRole("cell").textContent,
+		);
+		expect(afterLease).toBe(STARTING_CASH_CENTS);
+		expect(afterLease).toBeGreaterThan(STARTING_CASH_CENTS - SKU_ECONOMY.bronze.purchaseCents);
+
+		fireEvent.click(screen.getByRole("button", { name: "Tick" }));
+
+		const leaseCents = Number(
+			within(screen.getByRole("row", { name: /Last opex lease/ })).getByRole("cell").textContent,
+		);
+		const opexTotal = Number(
+			within(screen.getByRole("row", { name: /Last opex total/ })).getByRole("cell").textContent,
+		);
+		const afterTick = Number(
+			within(screen.getByRole("row", { name: /Cash/ })).getByRole("cell").textContent,
+		);
+
+		expect(leaseCents).toBe(SKU_ECONOMY.bronze.leaseHourlyCents);
+		expect(opexTotal).toBeGreaterThan(leaseCents);
+		expect(afterTick).toBe(STARTING_CASH_CENTS - opexTotal);
+
+		fireEvent.click(screen.getByRole("button", { name: "Release server-1" }));
+
+		expect(screen.getByText("No servers")).toBeTruthy();
+		expect(
+			Number(within(screen.getByRole("row", { name: /Cash/ })).getByRole("cell").textContent),
+		).toBe(afterTick);
+	});
 });
 
 describe("LabPage - project routing", () => {

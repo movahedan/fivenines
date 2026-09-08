@@ -322,6 +322,38 @@ describe("HubPage - project routing", () => {
 		});
 		expect(screen.queryByRole("alert")).toBeNull();
 	});
+
+	it("leases a Bronze without debiting purchase and releases without salvage", async () => {
+		stubSession();
+
+		renderHub();
+
+		await waitForOpsFloor();
+		fireEvent.click(screen.getByRole("button", { name: "Pause" }));
+
+		expect(screen.getByText("$250.00")).toBeTruthy();
+
+		const leaseBronze = screen.getAllByRole("button", { name: "LEASE" })[0];
+		if (leaseBronze === undefined) {
+			throw new Error("expected a market LEASE button");
+		}
+		fireEvent.click(leaseBronze);
+
+		await waitFor(() => {
+			expect(screen.getByText("Fleet (1)")).toBeTruthy();
+		});
+		expect(screen.getByText("$250.00")).toBeTruthy();
+		expect(within(activeFloor()).getByText("server-1 · leased")).toBeTruthy();
+		expect(within(activeFloor()).queryByRole("button", { name: "SELL" })).toBeNull();
+
+		fireEvent.click(within(activeFloor()).getByRole("button", { name: "RELEASE" }));
+
+		await waitFor(() => {
+			expect(screen.getByText("Fleet (0)")).toBeTruthy();
+		});
+		expect(screen.getByText("$250.00")).toBeTruthy();
+		expect(screen.queryByRole("alert")).toBeNull();
+	});
 });
 
 describe("PlayButton - hub entry", () => {

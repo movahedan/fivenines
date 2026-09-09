@@ -28,28 +28,46 @@ import {
 
 const webConfigDir = path.dirname(fileURLToPath(import.meta.url));
 const ssrRnWebStub = path.join(webConfigDir, "src/ssr-rn-web-stub.tsx");
+const ssrCreatePrefixer = path.join(webConfigDir, "src/ssr-create-prefixer.ts");
 
 const ssrCssComponentPrefix = "\0ssr-rn-css-component:";
+
+function isViteClientEnvironment(pluginContext: { environment?: { name?: string } }): boolean {
+	return pluginContext.environment?.name === "client";
+}
+
+function shouldStubRnWebOnSsr(source: string): boolean {
+	return (
+		source === "react-native" ||
+		source === "react-native-web" ||
+		source.startsWith("react-native-web/") ||
+		source.includes("/react-native-web/") ||
+		source === "react-native-css" ||
+		source.startsWith("react-native-css/") ||
+		source.includes("/react-native-css/")
+	);
+}
+
+function shouldStubPrefixerOnSsr(source: string): boolean {
+	return source === "inline-style-prefixer" || source.includes("inline-style-prefixer");
+}
 
 function stubRnWebOnSsr(): Plugin {
 	return {
 		name: "stub-rn-web-on-ssr",
 		enforce: "pre",
 		resolveId(source) {
-			if (this.environment.name !== "ssr") {
+			if (isViteClientEnvironment(this)) {
 				return;
 			}
 			const cssComponent = /^react-native-css\/components\/([A-Za-z_][A-Za-z0-9_]*)$/.exec(source);
 			if (cssComponent?.[1]) {
 				return `${ssrCssComponentPrefix}${cssComponent[1]}`;
 			}
-			if (
-				source === "react-native" ||
-				source === "react-native-web" ||
-				source.startsWith("react-native-web/") ||
-				source === "react-native-css" ||
-				source.startsWith("react-native-css/")
-			) {
+			if (shouldStubPrefixerOnSsr(source)) {
+				return ssrCreatePrefixer;
+			}
+			if (shouldStubRnWebOnSsr(source)) {
 				return ssrRnWebStub;
 			}
 		},
@@ -60,6 +78,30 @@ function stubRnWebOnSsr(): Plugin {
 			const exportName = id.slice(ssrCssComponentPrefix.length);
 			const stub = JSON.stringify(ssrRnWebStub);
 			return `import { Box } from ${stub};\nexport const ${exportName} = Box;\nexport default Box;\n`;
+		},
+		transform(_code, id) {
+			if (isViteClientEnvironment(this)) {
+				return;
+			}
+			const filePath = id.split("?")[0] ?? id;
+			if (
+				filePath.includes("/inline-style-prefixer/") ||
+				filePath.endsWith("ssr-create-prefixer.ts")
+			) {
+				if (filePath.endsWith("ssr-create-prefixer.ts")) {
+					return;
+				}
+				return {
+					code: "export default function createPrefixer() {\n\treturn function prefix(style) {\n\t\treturn style;\n\t};\n}\n",
+					map: null,
+				};
+			}
+			if (filePath.includes("/react-native-web/") && !filePath.includes("ssr-rn-web-stub")) {
+				return {
+					code: `export * from ${JSON.stringify(ssrRnWebStub)};\nexport { default } from ${JSON.stringify(ssrRnWebStub)};\n`,
+					map: null,
+				};
+			}
 		},
 	};
 }
@@ -155,7 +197,14 @@ export default defineConfig(({ command }) => {
 			exclude: shareReact ? [...rnJsxExclude, ...reactPrebundleIds] : rnJsxExclude,
 		},
 		ssr: {
-			noExternal: rnWebSsrNoExternal,
+			noExternal: [
+				...rnWebSsrNoExternal,
+				"react-native",
+				"react-native-web",
+				"react-native-css",
+				"inline-style-prefixer",
+				"css-in-js-utils",
+			],
 			optimizeDeps: {
 				exclude: shareReact ? [...rnJsxExclude, ...reactPrebundleIds] : rnJsxExclude,
 			},
@@ -166,6 +215,8 @@ export default defineConfig(({ command }) => {
 					alias: {
 						"react-native": ssrRnWebStub,
 						"react-native-web": ssrRnWebStub,
+						"inline-style-prefixer": ssrCreatePrefixer,
+						"inline-style-prefixer/lib/createPrefixer": ssrCreatePrefixer,
 					},
 				},
 			},

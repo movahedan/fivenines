@@ -20,7 +20,7 @@ These are outcome-sized slices, not fixed file lists. Inspect current code and m
 
 | Slice | Depends on | Deliverable |
 |---|---|---|
-| Responsibilities and state transitions | None | Map current Game, demand, capacity, placement, finance and SLA code to the final ownership boundaries. Define command validation, indexes, graph compilation invalidation and one outer-tick transition, including simultaneous completion, departure, settlement and renewal boundaries. |
+| Responsibilities and state transitions | None | Add a checked-in repeatable baseline validator for IDs, DAG, references, mixtures, policy guards and version-one release closure. Map current Game, demand, capacity, placement, finance and SLA code to the final ownership boundaries. Define command validation, indexes, graph compilation invalidation and one outer-tick transition, including simultaneous completion, departure, settlement and renewal boundaries. |
 | Resource and work reference model | Responsibilities and state transitions | Define dimensions and conservation equations for CPU, GPU, resident/queued memory, disk capacity and I/O, and network transfer. Implement independent analytical fixtures for heterogeneous contention, backlog shares, FIFO and bounded rounding; identify infeasible demand rather than hiding it behind arbitrary capacity. |
 | Graph and outcome reference model | Resource and work reference model | Define required branches, shared downstream work, root success, waiting and latency estimation. Add independently calculated cases and permutation checks, plus an explicit runtime integration contract for later milestones. |
 

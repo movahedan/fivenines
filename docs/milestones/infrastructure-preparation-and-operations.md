@@ -6,7 +6,7 @@ Milestone 4 of 10. Status: planned; no implementation PR is claimed delivered. F
 
 Make a project system something the player prepares and operates: installation, shared configuration, readiness, power and project-scoped duplication become authoritative work.
 
-Activation readiness is implemented here; acceptance advances, setup cancellation and billing policy are integrated in milestone 6. Early fixtures may establish prepared projects directly without claiming the full business loop is complete.
+Bring forward the first acquaintance contract, acceptance advance, setup cancellation and activation billing origin from milestone 6 using the milestone 3 ledger boundary. The complete service settlement path arrives with actual execution in milestone 5; generalized contracts and growth remain milestone 6.
 
 ## Prerequisites and sources
 
@@ -20,12 +20,15 @@ These are outcome-sized slices, not fixed file lists. Inspect current code and m
 
 | Slice | Depends on | Deliverable |
 |---|---|---|
-| Operational queue and readiness | Milestone prerequisite | Implement the single player operational queue, prerequisites, retained progress and skill-adjusted work. Define explicit ready/active states; readiness never silently starts a contract. |
+| Acquaintance acceptance and advance | Milestone prerequisite | Implement the first offer, full contract drawer, upfront payment, setup cancellation/refund and explicit activation billing origin using the shared ledger boundary. |
+| Operational queue and readiness | Acquaintance acceptance and advance | Implement the single player operational queue, prerequisites, retained progress and skill-adjusted work. Define explicit ready/active states; readiness never silently starts a contract. |
 | Installation and configuration actions | Operational queue and readiness | Connect project service installation and shared configuration to instances. Implement power commands and their effects on readiness and volatile work, preserving persistent data. |
 | Duplication and transfer lifecycle | Installation and configuration actions | Implement project-only duplication preparation, destination compatibility and pending data-transfer state. Source service continues during preparation; completed data movement awaits milestone 5 allocation. |
 | System workspace operations | Duplication and transfer lifecycle | Integrate rack, installed-module selection, contextual actions and operational progress with desktop/mobile interaction hierarchy. Revalidate destructive/shared-asset actions against current engine state. |
 
 ## Acceptance and verification
+
+- Accepting the acquaintance contract posts the actual advance once; cancelling during setup applies its agreed refund. The explicit Start action requires readiness and starts the project billing period, not a global week boundary. Buy/lease and setup costs use the shared money state.
 
 - The first-project preset uses two installs and one shared configuration task for its documented five-hour baseline; per-technology configuration is not charged a second time.
 - Power-on is immediate. Software readiness can still require work. Power-off loses volatile work and preserves durable data; it is not equivalent to software failure.
@@ -43,6 +46,7 @@ Deliver the rack/software action hierarchy, basic activity summary, selection in
 
 | Slice | Status | PR | Verification evidence |
 |---|---|---|---|
+| Acquaintance acceptance and advance | Planned | — | Not run |
 | Operational queue and readiness | Planned | — | Not run |
 | Installation and configuration actions | Planned | — | Not run |
 | Duplication and transfer lifecycle | Planned | — | Not run |

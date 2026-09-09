@@ -21,11 +21,13 @@ These are outcome-sized slices, not fixed file lists. Inspect current code and m
 | Slice | Depends on | Deliverable |
 |---|---|---|
 | Coverage and historical metrics | Milestone prerequisite | Implement monitoring installations, resource overhead, selected-component coverage, historical aggregation and retained error records. Separate observed facts from internal causes. |
-| Incidents and attribution | Coverage and historical metrics | Implement hardware, configuration, software and data incidents, current skill and Quality Checks effects, diagnosis and prospective relationship attribution. |
+| Incidents and attribution | Coverage and historical metrics | Deliver a configuration incident, Monitoring diagnosis and repair first, then run the commercial recovery playtest. Extend to hardware, software and data incidents, current skill and Quality Checks effects, and prospective attribution. |
 | Repair and persistent recovery | Incidents and attribution | Integrate repair/restart and backups/restore using real operational and transfer capacity. Respect surviving data, unavailable hosts and irreversible loss. |
 | Checkpoints and observation UI | Repair and persistent recovery | Implement checkpoint creation/usability/manual continuation with original job timing, then connect detailed charts, period explanations, errors and alerts to coverage-aware projections. |
 
 ## Acceptance and verification
+
+- Before broad recovery completion, combine running Monitoring, one diagnosed configuration incident and repair with the milestone 5 commercial loop. Play the failure and recovery, record whether monitoring changes a meaningful decision, and compare known versus unknown responsibility. Use the normal incident/repair paths with a controlled test seed or fixture.
 
 - Current plus two completed billing periods are retained and bounded. Missing coverage produces gaps, not zeros or retrospective backfill. Small and detailed charts agree with their source aggregates.
 - Monitoring can cover selected components of one project across hosts. Losing it does not trigger a dedicated monitoring-down alert; basic server red status remains visible.

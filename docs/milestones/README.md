@@ -32,6 +32,20 @@ These ten documents define delivery outcomes, proposed PR slices and acceptance 
 
 This sequence supersedes the earlier broad transition plan's ordering. Preparation precedes the complete resource solver. Define the mathematical contracts early; complete transfers only when actual allocation exists. Across milestones 3–5, exercise interactive, queued, continuous and finite computational work, including GPU compatibility, using representative workloads.
 
+## Earlier commercial playtest
+
+Keep the architecture-first dependency order, but deliver a representative commercial path before expanding every catalog branch. This is an integration checkpoint, not a second engine, a new product mode or a fixed six-to-eight-PR promise.
+
+- Milestone 3 supplies the shared ledger boundary and a usable research enrollment, including Monitoring research.
+- Milestone 4 brings forward the acquaintance offer, contract details, acceptance advance and setup-cancellation policy from milestone 6. The player buys or leases a host, installs the application/database, configures the connection and explicitly starts the ready project. Activation establishes the real billing origin.
+- Milestone 5 connects actual demand and execution to that contract's weekly settlement, hourly tenure costs, credits and debt recovery. At its exit, play the appointment project through acceptance, setup, service and the first renewal. Test an affordable strategy and a deliberately overloaded strategy. Include the existing full resource accounting; do not invent a CPU/RAM-only fallback.
+- Milestone 6 generalizes that proven contract path to the version-one workload families, customer relationships and offer growth, without rewriting its ledger or activation logic.
+- Milestone 7 delivers Monitoring, one diagnosable incident and repair first, then performs a second playtest before completing broader recovery coverage. A seeded/injected incident may support verification; it must not become a guaranteed scripted opening event.
+
+The milestone 5 session assesses whether time, rent/buy, capacity and settlement make understandable decisions. The milestone 7 session adds uncertainty, paid monitoring and recovery. Record confusion, dominant strategies, idle waiting and cash-pressure findings before widening coverage; policy tuning stays in catalogs. Their success is evidence to continue, not a promise that the game is already balanced. Failed sessions trigger targeted revisions to the relevant slices, not automatic scope expansion.
+
+Version-one completion covers only `release: "v1"` entries in the [catalog](../product/technology-catalog.md#version-one-scope). Expansion entries and their projects are not release gates. A repeatable baseline validator with release-closure checks belongs in the first milestone's foundation work.
+
 ## Development constraints
 
 Change the existing engine directly. There is no live legacy game to preserve and no requirement for parallel engines, compatibility layers or old-save migration. Each PR keeps the application runnable and passes its applicable checks; all gameplay flows need not be complete at every intermediate step. State incomplete behavior explicitly rather than faking success.

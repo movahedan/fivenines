@@ -4,7 +4,7 @@ Milestone 6 of 10. Status: planned; no implementation PR is claimed delivered. F
 
 ## Outcome and boundaries
 
-Complete the playable commercial loop from acquaintance offers through paid setup, activation, obligations, settlement and recoverable financial distress.
+Generalize the first commercial loop delivered in milestones 4–5 to version-one contracts, relationships and business growth. Reuse its acceptance, activation, ledger, settlement and debt rules.
 
 Use deterministic boundary tests and ledger reconciliation before stochastic balance runs. Incidents in milestone 7 will expand attribution evidence; do not invent cause visibility here.
 
@@ -20,9 +20,9 @@ These are outcome-sized slices, not fixed file lists. Inspect current code and m
 
 | Slice | Depends on | Deliverable |
 |---|---|---|
-| Acceptance and setup contracts | Milestone prerequisite | Implement offer acceptance advance, setup patience/cancellation, readiness-to-activation and per-project billing origin. Present full contract details before acceptance. |
-| Obligations and settlement ledger | Acceptance and setup contracts | Evaluate workload-specific commitments and finite-job settlement from execution outcomes. Integrate daily receivables, hourly costs, project renewal, refunds/credits and learning charges with explicit posting reasons. |
-| Relationships and financial recovery | Obligations and settlement ledger | Implement departure and trust/reputation/hatred policies, notified interruptions and recoverable debt. Replace permanent jail and free parking behavior; integrate tenure costs and salvage. |
+| Acceptance and setup contracts | Milestone prerequisite | Extend the existing acquaintance acceptance/setup path to other version-one offers and terms; preserve advance, cancellation and activation billing origin. Do not implement a second contract lifecycle. |
+| Obligations and settlement ledger | Acceptance and setup contracts | Evaluate workload-specific commitments and finite-job settlement from execution outcomes. Extend the existing ledger to usage receivables, finite-job terms and remaining settlement cases; preserve hourly costs, renewal, credits and learning postings. |
+| Relationships and financial recovery | Obligations and settlement ledger | Implement departure and trust/reputation/hatred policies, notified interruptions and recoverable debt. Verify the earlier debt recovery and interruption accounting across all contracts; complete tenure and salvage cases. |
 | Offers and business progression | Relationships and financial recovery | Implement low-reputation acquaintance offers, expanding project/SLA eligibility and the complete financial/project detail flows. Verify the first and second project validation sequence. |
 
 ## Acceptance and verification

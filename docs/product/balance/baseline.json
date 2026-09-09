@@ -1,6 +1,6 @@
 {
 	"policies": {
-		"version": "design-0.2",
+		"version": "design-0.3",
 		"status": "authored balance baseline; not live engine configuration",
 		"time": {
 			"simulatedHoursPerTick": 1,
@@ -121,27 +121,32 @@
 				{
 					"demand": "analytics-job",
 					"fee": 100,
-					"deadlineHours": 12
+					"deadlineHours": 12,
+					"release": "expansion"
 				},
 				{
 					"demand": "transcode-job",
 					"fee": 180,
-					"deadlineHours": 16
+					"deadlineHours": 16,
+					"release": "v1"
 				},
 				{
 					"demand": "batch-job",
 					"fee": 240,
-					"deadlineHours": 24
+					"deadlineHours": 24,
+					"release": "v1"
 				},
 				{
 					"demand": "training-job",
 					"fee": 400,
-					"deadlineHours": 24
+					"deadlineHours": 24,
+					"release": "expansion"
 				},
 				{
 					"demand": "distributed-training-job",
 					"fee": 1600,
-					"deadlineHours": 48
+					"deadlineHours": 48,
+					"release": "expansion"
 				}
 			]
 		},
@@ -344,6 +349,11 @@
 			"notifyOnLease": true,
 			"maxPendingAcquisitionsPerReplacement": 1,
 			"requiresOperationalOrchestration": true
+		},
+		"release": {
+			"default": "v1",
+			"expansionEnabled": false,
+			"expansionStatus": "candidate design only; not a version-one delivery requirement"
 		}
 	},
 	"technologies": [
@@ -358,7 +368,8 @@
 			"installHours": 2,
 			"configureHours": 1,
 			"residentMemoryMiB": 128,
-			"monthlyTuition": 0
+			"monthlyTuition": 0,
+			"release": "v1"
 		},
 		{
 			"name": "Relational Database",
@@ -371,7 +382,8 @@
 			"installHours": 2,
 			"configureHours": 1,
 			"residentMemoryMiB": 256,
-			"monthlyTuition": 0
+			"monthlyTuition": 0,
+			"release": "v1"
 		},
 		{
 			"name": "Background Workers",
@@ -384,7 +396,8 @@
 			"installHours": 1,
 			"configureHours": 1,
 			"residentMemoryMiB": 64,
-			"monthlyTuition": 40
+			"monthlyTuition": 40,
+			"release": "v1"
 		},
 		{
 			"name": "Job Scheduler",
@@ -397,7 +410,8 @@
 			"installHours": 2,
 			"configureHours": 1,
 			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
+			"monthlyTuition": 80,
+			"release": "v1"
 		},
 		{
 			"name": "Message Queue",
@@ -410,7 +424,8 @@
 			"installHours": 2,
 			"configureHours": 1,
 			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
+			"monthlyTuition": 80,
+			"release": "v1"
 		},
 		{
 			"name": "In-memory Cache",
@@ -423,7 +438,8 @@
 			"installHours": 1,
 			"configureHours": 1,
 			"residentMemoryMiB": 64,
-			"monthlyTuition": 40
+			"monthlyTuition": 40,
+			"release": "v1"
 		},
 		{
 			"name": "Object Storage",
@@ -436,20 +452,8 @@
 			"installHours": 1,
 			"configureHours": 1,
 			"residentMemoryMiB": 64,
-			"monthlyTuition": 40
-		},
-		{
-			"name": "Document Database",
-			"prerequisites": ["Relational Database"],
-			"runtime": "Database deployment and storage",
-			"benefit": "Document-oriented workloads; memory and storage",
-			"id": "document-database",
-			"tier": 1,
-			"researchHours": 168,
-			"installHours": 1,
-			"configureHours": 1,
-			"residentMemoryMiB": 64,
-			"monthlyTuition": 40
+			"monthlyTuition": 40,
+			"release": "v1"
 		},
 		{
 			"name": "Search Engine",
@@ -462,7 +466,8 @@
 			"installHours": 1,
 			"configureHours": 1,
 			"residentMemoryMiB": 1024,
-			"monthlyTuition": 40
+			"monthlyTuition": 40,
+			"release": "expansion"
 		},
 		{
 			"name": "Event Streaming",
@@ -475,7 +480,8 @@
 			"installHours": 3,
 			"configureHours": 1,
 			"residentMemoryMiB": 256,
-			"monthlyTuition": 160
+			"monthlyTuition": 160,
+			"release": "expansion"
 		},
 		{
 			"name": "Analytics Database",
@@ -488,20 +494,8 @@
 			"installHours": 1,
 			"configureHours": 1,
 			"residentMemoryMiB": 1024,
-			"monthlyTuition": 40
-		},
-		{
-			"name": "Data Pipeline",
-			"prerequisites": ["Background Workers", "Analytics Database"],
-			"runtime": "Data source, destination, and workers",
-			"benefit": "Imports and transformations; CPU and transfer volume",
-			"id": "data-pipeline",
-			"tier": 2,
-			"researchHours": 336,
-			"installHours": 2,
-			"configureHours": 1,
-			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
+			"monthlyTuition": 40,
+			"release": "expansion"
 		},
 		{
 			"name": "Email Delivery",
@@ -514,7 +508,8 @@
 			"installHours": 1,
 			"configureHours": 1,
 			"residentMemoryMiB": 64,
-			"monthlyTuition": 40
+			"monthlyTuition": 40,
+			"release": "v1"
 		},
 		{
 			"name": "Mailbox Hosting",
@@ -527,7 +522,8 @@
 			"installHours": 2,
 			"configureHours": 1,
 			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
+			"monthlyTuition": 80,
+			"release": "v1"
 		},
 		{
 			"name": "Real-time Messaging",
@@ -540,20 +536,8 @@
 			"installHours": 1,
 			"configureHours": 1,
 			"residentMemoryMiB": 64,
-			"monthlyTuition": 40
-		},
-		{
-			"name": "Push Notification Delivery",
-			"prerequisites": ["Background Workers"],
-			"runtime": "Delivery integration and credentials",
-			"benefit": "Mobile notifications; bursts and delivery queues",
-			"id": "push-notification-delivery",
-			"tier": 2,
-			"researchHours": 336,
-			"installHours": 2,
-			"configureHours": 1,
-			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
+			"monthlyTuition": 40,
+			"release": "v1"
 		},
 		{
 			"name": "Payment Gateway Integration",
@@ -566,33 +550,8 @@
 			"installHours": 1,
 			"configureHours": 1,
 			"residentMemoryMiB": 64,
-			"monthlyTuition": 40
-		},
-		{
-			"name": "Webhook Delivery",
-			"prerequisites": ["Background Workers"],
-			"runtime": "Delivery workers and customer endpoints",
-			"benefit": "Outbound integrations; failed or delayed delivery",
-			"id": "webhook-delivery",
-			"tier": 2,
-			"researchHours": 336,
-			"installHours": 2,
-			"configureHours": 1,
-			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
-		},
-		{
-			"name": "Identity Provider Integration",
-			"prerequisites": ["Application Runtime"],
-			"runtime": "Provider configuration and application integration",
-			"benefit": "Customer login and single sign-on; authentication availability",
-			"id": "identity-provider-integration",
-			"tier": 1,
-			"researchHours": 168,
-			"installHours": 1,
-			"configureHours": 1,
-			"residentMemoryMiB": 64,
-			"monthlyTuition": 40
+			"monthlyTuition": 40,
+			"release": "v1"
 		},
 		{
 			"name": "Media Transcoding",
@@ -605,7 +564,8 @@
 			"installHours": 2,
 			"configureHours": 1,
 			"residentMemoryMiB": 1024,
-			"monthlyTuition": 80
+			"monthlyTuition": 80,
+			"release": "v1"
 		},
 		{
 			"name": "Video on Demand",
@@ -618,7 +578,8 @@
 			"installHours": 3,
 			"configureHours": 1,
 			"residentMemoryMiB": 256,
-			"monthlyTuition": 160
+			"monthlyTuition": 160,
+			"release": "v1"
 		},
 		{
 			"name": "Live Streaming",
@@ -631,7 +592,8 @@
 			"installHours": 1,
 			"configureHours": 1,
 			"residentMemoryMiB": 64,
-			"monthlyTuition": 40
+			"monthlyTuition": 40,
+			"release": "v1"
 		},
 		{
 			"name": "Real-time Audio and Video",
@@ -644,7 +606,8 @@
 			"installHours": 2,
 			"configureHours": 1,
 			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
+			"monthlyTuition": 80,
+			"release": "expansion"
 		},
 		{
 			"name": "Multiplayer Game Server",
@@ -657,7 +620,8 @@
 			"installHours": 2,
 			"configureHours": 1,
 			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
+			"monthlyTuition": 80,
+			"release": "expansion"
 		},
 		{
 			"name": "Authoritative DNS",
@@ -670,7 +634,8 @@
 			"installHours": 1,
 			"configureHours": 1,
 			"residentMemoryMiB": 64,
-			"monthlyTuition": 40
+			"monthlyTuition": 40,
+			"release": "v1"
 		},
 		{
 			"name": "Reverse Proxy",
@@ -683,20 +648,8 @@
 			"installHours": 1,
 			"configureHours": 1,
 			"residentMemoryMiB": 64,
-			"monthlyTuition": 40
-		},
-		{
-			"name": "TLS Termination",
-			"prerequisites": ["Reverse Proxy"],
-			"runtime": "Certificate configuration and endpoint",
-			"benefit": "Encrypted endpoint support; CPU and certificate upkeep",
-			"id": "tls-termination",
-			"tier": 2,
-			"researchHours": 336,
-			"installHours": 2,
-			"configureHours": 1,
-			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
+			"monthlyTuition": 40,
+			"release": "v1"
 		},
 		{
 			"name": "Load Balancing",
@@ -709,7 +662,8 @@
 			"installHours": 2,
 			"configureHours": 1,
 			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
+			"monthlyTuition": 80,
+			"release": "v1"
 		},
 		{
 			"name": "Health Checks",
@@ -722,7 +676,8 @@
 			"installHours": 3,
 			"configureHours": 1,
 			"residentMemoryMiB": 256,
-			"monthlyTuition": 160
+			"monthlyTuition": 160,
+			"release": "v1"
 		},
 		{
 			"name": "Content Delivery Network",
@@ -735,7 +690,8 @@
 			"installHours": 2,
 			"configureHours": 1,
 			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
+			"monthlyTuition": 80,
+			"release": "expansion"
 		},
 		{
 			"name": "Rate Limiting",
@@ -748,20 +704,8 @@
 			"installHours": 2,
 			"configureHours": 1,
 			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
-		},
-		{
-			"name": "API Gateway",
-			"prerequisites": ["Reverse Proxy", "Rate Limiting"],
-			"runtime": "Routes to customer APIs",
-			"benefit": "Centralized API traffic policies; gateway capacity",
-			"id": "api-gateway",
-			"tier": 3,
-			"researchHours": 504,
-			"installHours": 3,
-			"configureHours": 1,
-			"residentMemoryMiB": 256,
-			"monthlyTuition": 160
+			"monthlyTuition": 80,
+			"release": "expansion"
 		},
 		{
 			"name": "Private Networking",
@@ -774,7 +718,8 @@
 			"installHours": 1,
 			"configureHours": 1,
 			"residentMemoryMiB": 64,
-			"monthlyTuition": 40
+			"monthlyTuition": 40,
+			"release": "expansion"
 		},
 		{
 			"name": "Monitoring",
@@ -787,33 +732,8 @@
 			"installHours": 1,
 			"configureHours": 1,
 			"residentMemoryMiB": 64,
-			"monthlyTuition": 40
-		},
-		{
-			"name": "Centralized Logging",
-			"prerequisites": ["Monitoring"],
-			"runtime": "Collectors and log storage",
-			"benefit": "Searchable component logs beyond baseline retained errors; storage growth",
-			"id": "centralized-logging",
-			"tier": 2,
-			"researchHours": 336,
-			"installHours": 2,
-			"configureHours": 1,
-			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
-		},
-		{
-			"name": "Distributed Tracing",
-			"prerequisites": ["Monitoring"],
-			"runtime": "Instrumented components and trace collection",
-			"benefit": "Diagnoses delays across dependencies; sampling and storage overhead",
-			"id": "distributed-tracing",
-			"tier": 2,
-			"researchHours": 336,
-			"installHours": 2,
-			"configureHours": 1,
-			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
+			"monthlyTuition": 40,
+			"release": "v1"
 		},
 		{
 			"name": "Backup and Restore",
@@ -826,20 +746,8 @@
 			"installHours": 1,
 			"configureHours": 1,
 			"residentMemoryMiB": 64,
-			"monthlyTuition": 40
-		},
-		{
-			"name": "Point-in-Time Recovery",
-			"prerequisites": ["Backup and Restore"],
-			"runtime": "Base backup and retained database change history",
-			"benefit": "Finer recovery point; continuous storage use",
-			"id": "point-in-time-recovery",
-			"tier": 2,
-			"researchHours": 336,
-			"installHours": 2,
-			"configureHours": 1,
-			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
+			"monthlyTuition": 40,
+			"release": "v1"
 		},
 		{
 			"name": "Database Replication",
@@ -852,7 +760,8 @@
 			"installHours": 1,
 			"configureHours": 1,
 			"residentMemoryMiB": 64,
-			"monthlyTuition": 40
+			"monthlyTuition": 40,
+			"release": "v1"
 		},
 		{
 			"name": "Automatic Failover",
@@ -865,7 +774,8 @@
 			"installHours": 2,
 			"configureHours": 1,
 			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
+			"monthlyTuition": 80,
+			"release": "v1"
 		},
 		{
 			"name": "Automated Restart",
@@ -878,59 +788,8 @@
 			"installHours": 2,
 			"configureHours": 1,
 			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
-		},
-		{
-			"name": "Firewall",
-			"prerequisites": ["Private Networking"],
-			"runtime": "Configured network rules",
-			"benefit": "Network access control; configuration mistakes can interrupt service",
-			"id": "firewall",
-			"tier": 2,
-			"researchHours": 336,
-			"installHours": 2,
-			"configureHours": 1,
-			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
-		},
-		{
-			"name": "Web Application Firewall",
-			"prerequisites": ["Reverse Proxy"],
-			"runtime": "HTTP inspection deployment or integration",
-			"benefit": "Application traffic filtering; CPU and false positives",
-			"id": "web-application-firewall",
-			"tier": 2,
-			"researchHours": 336,
-			"installHours": 2,
-			"configureHours": 1,
-			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
-		},
-		{
-			"name": "DDoS Protection",
-			"prerequisites": ["Monitoring", "Rate Limiting"],
-			"runtime": "Upstream protection integration and sufficient protected capacity",
-			"benefit": "Handles attack traffic within limits; not unlimited immunity",
-			"id": "ddos-protection",
-			"tier": 3,
-			"researchHours": 504,
-			"installHours": 3,
-			"configureHours": 1,
-			"residentMemoryMiB": 256,
-			"monthlyTuition": 160
-		},
-		{
-			"name": "Secrets Management",
-			"prerequisites": ["Application Runtime"],
-			"runtime": "Secret store and authorized consumers",
-			"benefit": "Credential configuration and rotation; availability dependency",
-			"id": "secrets-management",
-			"tier": 1,
-			"researchHours": 168,
-			"installHours": 1,
-			"configureHours": 1,
-			"residentMemoryMiB": 64,
-			"monthlyTuition": 40
+			"monthlyTuition": 80,
+			"release": "v1"
 		},
 		{
 			"name": "Container Runtime",
@@ -943,46 +802,8 @@
 			"installHours": 1,
 			"configureHours": 1,
 			"residentMemoryMiB": 64,
-			"monthlyTuition": 40
-		},
-		{
-			"name": "Deployment Pipeline",
-			"prerequisites": ["Background Workers"],
-			"runtime": "Customer artifact source and deployment target",
-			"benefit": "Automates repeated releases; consumes worker capacity",
-			"id": "deployment-pipeline",
-			"tier": 2,
-			"researchHours": 336,
-			"installHours": 2,
-			"configureHours": 1,
-			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
-		},
-		{
-			"name": "Deployment Rollback",
-			"prerequisites": ["Deployment Pipeline"],
-			"runtime": "Retained compatible previous release",
-			"benefit": "Reverses a failed release; does not automatically undo database changes",
-			"id": "deployment-rollback",
-			"tier": 3,
-			"researchHours": 504,
-			"installHours": 3,
-			"configureHours": 1,
-			"residentMemoryMiB": 256,
-			"monthlyTuition": 160
-		},
-		{
-			"name": "Rolling Deployment",
-			"prerequisites": ["Deployment Pipeline", "Load Balancing"],
-			"runtime": "Multiple healthy instances and spare capacity",
-			"benefit": "Replaces instances gradually; less temporary headroom",
-			"id": "rolling-deployment",
-			"tier": 3,
-			"researchHours": 504,
-			"installHours": 3,
-			"configureHours": 1,
-			"residentMemoryMiB": 256,
-			"monthlyTuition": 160
+			"monthlyTuition": 40,
+			"release": "v1"
 		},
 		{
 			"name": "Container Orchestration",
@@ -995,7 +816,8 @@
 			"installHours": 2,
 			"configureHours": 1,
 			"residentMemoryMiB": 128,
-			"monthlyTuition": 80
+			"monthlyTuition": 80,
+			"release": "v1"
 		},
 		{
 			"name": "Autoscaling",
@@ -1008,20 +830,8 @@
 			"installHours": 3,
 			"configureHours": 1,
 			"residentMemoryMiB": 256,
-			"monthlyTuition": 160
-		},
-		{
-			"name": "Infrastructure as Code",
-			"prerequisites": ["Deployment Pipeline"],
-			"runtime": "Supported provisionable assets and configuration template",
-			"benefit": "Repeatable system preparation; propagates bad configuration too",
-			"id": "infrastructure-as-code",
-			"tier": 3,
-			"researchHours": 504,
-			"installHours": 3,
-			"configureHours": 1,
-			"residentMemoryMiB": 256,
-			"monthlyTuition": 160
+			"monthlyTuition": 160,
+			"release": "v1"
 		},
 		{
 			"name": "Batch Computing",
@@ -1034,7 +844,8 @@
 			"installHours": 3,
 			"configureHours": 1,
 			"residentMemoryMiB": 256,
-			"monthlyTuition": 160
+			"monthlyTuition": 160,
+			"release": "v1"
 		},
 		{
 			"name": "GPU Computing",
@@ -1047,7 +858,8 @@
 			"installHours": 2,
 			"configureHours": 1,
 			"residentMemoryMiB": 2048,
-			"monthlyTuition": 80
+			"monthlyTuition": 80,
+			"release": "v1"
 		},
 		{
 			"name": "Model Serving",
@@ -1060,7 +872,8 @@
 			"installHours": 1,
 			"configureHours": 1,
 			"residentMemoryMiB": 1024,
-			"monthlyTuition": 40
+			"monthlyTuition": 40,
+			"release": "v1"
 		},
 		{
 			"name": "Model Training",
@@ -1073,7 +886,8 @@
 			"installHours": 4,
 			"configureHours": 1,
 			"residentMemoryMiB": 2048,
-			"monthlyTuition": 320
+			"monthlyTuition": 320,
+			"release": "expansion"
 		},
 		{
 			"name": "Vector Search",
@@ -1086,7 +900,8 @@
 			"installHours": 2,
 			"configureHours": 1,
 			"residentMemoryMiB": 1024,
-			"monthlyTuition": 80
+			"monthlyTuition": 80,
+			"release": "expansion"
 		},
 		{
 			"name": "Distributed Computing",
@@ -1099,7 +914,8 @@
 			"installHours": 4,
 			"configureHours": 1,
 			"residentMemoryMiB": 512,
-			"monthlyTuition": 320
+			"monthlyTuition": 320,
+			"release": "expansion"
 		},
 		{
 			"name": "Distributed GPU Training",
@@ -1112,7 +928,8 @@
 			"installHours": 4,
 			"configureHours": 1,
 			"residentMemoryMiB": 2048,
-			"monthlyTuition": 320
+			"monthlyTuition": 320,
+			"release": "expansion"
 		},
 		{
 			"name": "Checkpointing",
@@ -1125,7 +942,8 @@
 			"installHours": 4,
 			"configureHours": 1,
 			"residentMemoryMiB": 512,
-			"monthlyTuition": 320
+			"monthlyTuition": 320,
+			"release": "v1"
 		},
 		{
 			"name": "Quality Checks",
@@ -1138,7 +956,8 @@
 			"installHours": 1,
 			"configureHours": 1,
 			"residentMemoryMiB": 64,
-			"monthlyTuition": 40
+			"monthlyTuition": 40,
+			"release": "v1"
 		}
 	],
 	"hardware": [
@@ -1317,7 +1136,8 @@
 			"maxCpuParallelism": 1,
 			"gpuMemoryMiB": 0,
 			"policy": "interactive",
-			"queueKiB": 4
+			"queueKiB": 4,
+			"release": "v1"
 		},
 		{
 			"id": "record-write",
@@ -1330,7 +1150,8 @@
 			"maxCpuParallelism": 1,
 			"gpuMemoryMiB": 0,
 			"policy": "interactive",
-			"queueKiB": 4
+			"queueKiB": 4,
+			"release": "v1"
 		},
 		{
 			"id": "payment",
@@ -1343,7 +1164,8 @@
 			"maxCpuParallelism": 1,
 			"gpuMemoryMiB": 0,
 			"policy": "interactive",
-			"queueKiB": 8
+			"queueKiB": 8,
+			"release": "v1"
 		},
 		{
 			"id": "chat-message",
@@ -1356,7 +1178,8 @@
 			"maxCpuParallelism": 1,
 			"gpuMemoryMiB": 0,
 			"policy": "interactive",
-			"queueKiB": 2
+			"queueKiB": 2,
+			"release": "v1"
 		},
 		{
 			"id": "email-message",
@@ -1369,7 +1192,8 @@
 			"maxCpuParallelism": 2,
 			"gpuMemoryMiB": 0,
 			"policy": "queued",
-			"queueKiB": 64
+			"queueKiB": 64,
+			"release": "v1"
 		},
 		{
 			"id": "mailbox-read",
@@ -1382,46 +1206,8 @@
 			"maxCpuParallelism": 1,
 			"gpuMemoryMiB": 0,
 			"policy": "interactive",
-			"queueKiB": 8
-		},
-		{
-			"id": "push-message",
-			"applicationCpuWork": 0.4,
-			"databaseCpuWork": 0,
-			"gpuWork": 0,
-			"networkMiB": 0.002,
-			"storageOperations": 1,
-			"workingMemoryMiB": 1,
-			"maxCpuParallelism": 1,
-			"gpuMemoryMiB": 0,
-			"policy": "queued",
-			"queueKiB": 2
-		},
-		{
-			"id": "webhook",
-			"applicationCpuWork": 0.6,
-			"databaseCpuWork": 0,
-			"gpuWork": 0,
-			"networkMiB": 0.01,
-			"storageOperations": 1,
-			"workingMemoryMiB": 1,
-			"maxCpuParallelism": 1,
-			"gpuMemoryMiB": 0,
-			"policy": "queued",
-			"queueKiB": 4
-		},
-		{
-			"id": "login",
-			"applicationCpuWork": 1,
-			"databaseCpuWork": 1,
-			"gpuWork": 0,
-			"networkMiB": 0.01,
-			"storageOperations": 2,
-			"workingMemoryMiB": 2,
-			"maxCpuParallelism": 1,
-			"gpuMemoryMiB": 0,
-			"policy": "interactive",
-			"queueKiB": 4
+			"queueKiB": 8,
+			"release": "v1"
 		},
 		{
 			"id": "search-query",
@@ -1434,7 +1220,8 @@
 			"maxCpuParallelism": 1,
 			"gpuMemoryMiB": 0,
 			"policy": "interactive",
-			"queueKiB": 8
+			"queueKiB": 8,
+			"release": "expansion"
 		},
 		{
 			"id": "dns-query",
@@ -1447,7 +1234,8 @@
 			"maxCpuParallelism": 1,
 			"gpuMemoryMiB": 0,
 			"policy": "interactive",
-			"queueKiB": 1
+			"queueKiB": 1,
+			"release": "v1"
 		},
 		{
 			"id": "video-minute",
@@ -1460,7 +1248,8 @@
 			"maxCpuParallelism": 1,
 			"gpuMemoryMiB": 0,
 			"policy": "continuous",
-			"queueKiB": 2
+			"queueKiB": 2,
+			"release": "v1"
 		},
 		{
 			"id": "live-minute",
@@ -1473,7 +1262,8 @@
 			"maxCpuParallelism": 1,
 			"gpuMemoryMiB": 0,
 			"policy": "continuous",
-			"queueKiB": 2
+			"queueKiB": 2,
+			"release": "v1"
 		},
 		{
 			"id": "call-minute",
@@ -1486,7 +1276,8 @@
 			"maxCpuParallelism": 1,
 			"gpuMemoryMiB": 0,
 			"policy": "continuous",
-			"queueKiB": 2
+			"queueKiB": 2,
+			"release": "expansion"
 		},
 		{
 			"id": "game-session-minute",
@@ -1499,7 +1290,8 @@
 			"maxCpuParallelism": 1,
 			"gpuMemoryMiB": 0,
 			"policy": "continuous",
-			"queueKiB": 2
+			"queueKiB": 2,
+			"release": "expansion"
 		},
 		{
 			"id": "inference-cpu",
@@ -1512,7 +1304,8 @@
 			"maxCpuParallelism": 4,
 			"gpuMemoryMiB": 0,
 			"policy": "interactive",
-			"queueKiB": 8
+			"queueKiB": 8,
+			"release": "v1"
 		},
 		{
 			"id": "inference-gpu",
@@ -1525,7 +1318,8 @@
 			"maxCpuParallelism": 1,
 			"gpuMemoryMiB": 4096,
 			"policy": "interactive",
-			"queueKiB": 8
+			"queueKiB": 8,
+			"release": "v1"
 		},
 		{
 			"id": "event-ingest",
@@ -1538,7 +1332,8 @@
 			"maxCpuParallelism": 1,
 			"gpuMemoryMiB": 0,
 			"policy": "queued",
-			"queueKiB": 8
+			"queueKiB": 8,
+			"release": "expansion"
 		},
 		{
 			"id": "analytics-job",
@@ -1551,7 +1346,8 @@
 			"maxCpuParallelism": 4,
 			"gpuMemoryMiB": 0,
 			"policy": "job",
-			"queueKiB": 16
+			"queueKiB": 16,
+			"release": "expansion"
 		},
 		{
 			"id": "transcode-job",
@@ -1564,7 +1360,8 @@
 			"maxCpuParallelism": 8,
 			"gpuMemoryMiB": 0,
 			"policy": "job",
-			"queueKiB": 16
+			"queueKiB": 16,
+			"release": "v1"
 		},
 		{
 			"id": "batch-job",
@@ -1577,7 +1374,8 @@
 			"maxCpuParallelism": 8,
 			"gpuMemoryMiB": 0,
 			"policy": "job",
-			"queueKiB": 16
+			"queueKiB": 16,
+			"release": "v1"
 		},
 		{
 			"id": "training-job",
@@ -1590,7 +1388,8 @@
 			"maxCpuParallelism": 8,
 			"gpuMemoryMiB": 8192,
 			"policy": "job",
-			"queueKiB": 16
+			"queueKiB": 16,
+			"release": "expansion"
 		},
 		{
 			"id": "distributed-training-job",
@@ -1603,7 +1402,8 @@
 			"maxCpuParallelism": 16,
 			"gpuMemoryMiB": 16384,
 			"policy": "job",
-			"queueKiB": 16
+			"queueKiB": 16,
+			"release": "expansion"
 		}
 	],
 	"projects": [
@@ -1620,7 +1420,8 @@
 				"page-read": 0.8,
 				"record-write": 0.2
 			},
-			"technologies": ["Application Runtime", "Relational Database"]
+			"technologies": ["Application Runtime", "Relational Database"],
+			"release": "v1"
 		},
 		{
 			"id": "community-site",
@@ -1635,7 +1436,8 @@
 				"page-read": 0.9,
 				"record-write": 0.1
 			},
-			"technologies": ["Application Runtime", "Relational Database"]
+			"technologies": ["Application Runtime", "Relational Database"],
+			"release": "v1"
 		},
 		{
 			"id": "online-shop",
@@ -1656,7 +1458,8 @@
 				"Relational Database",
 				"Payment Gateway Integration",
 				"Email Delivery"
-			]
+			],
+			"release": "v1"
 		},
 		{
 			"id": "support-chat",
@@ -1672,7 +1475,8 @@
 				"page-read": 0.1,
 				"record-write": 0.05
 			},
-			"technologies": ["Application Runtime", "Relational Database", "Real-time Messaging"]
+			"technologies": ["Application Runtime", "Relational Database", "Real-time Messaging"],
+			"release": "v1"
 		},
 		{
 			"id": "mailbox-service",
@@ -1687,7 +1491,8 @@
 				"email-message": 0.3,
 				"mailbox-read": 0.7
 			},
-			"technologies": ["Mailbox Hosting"]
+			"technologies": ["Mailbox Hosting"],
+			"release": "v1"
 		},
 		{
 			"id": "dns-hosting",
@@ -1701,7 +1506,8 @@
 			"mix": {
 				"dns-query": 1
 			},
-			"technologies": ["Authoritative DNS"]
+			"technologies": ["Authoritative DNS"],
+			"release": "v1"
 		},
 		{
 			"id": "video-library",
@@ -1715,7 +1521,8 @@
 			"mix": {
 				"video-minute": 1
 			},
-			"technologies": ["Video on Demand", "Object Storage"]
+			"technologies": ["Video on Demand", "Object Storage"],
+			"release": "v1"
 		},
 		{
 			"id": "live-events",
@@ -1729,7 +1536,8 @@
 			"mix": {
 				"live-minute": 1
 			},
-			"technologies": ["Live Streaming"]
+			"technologies": ["Live Streaming"],
+			"release": "v1"
 		},
 		{
 			"id": "conferencing",
@@ -1743,7 +1551,8 @@
 			"mix": {
 				"call-minute": 1
 			},
-			"technologies": ["Real-time Audio and Video"]
+			"technologies": ["Real-time Audio and Video"],
+			"release": "expansion"
 		},
 		{
 			"id": "multiplayer-hosting",
@@ -1757,7 +1566,8 @@
 			"mix": {
 				"game-session-minute": 1
 			},
-			"technologies": ["Multiplayer Game Server"]
+			"technologies": ["Multiplayer Game Server"],
+			"release": "expansion"
 		},
 		{
 			"id": "inference-api",
@@ -1771,7 +1581,8 @@
 			"mix": {
 				"inference-gpu": 1
 			},
-			"technologies": ["Model Serving", "GPU Computing"]
+			"technologies": ["Model Serving", "GPU Computing"],
+			"release": "v1"
 		},
 		{
 			"id": "event-platform",
@@ -1785,7 +1596,8 @@
 			"mix": {
 				"event-ingest": 1
 			},
-			"technologies": ["Event Streaming"]
+			"technologies": ["Event Streaming"],
+			"release": "expansion"
 		}
 	],
 	"courses": [

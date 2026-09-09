@@ -85,12 +85,11 @@ These extend the common service inspector rather than creating unrelated menus f
 
 | Family / catalog coverage | Additional surface or action | Guardrails |
 |---|---|---|
-| Relational, Document, Analytics Databases | Dependencies and data state; configure standby; Promote standby; Restore when supported | Promotion requires a ready standby on a different server; one primary; empty storage is not recovered data |
+| Relational and Analytics Databases | Dependencies and data state; configure standby; Promote standby; Restore when supported | Promotion requires a ready standby on a different server; one primary; empty storage is not recovered data |
 | Database Replication, Automatic Failover | Primary/standby roles, Ready/Not ready state, automatic-failover configuration | No transaction-level replication controls or invented precise lag; explain resource and readiness requirements |
-| Backup and Restore, Point-in-Time Recovery | Available recovery records, recovery point, Select destination, Review restore | Only completed usable records; show overwritten data and interrupted service; exact advanced recovery controls follow implemented policy |
+| Backup and Restore | Available recovery records, recovery point, Select destination, Review restore | Only completed usable records; show overwritten data and interrupted service; exact advanced recovery controls follow implemented policy |
 | Checkpointing | Latest completed usable checkpoint, recovery progress; Resume from checkpoint | Manual resume preserves the original deadline; no checkpoint means lost running work fails permanently; no restart from zero |
 | Monitoring | Coverage selection, observed metrics/errors, alert configuration | Coverage is project-scoped across hosts; unavailable samples are gaps, not zero; no special Monitoring down alert |
-| Centralized Logging, Distributed Tracing | Search/filter retained observations, select component/time | Reveal only collected data; no retroactive reconstruction |
 | Quality Checks | Coverage/effect and operating state | Separate prevention from diagnosis; no immediate Repair or stacking protection button |
 | Container Orchestration, Autoscaling | Managed instances, replacement enablement, pending replacement, leasing status | Show technology/runtime requirements, costs, and credit blockers; automatic leasing uses existing policy and needs no approval per lease |
 | Automated Restart | Supported-service policy and observed recovery state | Does not fix hardware/data loss or retry failed customer work |
@@ -98,14 +97,12 @@ These extend the common service inspector rather than creating unrelated menus f
 | Application Runtime, Background Workers, Container Runtime | Common configuration, instance and placement actions | Shared service configuration; no per-instance resource priority controls |
 | Job Scheduler, Batch Computing, Model Training | Work progress, deadline, worker dependencies, supported checkpoint recovery | Customer owns computational outcome; no fabricated retry or deadline extension |
 | GPU Computing, Model Serving, Distributed Computing, Distributed GPU Training | Compatible hardware, dataset/model dependency, participating capacity | GPU compatibility is real eligibility; research does not supply hardware; no model-quality editor |
-| In-memory Cache, Object Storage, Search Engine, Vector Search, Data Pipeline | Sources/destinations, capacity, observed data-processing state | Do not invent data deletion, cache flushing, or manual reindex mechanics merely to fill a panel |
-| Email Delivery, Mailbox Hosting, Real-time Messaging, Push Notification Delivery, Webhook Delivery | Required dependencies and project service configuration | Use abstract game configuration, not real customer credentials or outbound messages |
-| Payment Gateway Integration, Identity Provider Integration | Integration readiness and project dependencies | No real payment/account setup; no detailed provider migration workflow |
+| In-memory Cache, Object Storage, Search Engine, Vector Search | Sources/destinations, capacity, observed data-processing state | Do not invent data deletion, cache flushing, or manual reindex mechanics merely to fill a panel |
+| Email Delivery, Mailbox Hosting, Real-time Messaging | Required dependencies and project service configuration | Use abstract game configuration, not real customer credentials or outbound messages |
+| Payment Gateway Integration | Integration readiness and project dependencies | No real payment/account setup; no detailed provider migration workflow |
 | Media Transcoding, Video on Demand, Live Streaming, Real-time Audio and Video, Multiplayer Game Server | Input/storage/delivery dependencies and relevant workload state | Common lifecycle; no new game/content production editor |
-| Authoritative DNS, Reverse Proxy, TLS Termination, CDN, API Gateway, Private Networking | Compatible endpoints and dependency configuration | Do not introduce realistic zone/credential/certificate administration as required gameplay |
+| Authoritative DNS, Reverse Proxy, CDN, Private Networking | Compatible endpoints and dependency configuration | Do not introduce realistic zone/credential/certificate administration as required gameplay |
 | Rate Limiting | Policy configuration and effects supported by the engine | Legitimate rejected demand remains contractual demand; no free protection |
-| Firewall, Web Application Firewall, DDoS Protection, Secrets Management | Supported configuration, coverage, readiness and technology prerequisites | Catalog presence does not approve additional attack/credential incident families or detailed rule editors |
-| Deployment Pipeline, Deployment Rollback, Rolling Deployment, Infrastructure as Code | Dependencies, supported deployment work and retained artifacts/templates | Keep advanced controls capability-gated; do not invent release history, rollback safety, or data recovery guarantees |
 
 For catalog-only capabilities with unsettled configuration fields, Figma should use the common inspector and an explicitly labeled capability concept. Do not invent production-ready forms or mechanics. This is a design boundary, not another coefficient questionnaire for the user.
 
@@ -150,3 +147,5 @@ Verify these journeys across linked frames:
 - Duplicate only the selected project's deployment and retain source service during migration preparation.
 
 These checks validate interaction coverage, not engine correctness. No runtime implementation or production graph/chart library selection is authorized by mockup completion.
+
+Release filtering applies to all capability inspectors: expansion technologies in the [catalog scope](technology-catalog.md#version-one-scope) do not require version-one controls or Figma delivery frames. Removed technologies have no separate action panels.

@@ -23,9 +23,12 @@ These are outcome-sized slices, not fixed file lists. Inspect current code and m
 | Resource allocator | Milestone prerequisite | Implement the approved heterogeneous resource budgets and proportional shared-server policy. Include retained memory/storage, eligible backlog, rounding and incompatible hardware. |
 | Dependency graph execution | Resource allocator | Execute compiled required paths, branch joins and type-specific outcomes. Integrate queues and progress with no retries or subticks; compare against independent reference fixtures. |
 | Transfers and migration completion | Dependency graph execution | Allocate actual network/disk and associated resource work to transfer operations. Enforce data readiness, source continuity and atomic migration handover. |
-| Integrated runtime projections | Transfers and migration completion | Replace old request-only capacity/SLA input assumptions with authoritative workload outcomes. Connect basic utilization and execution states to project components; run seeded contention and permutation scenarios. |
+| First-project settlement and playtest | Dependency graph execution | Connect the acquaintance contract to real weekly settlement/renewal, credits, hourly owned/leased costs and recoverable debt. Play acceptance through the first billing cycle with a healthy and overloaded system before broad catalog integration. |
+| Integrated runtime projections | Transfers and migration completion; First-project settlement and playtest | Replace old request-only capacity/SLA input assumptions with authoritative workload outcomes. Connect basic utilization and execution states to project components; run seeded contention and permutation scenarios. |
 
 ## Acceptance and verification
+
+- The appointment contract is playable from its milestone 4 acceptance through actual demand, settlement and renewal. Compare rent/buy cash trajectories, verify that overload affects credits, and demonstrate debt recovery. Record decision clarity and pacing findings; passing equations alone do not pass this checkpoint.
 
 - CPU, GPU, memory, disk space/I/O and network budgets are conserved under mixed workloads and multiple projects on one host.
 - Existing queued work participates in fair demand shares. FIFO age within a share survives partial execution, while impossible work does not gain capacity from another host without an explicit valid path.
@@ -46,6 +49,7 @@ Connect basic host activity and project execution summaries to real resource out
 | Resource allocator | Planned | — | Not run |
 | Dependency graph execution | Planned | — | Not run |
 | Transfers and migration completion | Planned | — | Not run |
+| First-project settlement and playtest | Planned | — | Not run |
 | Integrated runtime projections | Planned | — | Not run |
 
 No new product decision is required to begin planning. Implementation trade-offs belong in the assigned PR plan; escalate only a concrete contradiction or material scope change.

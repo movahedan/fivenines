@@ -4,9 +4,11 @@ Milestone 9 of 10. Status: planned; no implementation PR is claimed delivered. F
 
 ## Outcome and boundaries
 
-Close the gap between the authored technology/course catalog and real engine capabilities, completing specialization effects and their player-facing explanations.
+Close the gap between the version-one technology/course catalog and real engine capabilities, completing specialization effects and their player-facing explanations.
 
 This milestone is not permission to delay capabilities needed by milestones 4–8. The initial coverage audit determines the remaining family-specific PR count; keep its evidence table as a delivery artifact, not a second numeric catalog.
+
+Expansion candidates and their project types are excluded from this milestone and milestone 10 acceptance. Do not turn the retained expansion estimates into mandatory implementation work.
 
 ## Prerequisites and sources
 
@@ -20,14 +22,14 @@ These are outcome-sized slices, not fixed file lists. Inspect current code and m
 
 | Slice | Depends on | Deliverable |
 |---|---|---|
-| Capability coverage audit and first completion group | Milestone prerequisite | Map every authored technology, workload feature and course effect to implementation and evidence. Complete remaining application/data capabilities; explicitly list any proposed scope change rather than hiding entries. |
+| Capability coverage audit and first completion group | Milestone prerequisite | Map every version-one technology, workload feature and course effect to implementation and evidence. Complete remaining application/data capabilities; explicitly list any proposed scope change rather than hiding entries. |
 | Workload specialization completion | Capability coverage audit and first completion group | Complete remaining communication, delivery and computational capability behaviors, dependencies and overheads. Split this slice by independent technology families when current-code review size requires it. |
 | Skill and progression integration | Workload specialization completion | Verify all course families and levels against operation, risk, efficiency and recovery consumers. Complete learning explanations and full catalog prerequisite/eligibility journeys. |
 
 ## Acceptance and verification
 
-- Every technology in the baseline has a documented implemented capability, required deployment/resource behavior and at least one meaningful verification scenario. No research-only placeholder is marked complete.
-- Each project feature maps to supporting technologies and a compatible executable workload, including email, chat, streaming, payments and computational examples.
+- Every version-one technology in the baseline has a documented implemented capability, required deployment/resource behavior and at least one meaningful verification scenario. No research-only placeholder is marked complete.
+- Each version-one project feature maps to supporting technologies and a compatible executable workload, including email, chat, streaming, payments and computational examples.
 - Every course family and level applies its approved cumulative effect to the correct consumer, including existing configurations; tuition and enrollment retain milestone 3 semantics.
 - Research knowledge does not auto-install software. Permissions, instance readiness, coverage and resource overhead remain separate.
 - Catalog changes pass reference/DAG validation and stay isolated from engine mechanics. Any removal or material behavior change is recorded as a product decision.

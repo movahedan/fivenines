@@ -1,5 +1,9 @@
 # Demand types, project catalog, and arrival policy
 
+## Release scope
+
+The design-0.3 library has 20 demand types: 13 version-one and seven expansion candidates. Nine of the 12 continuous templates are version-one; conferencing, multiplayer-hosting and event-platform are expansion-only. Of five finite-job templates, transcode-job and batch-job are version-one; analytics-job, training-job and distributed-training-job are expansion-only. Tables include both groups for design reference. Use `release` on demand, projects and finite-job terms in baseline.json to filter generation, offers and release acceptance tests. Version-one references must resolve entirely within version one.
+
 ## Units and execution boundary
 
 One outer tick is one simulated hour, with no subticks or per-request event timeline. Baselines are root work units per simulated hour, never RPS. Resource costs below are per root item. CPU work is a game unit (1,000 per reference core-hour); GPU work uses its own incompatible unit. MiB is binary. Network costs include the root item's total transfer budget; path placement determines which interfaces incur it. Do not charge the same interface twice for one transfer. Storage-operation costs apply to the relevant storage host. Read/write payload bytes must also consume disk throughput; use networkMiB as the default payload size for disk-backed operations and zero for pure relay operations. These costs model game load, not real hardware benchmarks.
@@ -14,9 +18,6 @@ Application CPU and database CPU are distinct stages sharing the same server bud
 | chat-message | 0.8 | 0.2 | 0 | 0.004 | 1 | 1 | 1 | 0 | interactive | 2 |
 | email-message | 2 | 0 | 0 | 0.1 | 3 | 1 | 2 | 0 | queued | 64 |
 | mailbox-read | 1 | 0.5 | 0 | 0.1 | 2 | 2 | 1 | 0 | interactive | 8 |
-| push-message | 0.4 | 0 | 0 | 0.002 | 1 | 1 | 1 | 0 | queued | 2 |
-| webhook | 0.6 | 0 | 0 | 0.01 | 1 | 1 | 1 | 0 | queued | 4 |
-| login | 1 | 1 | 0 | 0.01 | 2 | 2 | 1 | 0 | interactive | 4 |
 | search-query | 2 | 0 | 0 | 0.04 | 3 | 8 | 1 | 0 | interactive | 8 |
 | dns-query | 0.05 | 0 | 0 | 0.0005 | 0 | 0.125 | 1 | 0 | interactive | 1 |
 | video-minute | 0.5 | 0 | 0 | 30 | 4 | 1 | 1 | 0 | continuous | 2 |
@@ -38,7 +39,7 @@ A stream-minute is one minute of requested viewer service, not a simulator subst
 
 ## Root paths and feature dependencies
 
-Page reads: application then database, unless the configured cache satisfies the read. Writes: application then durable database write. Payments: application, gateway integration, and essential transaction record; receipt email is optional child work. Each successful shop payment creates one email item, tracked under the email feature and not another paid root request. Chat: message service then stored message where the feature requires history. DNS and media relays use their service directly. Finite jobs execute on workers with customer input/output storage. Email, push, webhook, event-ingest, and data-pipeline tasks may queue. The execution layer creates dependent work; DemandEngine only emits external roots. Feature presence alone never adds its cost to unrelated requests.
+Page reads: application then database, unless the configured cache satisfies the read. Writes: application then durable database write. Payments: application, gateway integration, and essential transaction record; receipt email is optional child work. Each successful shop payment creates one email item, tracked under the email feature and not another paid root request. Chat: message service then stored message where the feature requires history. DNS and media relays use their service directly. Finite jobs execute on workers with customer input/output storage. Email and expansion event-ingest tasks may queue. The execution layer creates dependent work; DemandEngine only emits external roots. Feature presence alone never adds its cost to unrelated requests.
 
 Cache baseline: 60% of eligible reads hit after configuration, with 0.15 CPU work and no database work for that read; cache requires its resident memory and does not accelerate writes. This is a tunable aggregate hit model. Details of replica consistency, joins, and invalidation remain execution design.
 

@@ -1,6 +1,6 @@
 # Technology catalog and dependencies
 
-The [design-0.2 balance baseline](balance/index.md) now selects this library and supplies explicit research times, fees, resource baselines, workloads, and policy numbers. The conceptual descriptions below remain useful context; the baseline is the current authored numeric specification. It is not live engine configuration or a playtested final balance.
+The [design-0.3 balance baseline](balance/index.md) now selects this library and supplies explicit research times, fees, resource baselines, workloads, and policy numbers. The conceptual descriptions below remain useful context; the baseline is the current authored numeric specification. It is not live engine configuration or a playtested final balance.
 
 ## Status and reading conventions
 
@@ -23,11 +23,9 @@ The research column proposes learning progression for this game, not universal t
 | Message Queue | Background Workers | Broker deployment and storage | Buffers bursts and tracks backlog; memory and storage |
 | In-memory Cache | Application Runtime | Cache deployment | Relieves repeated application/database reads; memory |
 | Object Storage | Application Runtime | Storage capacity | Uploads, media, datasets, and backup destinations; storage and network |
-| Document Database | Relational Database | Database deployment and storage | Document-oriented workloads; memory and storage |
 | Search Engine | Relational Database | Search deployment and indexed source data | Full-text search; memory, CPU, and indexing work |
 | Event Streaming | Message Queue | Broker storage and consumers | Sustained event ingestion and replay; network and storage |
 | Analytics Database | Relational Database | Dataset and analytical database deployment | Reporting workloads; storage I/O and memory |
-| Data Pipeline | Background Workers, Analytics Database | Data source, destination, and workers | Imports and transformations; CPU and transfer volume |
 
 ## Customer-facing project features
 
@@ -38,17 +36,14 @@ The bounded-queue behavior is agreed in [Gameplay](gameplay.md#demand-and-proces
 | Email Delivery | Application Runtime | Delivery service deployment and domain configuration | Transactional email; queue delays and delivery failures |
 | Mailbox Hosting | Email Delivery | Mail storage and mailbox service | Hosted inboxes; retention and storage growth |
 | Real-time Messaging | Application Runtime | Persistent connection service | Chat and live updates; concurrent connections and memory |
-| Push Notification Delivery | Background Workers | Delivery integration and credentials | Mobile notifications; bursts and delivery queues |
 | Payment Gateway Integration | Application Runtime | External provider configuration and application endpoint | Payments; transaction latency and failed callbacks |
-| Webhook Delivery | Background Workers | Delivery workers and customer endpoints | Outbound integrations; failed or delayed delivery |
-| Identity Provider Integration | Application Runtime | Provider configuration and application integration | Customer login and single sign-on; authentication availability |
 | Media Transcoding | Background Workers, Object Storage | Media input, storage, CPU or compatible GPU | Video processing; finite jobs and output sizes |
 | Video on Demand | Media Transcoding | Prepared media, storage, and delivery service | Recorded video; bandwidth and playback failures |
 | Live Streaming | Application Runtime | Live input and streaming deployment | Live broadcasts; sustained bandwidth and latency |
 | Real-time Audio and Video | Real-time Messaging | Signaling and connectivity services; media relay capacity as needed | Calls and conferencing; concurrency and latency |
 | Multiplayer Game Server | Real-time Messaging | Customer server software and session capacity | Multiplayer hosting; tick workload and latency |
 
-These technologies support customer-owned applications. Researching payment integration does not create a bank or payment processor. Identity integration concerns hosted customer projects, not this repository's player authentication. An email feature in a shop and a dedicated mailbox-hosting contract are different uses of related technology.
+These technologies support customer-owned applications. Researching payment integration does not create a bank or payment processor. An email feature in a shop and a dedicated mailbox-hosting contract are different uses of related technology.
 
 ## Networking and traffic delivery
 
@@ -56,47 +51,34 @@ These technologies support customer-owned applications. Researching payment inte
 |---|---|---|---|
 | Authoritative DNS | Application Runtime | DNS deployment and zone configuration | Dedicated DNS contracts; query capacity and availability |
 | Reverse Proxy | Application Runtime | Proxy deployment and backend | HTTP routing and centralized connection handling; another component to operate |
-| TLS Termination | Reverse Proxy | Certificate configuration and endpoint | Encrypted endpoint support; CPU and certificate upkeep |
 | Load Balancing | Reverse Proxy | Configured serving targets; multiple targets for distribution benefits | Distributes load; does not create backend capacity |
 | Health Checks | Monitoring, Load Balancing | Configured checks and targets | Removes unhealthy targets from routing; detection delay |
 | Content Delivery Network | Object Storage, Reverse Proxy | Delivery integration and cacheable content | Reduces origin demand; cache misses and transfer costs |
 | Rate Limiting | Reverse Proxy | Limits configured on an endpoint | Protects backend capacity by rejecting excess work; rejected legitimate demand still matters |
-| API Gateway | Reverse Proxy, Rate Limiting | Routes to customer APIs | Centralized API traffic policies; gateway capacity |
 | Private Networking | Application Runtime | Participating hosts and network configuration | Private component communication; connectivity failures |
 
-Basic projects can use abstracted endpoint/domain defaults. Operating DNS or TLS as researched capabilities does not retroactively require every first project to configure the internet. This catalog does not redesign the agreed project-local demand rhythm or approve a new geographic latency formula.
+Basic projects can use abstracted endpoint/domain defaults. Operating DNS as a researched capability does not retroactively require every first project to configure the internet. This catalog does not redesign the agreed project-local demand rhythm or approve a new geographic latency formula.
 
 ## Observation, recovery, and protection
 
 | Technology | Research prerequisite | Runtime requirement | Player benefit and trade-off |
 |---|---|---|---|
 | Monitoring | Application Runtime | Installation configured for the project | Detailed metrics, retained project errors, and alerts; collection/storage overhead |
-| Centralized Logging | Monitoring | Collectors and log storage | Searchable component logs beyond baseline retained errors; storage growth |
 | Quality Checks | Application Runtime | Installed and configured project checks | Reduces software and configuration incident probabilities; does not replace monitoring or prevent hardware/data failures |
-| Distributed Tracing | Monitoring | Instrumented components and trace collection | Diagnoses delays across dependencies; sampling and storage overhead |
 | Backup and Restore | Relational Database | Backup destination and restore capacity | Recovery from data loss; backup age and restore work |
-| Point-in-Time Recovery | Backup and Restore | Base backup and retained database change history | Finer recovery point; continuous storage use |
 | Database Replication | Relational Database | Standby on a different server and synchronization capacity | Ready standby for service continuity; synchronization interruption makes it ineligible for promotion, without transaction-level lag simulation |
 | Automatic Failover | Database Replication, Monitoring | Ready standby and failure detection | Automatically promotes a ready standby after primary failure; manual promotion remains available without this technology |
 | Automated Restart | Monitoring | Restart policy on a supported service | Recovers restartable failures; cannot fix broken hardware or lost data |
-| Firewall | Private Networking | Configured network rules | Network access control; configuration mistakes can interrupt service |
-| Web Application Firewall | Reverse Proxy | HTTP inspection deployment or integration | Application traffic filtering; CPU and false positives |
-| DDoS Protection | Monitoring, Rate Limiting | Upstream protection integration and sufficient protected capacity | Handles attack traffic within limits; not unlimited immunity |
-| Secrets Management | Application Runtime | Secret store and authorized consumers | Credential configuration and rotation; availability dependency |
 
-Monitoring already includes project error retention and alerts. Centralized Logging adds broader searchable logs; it must not charge research twice for that agreed baseline. Replication is not a substitute for backups, and a backup is useful only if restoration can run. Attack and credential incident families are proposed alongside these technologies, not yet approved gameplay requirements.
+Monitoring includes project error retention and alerts without a second research charge. Replication is not a substitute for backups, and a backup is useful only if restoration can run. Security/credential incidents and release-management mechanics are outside the current catalog.
 
 ## Deployment and operational automation
 
 | Technology | Research prerequisite | Runtime requirement | Player benefit and trade-off |
 |---|---|---|---|
 | Container Runtime | Application Runtime | Compatible host capacity and application image | Repeatable software placement; packaging/setup work |
-| Deployment Pipeline | Background Workers | Customer artifact source and deployment target | Automates repeated releases; consumes worker capacity |
-| Deployment Rollback | Deployment Pipeline | Retained compatible previous release | Reverses a failed release; does not automatically undo database changes |
-| Rolling Deployment | Deployment Pipeline, Load Balancing | Multiple healthy instances and spare capacity | Replaces instances gradually; less temporary headroom |
 | Container Orchestration | Container Runtime, Monitoring | Managed hosts and control service; configured Health Checks for automatic unhealthy-instance replacement | Places deployments and prepares replacement application/worker instances on spare compatible capacity; preparation time and control-plane overhead |
 | Autoscaling | Container Orchestration, Load Balancing | Metrics, credit, and compatible capacity; Health Checks for replacement workflow | Adds/removes instances and automatically leases replacement capacity when existing hosts cannot fit it; readiness time and recurring cost |
-| Infrastructure as Code | Deployment Pipeline | Supported provisionable assets and configuration template | Repeatable system preparation; propagates bad configuration too |
 
 Automation does not imply trained staff, and staff do not require the full automation tree. The later employee design determines who performs preparation, reviews alerts, and chooses or executes responses.
 
@@ -123,7 +105,7 @@ Dependencies below illustrate deployments, not additional research nodes. Sugges
 |---|---|---|
 | Relative's appointment site | Application Runtime + Relational Database | Backup and Restore; Email Delivery for reminders |
 | Online shop | Application Runtime + Relational Database + Payment Gateway Integration + Email Delivery | Cache, Search Engine, Monitoring, Load Balancing |
-| Customer support platform | Application Runtime + Relational Database + Real-time Messaging | Mailbox Hosting, Centralized Logging |
+| Customer support platform | Application Runtime + Relational Database + Real-time Messaging | Mailbox Hosting, Monitoring |
 | Recorded course platform | Application Runtime + Relational Database + Video on Demand | CDN, payments, monitoring |
 | Live event platform | Live Streaming + Application Runtime | Chat, CDN where compatible, load balancing |
 | Business mailbox service | Mailbox Hosting | Monitoring, backups, protected access |
@@ -132,11 +114,26 @@ Dependencies below illustrate deployments, not additional research nodes. Sugges
 | Training contract | Model Training + suitable dataset storage | GPU or distributed training as the workload requires |
 | Scientific computation | Batch Computing | Distributed Computing and checkpoint recovery |
 
-## Historical rollout suggestion, not an execution plan
+## Version-one scope
 
-Start with the base tools plus Monitoring, Backup and Restore, Email Delivery, Payment Gateway Integration, Background Workers, In-memory Cache, and Load Balancing as the first candidate research set. These create observable decisions without requiring the whole catalog. Add a messaging branch, a media branch, and a compute/GPU branch as their project types become playable. Advanced automation, security incidents, and distributed operations can follow. This is a review proposal, not a technical milestone schedule.
+The current catalog has **43 entries: 31 for version one (two base tools and 29 research unlocks), and 12 expansion candidates**. The `release` field in [baseline.json](balance/baseline.json) is authoritative for membership. Expansion candidates are disabled by default and are not milestone 9 completion requirements. Tables above describe both groups; the following list identifies every expansion entry.
 
-Research times, prices, offer progression, and resource coefficients already have delegated defaults in the balance package. Verify them during implementation and playtesting. Display immediate prerequisites to the player and reveal advanced branches progressively. Research should open opportunities; do not require the player to complete every branch to grow.
+Expansion candidates: Search Engine, Event Streaming, Analytics Database, Real-time Audio and Video, Multiplayer Game Server, Content Delivery Network, Rate Limiting, Private Networking, Model Training, Vector Search, Distributed Computing, and Distributed GPU Training. Their existing estimates are retained for exploration, not a release promise. Expansion-only projects, demand and finite jobs carry the same release marker and cannot enter version-one offers or required verification coverage.
+
+Version one keeps distinct decisions: cache versus memory cost; queue versus bounded waiting; email/chat/media/DNS/inference versus specialized capacity; backups/checkpoints versus lost progress; monitoring versus uncertainty; and replication/automation versus spare capacity and rent. Application Runtime and Relational Database start available. Research permits a capability; it does not install software or guarantee a matching contract.
+
+Eighteen entries were removed from the numeric catalog rather than left as mandatory empty unlocks:
+
+| Removed group | Reason and retained behavior |
+|---|---|
+| Document Database, Data Pipeline | No separate version-one contract or operational choice beyond the retained database/worker paths |
+| Push Notification Delivery, Webhook Delivery, Identity Provider Integration | No distinct agreed delivery or authentication mechanics; ordinary application functionality remains abstracted |
+| TLS Termination, API Gateway | Endpoint defaults and retained proxy/load-balancer behavior cover the agreed choices; no certificate administration or separate gateway policy loop |
+| Centralized Logging, Distributed Tracing, Point-in-Time Recovery | No defined additional investigation or recovery granularity beyond Monitoring and Backup and Restore |
+| Firewall, Web Application Firewall, DDoS Protection, Secrets Management | Attack and credential incident families are not part of the agreed game |
+| Deployment Pipeline, Deployment Rollback, Rolling Deployment, Infrastructure as Code | No customer release lifecycle or artifact-history mechanic; ordinary setup, project duplication and orchestration remain available |
+
+These removed entries have no research prices, dependencies or separate demand types. Reintroduction requires a concrete player decision and product design, not just a real-world technology name. Architecture still supports all resource dimensions and workload families; reducing release breadth does not require a temporary CPU-only engine.
 
 ## Technical grounding
 

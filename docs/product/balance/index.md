@@ -1,6 +1,6 @@
 # Balance baseline
 
-This design-0.2 baseline answers delegated catalog and numeric design work. It is an authored starting balance, not measured production balance, and does not change the running engine. The user authorized choosing these defaults without another question for each coefficient. Playtesting may revise numbers while preserving agreed rules.
+This design-0.3 baseline answers delegated catalog and numeric design work. It is an authored starting balance, not measured production balance, and does not change the running engine. Playtesting may revise numbers while preserving agreed rules.
 
 [baseline.json](baseline.json) is the numeric source for this design package. Tables in the companion documents are generated views or explanations. Keep these files together; do not scatter tunables through simulation classes or UI code.
 
@@ -22,3 +22,7 @@ Preserve the existing `packages/fivenines-engine/src/catalog/` boundary. Future 
 Simulation classes consume validated, versioned configuration; UI consumes descriptions and computed results. Do not embed balance literals in Game, Server, DemandEngine, UI components, or transport handlers. Keep invariant algorithms, validation, and indexing outside raw tuning tables. Validate references and the technology DAG when loading configuration, not on every tick. Record catalog version in snapshots. Structural changes need migration; hot-reloading arbitrary values into an ongoing game is not implied. Accepted contract terms remain frozen for that contract; changing a catalog does not silently rewrite signed terms.
 
 Economy uses fictional game currency, and hardware coefficients are game models, not current market prices or vendor benchmarks. No retries, no subticks, no guest play, no timed game ending, no staff or away-time implementation are introduced here.
+
+## Release membership
+
+Technology, demand, project and finite-job entries carry `release: "v1"` or `"expansion"`. Only version-one entries participate in the initial release; expansion candidates are disabled by default. Validate that every version-one dependency and project workload remains within version one. The [catalog scope](../technology-catalog.md#version-one-scope) explains the cuts. This is authored design data, not an implemented runtime feature flag.

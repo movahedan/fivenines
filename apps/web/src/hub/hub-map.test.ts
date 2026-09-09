@@ -4,6 +4,7 @@ import {
 	addedAssetId,
 	axisPercent,
 	engineEventMessage,
+	engineEventTone,
 	openingShiftResultCopy,
 	SKU_DOT_CLASS,
 	skuCostLabel,
@@ -70,6 +71,39 @@ describe("hub-map - sla and sku labels", () => {
 		expect(engineEventMessage({ type: "paygSettled", hourIndex: 24, cents: 100 })).toBe(
 			"PAYG settled $1.00",
 		);
+	});
+
+	it("formats discovered and escalated outages as danger log lines", () => {
+		expect(
+			engineEventMessage({
+				type: "outageDiscovered",
+				hourIndex: 3,
+				serverId: "server-1",
+				health: "degraded",
+			}),
+		).toBe("Outage discovered server-1 (degraded)");
+		expect(
+			engineEventMessage({
+				type: "outageEscalated",
+				hourIndex: 4,
+				serverId: "server-1",
+			}),
+		).toBe("Outage escalated server-1");
+		expect(
+			engineEventTone({
+				type: "outageDiscovered",
+				hourIndex: 3,
+				serverId: "server-1",
+				health: "unavailable",
+			}),
+		).toBe("danger");
+		expect(
+			engineEventTone({
+				type: "outageEscalated",
+				hourIndex: 4,
+				serverId: "server-1",
+			}),
+		).toBe("danger");
 	});
 
 	it("writes Opening Shift win copy when the outcome is won", () => {

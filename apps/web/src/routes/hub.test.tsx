@@ -181,6 +181,8 @@ describe("HubPage - ops landmarks", () => {
 		expect(screen.getByLabelText("CPU 0 percent")).toBeTruthy();
 		expect(screen.getByLabelText("NET 0 percent")).toBeTruthy();
 		expect(screen.getByLabelText("RAM 0 percent")).toBeTruthy();
+		expect(screen.getByRole("button", { name: "MONITOR" })).toBeTruthy();
+		expect(screen.queryByRole("button", { name: "REPAIR" })).toBeNull();
 	});
 
 	it("moves an accepted offer into the active panel", async () => {

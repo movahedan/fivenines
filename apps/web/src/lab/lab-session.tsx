@@ -9,6 +9,8 @@ import type {
 } from "@packages/fivenines-engine";
 import {
 	DEFAULT_REGION,
+	MONITORING_OPEX_CENTS_PER_HOUR,
+	MONITORING_RAM_MIB,
 	REGION_IDS,
 	regions,
 	SERVER_CATALOG_IDS,
@@ -55,6 +57,7 @@ export function LabSession() {
 		powerCents,
 		leaseCents,
 		opexCents,
+		monitoringCents,
 	} = game.finance;
 	const serverId = game.assets.some((asset) => asset.id === pickedServerId)
 		? pickedServerId
@@ -97,6 +100,10 @@ export function LabSession() {
 						<tr>
 							<th scope="row">Last opex lease</th>
 							<td>{leaseCents}</td>
+						</tr>
+						<tr>
+							<th scope="row">Last opex monitoring</th>
+							<td>{monitoringCents}</td>
 						</tr>
 						<tr>
 							<th scope="row">Last opex total</th>
@@ -244,7 +251,8 @@ export function LabSession() {
 							return (
 								<li key={asset.id}>
 									{asset.id} {SERVER_TIER_LABEL[asset.catalogId]} {asset.region}{" "}
-									{assetTenureKind(asset)}
+									{assetTenureKind(asset)} {asset.health}{" "}
+									{asset.monitoring ? "monitored" : "unmonitored"}
 									<Button
 										variant="outline"
 										onClick={() =>
@@ -256,6 +264,31 @@ export function LabSession() {
 										}
 									>
 										{leased ? `Release ${asset.id}` : `Delete ${asset.id}`}
+									</Button>
+									<Button
+										variant="outline"
+										onClick={() =>
+											dispatch({ type: "repairServer", payload: { serverId: asset.id } })
+										}
+									>
+										{`Repair ${asset.id}`}
+									</Button>
+									<Button
+										disabled={asset.monitoring}
+										variant="secondary"
+										onClick={() =>
+											dispatch({ type: "installMonitoring", payload: { serverId: asset.id } })
+										}
+									>
+										{`Install monitoring ${asset.id} (${String(MONITORING_OPEX_CENTS_PER_HOUR)}¢/h · ${String(MONITORING_RAM_MIB)} MiB)`}
+									</Button>
+									<Button
+										variant="destructive"
+										onClick={() =>
+											dispatch({ type: "startOutage", payload: { serverId: asset.id } })
+										}
+									>
+										{`Trigger outage ${asset.id}`}
 									</Button>
 								</li>
 							);

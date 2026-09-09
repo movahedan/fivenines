@@ -15,7 +15,7 @@ function errorMessage(error: unknown): string {
 }
 
 export function useLabGame(): UseLabGameResult {
-	const gameRef = useRef(new Game(openingInitial));
+	const gameRef = useRef(new Game(openingInitial, { rollIncidents: true }));
 	const [, setVersion] = useState(0);
 	const [lastError, setLastError] = useState<string | null>(null);
 
@@ -41,7 +41,7 @@ export function useLabGame(): UseLabGameResult {
 	};
 
 	const reset = (): void => {
-		gameRef.current = new Game(openingInitial);
+		gameRef.current = new Game(openingInitial, { rollIncidents: true });
 		setLastError(null);
 		bump();
 	};

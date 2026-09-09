@@ -28,7 +28,7 @@ function errorMessage(error: unknown): string {
 }
 
 export function useHubGame(): UseHubGameResult {
-	const gameRef = useRef(new Game(openingInitial));
+	const gameRef = useRef(new Game(openingInitial, { rollIncidents: true }));
 	const [, setVersion] = useState(0);
 	const [lastError, setLastError] = useState<string | null>(null);
 	const [running, setRunning] = useState(true);
@@ -78,7 +78,7 @@ export function useHubGame(): UseHubGameResult {
 	};
 
 	const reset = (): void => {
-		gameRef.current = new Game(openingInitial);
+		gameRef.current = new Game(openingInitial, { rollIncidents: true });
 		setLastError(null);
 		setRunning(true);
 		setSpeed(1);

@@ -442,10 +442,38 @@ describe("LabPage - project routing", () => {
 			fireEvent.click(screen.getByRole("button", { name: "Tick" }));
 		}
 
-		fireEvent.click(screen.getByRole("button", { name: "Buy Thin RAM" }));
+		fireEvent.click(screen.getByRole("button", { name: "Lease Thin RAM" }));
 		fireEvent.change(screen.getByLabelText("Server"), { target: { value: "server-2" } });
 		fireEvent.click(screen.getByRole("button", { name: "Move acme-web" }));
 
 		expect(within(projectRow(/acme-web served/)).getByText("routed server-2")).toBeTruthy();
+	});
+});
+
+describe("LabPage - outage and monitoring", () => {
+	afterEach(() => {
+		mock.restore();
+		Reflect.deleteProperty(document, "cookie");
+	});
+
+	it("shows health after a triggered outage, restores on repair, and offers install monitoring", async () => {
+		stubLoggedInHint(true);
+
+		renderLab();
+
+		await waitForLab();
+
+		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
+
+		expect(screen.getByRole("button", { name: /Install monitoring server-1/ })).toBeTruthy();
+		expect(screen.getByText(/server-1 Bronze utc\+0 owned ok unmonitored/)).toBeTruthy();
+
+		fireEvent.click(screen.getByRole("button", { name: "Trigger outage server-1" }));
+
+		expect(screen.getByText(/server-1 Bronze utc\+0 owned (degraded|unavailable)/)).toBeTruthy();
+
+		fireEvent.click(screen.getByRole("button", { name: "Repair server-1" }));
+
+		expect(screen.getByText(/server-1 Bronze utc\+0 owned ok unmonitored/)).toBeTruthy();
 	});
 });

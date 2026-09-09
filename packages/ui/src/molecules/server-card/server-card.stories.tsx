@@ -75,6 +75,15 @@ export const Unaffordable: Story = {
 	},
 };
 
+export const FleetOutage: Story = {
+	args: {
+		...Fleet.args,
+		healthLabel: "DEGRADED",
+		onRepair: () => undefined,
+		onInstallMonitoring: () => undefined,
+	},
+};
+
 export const FleetRelease: Story = {
 	args: {
 		...Fleet.args,

@@ -37,6 +37,7 @@ import {
 	engineEventMessage,
 	engineEventTone,
 	evaluateOpeningShift,
+	fleetHealthLabel,
 	openingShiftResultCopy,
 	REGION_CLASS,
 	recoveryEtaLabel,
@@ -361,23 +362,46 @@ export function HubSession() {
 						) : (
 							game.assets.map((asset) => {
 								const leased = assetTenureKind(asset) === "leased";
+								const needsRepair = asset.outageDiscovered && asset.health !== "ok";
 
 								return (
 									<ServerCard
 										cpuLabel={skuCpuLabel(asset.catalogId)}
 										cpuPercent={axisPercent(asset.metrics.cpuLoad, asset.computeUnitsPerHour)}
 										dotClassName={SKU_DOT_CLASS[asset.catalogId]}
+										healthLabel={needsRepair ? fleetHealthLabel(asset.health) : undefined}
 										idLabel={`${asset.id} · ${assetTenureKind(asset)}`}
 										key={asset.id}
 										label={`${SERVER_TIER_LABEL[asset.catalogId]} · ${asset.region}`}
+										monitoringInstalled={asset.monitoring}
 										netLabel={skuNetLabel(asset.catalogId)}
 										netPercent={axisPercent(asset.metrics.netLoad, asset.networkBytesPerHour)}
+										onInstallMonitoring={
+											asset.monitoring
+												? undefined
+												: () => {
+														runCommand(
+															{ type: "installMonitoring", payload: { serverId: asset.id } },
+															`Installed monitoring on ${asset.id}`,
+														);
+													}
+										}
 										onRelease={
 											leased
 												? () => {
 														runCommand(
 															{ type: "releaseServer", payload: { serverId: asset.id } },
 															`Released ${asset.id}`,
+														);
+													}
+												: undefined
+										}
+										onRepair={
+											needsRepair
+												? () => {
+														runCommand(
+															{ type: "repairServer", payload: { serverId: asset.id } },
+															`Repaired ${asset.id}`,
 														);
 													}
 												: undefined

@@ -171,6 +171,52 @@ describe("ServerCard", () => {
 		expect(onBuy).not.toHaveBeenCalled();
 	});
 
+	it("shows health and calls repair and monitor callbacks on a fleet card", () => {
+		const onRepair = mock();
+		const onInstallMonitoring = mock();
+
+		render(
+			<ServerCard
+				cpuLabel="1000 cores"
+				healthLabel="DEGRADED"
+				label="m5.large"
+				onInstallMonitoring={onInstallMonitoring}
+				onRepair={onRepair}
+				opexLabel="opex -$4/hr"
+				variant="fleet"
+			/>,
+		);
+
+		expect(screen.getByText("DEGRADED")).toBeInTheDocument();
+
+		fireEvent.click(screen.getByRole("button", { name: "REPAIR" }));
+		fireEvent.click(screen.getByRole("button", { name: "MONITOR" }));
+
+		expect(onRepair).toHaveBeenCalledTimes(1);
+		expect(onInstallMonitoring).toHaveBeenCalledTimes(1);
+	});
+
+	it("disables MONITOR when monitoring is already installed", () => {
+		const onInstallMonitoring = mock();
+
+		render(
+			<ServerCard
+				cpuLabel="1000 cores"
+				label="m5.large"
+				monitoringInstalled
+				onInstallMonitoring={onInstallMonitoring}
+				opexLabel="opex -$4/hr"
+				variant="fleet"
+			/>,
+		);
+
+		expect(screen.getByRole("button", { name: "MONITOR" })).toBeDisabled();
+
+		fireEvent.click(screen.getByRole("button", { name: "MONITOR" }));
+
+		expect(onInstallMonitoring).not.toHaveBeenCalled();
+	});
+
 	it("applies a custom SKU marker class when given", () => {
 		render(
 			<ServerCard

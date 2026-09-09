@@ -35,6 +35,12 @@ export interface ServerCardProps {
 	readonly onRelease?: () => void;
 	readonly onBuy?: () => void;
 	readonly onLease?: () => void;
+	readonly healthLabel?: string;
+	readonly onRepair?: () => void;
+	readonly repairLabel?: string;
+	readonly onInstallMonitoring?: () => void;
+	readonly installMonitoringLabel?: string;
+	readonly monitoringInstalled?: boolean;
 	readonly dotClassName?: string;
 	readonly className?: string;
 }
@@ -58,6 +64,12 @@ export function ServerCard({
 	onRelease,
 	onBuy,
 	onLease,
+	healthLabel,
+	onRepair,
+	repairLabel = "REPAIR",
+	onInstallMonitoring,
+	installMonitoringLabel = "MONITOR",
+	monitoringInstalled = false,
 	dotClassName,
 	className,
 }: ServerCardProps) {
@@ -128,6 +140,9 @@ export function ServerCard({
 					{idLabel ? (
 						<Text className="font-mono text-xs text-muted-foreground">{idLabel}</Text>
 					) : null}
+					{healthLabel ? (
+						<Text className="font-mono text-xs uppercase text-destructive">{healthLabel}</Text>
+					) : null}
 				</View>
 				{onRelease ? (
 					<Button className="text-destructive" onClick={onRelease} size="sm" variant="ghost">
@@ -143,6 +158,25 @@ export function ServerCard({
 			<FleetAxis capLabel={netLabel} name="NET" percent={netPercent ?? 0} />
 			<FleetAxis capLabel={ramLabel} name="RAM" percent={ramPercent ?? 0} />
 			<Text className="font-mono text-xs text-muted-foreground">{opexLabel}</Text>
+			{onRepair || onInstallMonitoring ? (
+				<View className="flex-row gap-1.5">
+					{onRepair ? (
+						<Button className="min-w-0 flex-1" onClick={onRepair} size="sm" variant="outline">
+							{repairLabel}
+						</Button>
+					) : null}
+					{onInstallMonitoring ? (
+						<Button
+							className="min-w-0 flex-1"
+							disabled={monitoringInstalled}
+							onClick={onInstallMonitoring}
+							size="sm"
+						>
+							{installMonitoringLabel}
+						</Button>
+					) : null}
+				</View>
+			) : null}
 		</Card>
 	);
 }

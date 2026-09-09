@@ -8,6 +8,7 @@ import type {
 	Project,
 	RegionId,
 	ServerCatalogId,
+	ServerHealth,
 	ServerTenure,
 } from "@packages/fivenines-engine";
 import {
@@ -133,6 +134,14 @@ export function skuFleetOpexLabel(catalogId: ServerCatalogId, tenure: ServerTenu
 	return `${formatters.cents(sku.maintenanceCentsPerHour + sku.idlePowerCentsPerHour + tenure.hourlyCents)}/h idle+rent`;
 }
 
+export function fleetHealthLabel(health: ServerHealth): string | undefined {
+	if (health === "ok") {
+		return undefined;
+	}
+
+	return health.toUpperCase();
+}
+
 export function addedAssetId(
 	previousIds: ReadonlySet<string>,
 	assets: readonly { readonly id: string }[],
@@ -172,6 +181,9 @@ const COMMAND_LOG_TONE: Record<EngineCommand["type"], EventLogTone> = {
 	sellServer: "warn",
 	leaseServer: "success",
 	releaseServer: "warn",
+	repairServer: "info",
+	installMonitoring: "success",
+	startOutage: "warn",
 };
 
 export function commandLogTone(commandType: EngineCommand["type"]): EventLogTone {
@@ -190,7 +202,9 @@ export function engineEventTone(event: EngineEvent): EventLogTone {
 	if (
 		event.type === "slaBreached" ||
 		event.type === "serverSaturated" ||
-		event.type === "cashLow"
+		event.type === "cashLow" ||
+		event.type === "outageDiscovered" ||
+		event.type === "outageEscalated"
 	) {
 		return "danger";
 	}
@@ -212,6 +226,10 @@ export function engineEventMessage(event: EngineEvent): string {
 			return `Server saturated ${event.serverId}`;
 		case "cashLow":
 			return `Cash low ${formatters.cents(event.cashCents)}`;
+		case "outageDiscovered":
+			return `Outage discovered ${event.serverId} (${event.health})`;
+		case "outageEscalated":
+			return `Outage escalated ${event.serverId}`;
 	}
 }
 

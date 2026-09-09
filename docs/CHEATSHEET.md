@@ -36,7 +36,7 @@ GitHub Actions secrets/variables: [GITHUB_WORKFLOW_ENV.md](GITHUB_WORKFLOW_ENV.m
 
 | Command | Description |
 |---------|-------------|
-| `bun run turbo run dev --filter=@apps/web` | Player + marketing UI :3000 (`/` site, `/hub` ops, `/lab` debug) |
+| `bun run turbo run dev --filter=@apps/web` | Player + marketing UI :3000 (`/` site, `/hub` ops, `/lab` debug). Optional `VITE_GTM_CONTAINER_ID` (no `GTM-` prefix); empty or `dev` → no GTM |
 | `bun run --filter=@apps/web export:check` | Assert prerendered marketing HTML has `<title>` + `og:image` |
 | `bun run turbo run dev --filter=@apps/nestjs` | Control-plane API :3002 |
 | `bun run turbo run dev --filter=@apps/auth` | Auth service :3001 |

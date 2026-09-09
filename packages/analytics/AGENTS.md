@@ -10,7 +10,7 @@
 - `initConsentManager()` after Silktide’s script loads. Analytics `onAccept` calls `setupTagManager()`.
 - Empty GTM id or `isDevelopment` → no GTM inject. Production + consent + id required.
 
-Do **not** add `@firebase/*`, FCM, or `firebase-messaging-sw`. Static Silktide CSS/JS live in `apps/web/public/silktide/`, not here.
+Do **not** add `@firebase/*`, FCM, or `firebase-messaging-sw`. Static Silktide CSS/JS live in `apps/web/public/silktide/`. Theme overrides are `fivenines-consent.css` (ops green on `#050912`).
 
 ## Commands
 

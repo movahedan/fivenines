@@ -1,0 +1,25 @@
+#stcm-wrapper {
+	--fontFamily: Inter, system-ui, sans-serif;
+	--primaryColor: #00ff88;
+	--backgroundColor: #050912;
+	--textColor: #e2e8f0;
+	--backdropBackgroundColor: #050912cc;
+	--backdropBackgroundBlur: 8px;
+	--iconColor: #050912;
+	--iconBackgroundColor: #00ff88;
+	--boxShadow: 0 8px 32px #00000080;
+}
+
+#stcm-banner,
+#stcm-modal {
+	border: 1px solid #1e3a5f;
+}
+
+#stcm-icon {
+	display: none !important;
+}
+
+#stcm-banner a.stcm-logo,
+#stcm-wrapper .stcm-credit-link {
+	display: none;
+}

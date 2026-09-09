@@ -59,7 +59,7 @@ Docker is the foundation for running the full multi-service layout: use **`bun r
 
 > **Curated frameworks** that **naturally align** with Bun's philosophy and performance
 
-Player UI **and** the marketing site are **TanStack Start in SPA mode** (`@apps/web`, static `dist/client` in prod, no Node). Play is **`/hub`**. The control plane is **NestJS** plus an **Orval** SDK. Auth is a separate SSR app. Shared UI lives in Storybook. No second landings app.
+Player UI **and** the marketing site are **TanStack Start in SPA mode** (`@apps/web`, static `dist/client` in prod, no Node). Play is **`/hub`**. Auth login HTML uses the same ops colors as the site (navy + green). The control plane is **NestJS** plus an **Orval** SDK. Auth is a separate SSR app. Shared UI lives in Storybook. No second landings app.
 
 </div>
 

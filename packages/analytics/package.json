@@ -1,0 +1,19 @@
+{
+	"private": true,
+	"name": "@packages/analytics",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./src/index.ts",
+			"default": "./src/index.ts"
+		}
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"test": "bun --cwd ../.. test packages/analytics/src"
+	},
+	"devDependencies": {
+		"@tools/typescript": "workspace:*",
+		"@types/bun": "1.3.14"
+	}
+}

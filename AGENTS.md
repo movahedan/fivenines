@@ -40,7 +40,7 @@ Setup: [README.md](README.md#quick-start) · Commands: [docs/CHEATSHEET.md](docs
 
 ## Architecture overview
 
-**Five Nines** is a cloud tycoon: the kernel (`@packages/fivenines-engine`) owns demand, capacity, wallet/opex/jail, SLA ppm, and PAYG week close. `@apps/web` `/hub` is the player ops console and `/lab` is the debug harness — both construct `Game` in the browser for now. Nest campaign/SSE is later.
+**Five Nines** is a cloud tycoon: the kernel (`@packages/fivenines-engine`) owns demand, capacity, wallet/opex/jail, SLA ppm, and PAYG week close. `@apps/web` is the marketing site plus `/hub` ops console and `/lab` debug harness — hub/lab construct `Game` in the browser for now. Nest campaign/SSE is later.
 
 **Turborepo** monorepo, **Bun** package manager and runtime.
 
@@ -74,10 +74,11 @@ Nested `AGENTS.md` under each app, package, and tool workspace.
 
 | Path | `name` | Port | Role | Guide |
 |------|--------|------|------|-------|
-| `apps/web` | `@apps/web` | 3000 | Player UI (TanStack Start SPA, nginx `dist/client` in prod); `/hub` ops console + `/lab` debug, both client `Game` | [AGENTS.md](apps/web/AGENTS.md) |
+| `apps/web` | `@apps/web` | 3000 | Player + marketing UI (TanStack Start SPA, nginx `dist/client`); `/hub` `/lab` client `Game` | [AGENTS.md](apps/web/AGENTS.md) |
 | `apps/nestjs` | `@apps/nestjs` | 3002 | Feature flags control plane (OpenAPI) | [AGENTS.md](apps/nestjs/AGENTS.md) |
 | `apps/auth` | `@apps/auth` | 3001 | Auth (JWT, refresh, M2M) | [AGENTS.md](apps/auth/AGENTS.md) |
 | `packages/ui` | `@packages/ui` | 9000 | React + Storybook | [AGENTS.md](packages/ui/AGENTS.md) |
+| `packages/analytics` | `@packages/analytics` | — | Silktide consent + GTM after analytics consent (no Firebase) | [AGENTS.md](packages/analytics/AGENTS.md) |
 | `packages/fivenines-engine` | `@packages/fivenines-engine` | — | Simulation kernel (`Game.tick` / `dispatch`): physics, wallet/opex/jail, SLA 168h ring, PAYG + week close | [AGENTS.md](packages/fivenines-engine/AGENTS.md) |
 | `packages/shared` | `@packages/shared` | — | Shared utilities | [AGENTS.md](packages/shared/AGENTS.md) |
 | `packages/auth` | `@packages/auth` | — | Auth session, React provider, scopes/JWT contract | [AGENTS.md](packages/auth/AGENTS.md) |

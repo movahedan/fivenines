@@ -6,6 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { defineConfig, type Plugin } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 
 import {
 	esmifyReactNativeSvgTransform,
@@ -27,28 +28,58 @@ import {
 
 const webConfigDir = path.dirname(fileURLToPath(import.meta.url));
 const ssrRnWebStub = path.join(webConfigDir, "src/ssr-rn-web-stub.tsx");
+const ssrRnSvgStub = path.join(webConfigDir, "src/ssr-rn-svg-stub.tsx");
+const ssrCreatePrefixer = path.join(webConfigDir, "src/ssr-create-prefixer.ts");
 
 const ssrCssComponentPrefix = "\0ssr-rn-css-component:";
+
+function isViteClientEnvironment(pluginContext: { environment?: { name?: string } }): boolean {
+	return pluginContext.environment?.name === "client";
+}
+
+function shouldStubRnWebOnSsr(source: string): boolean {
+	return (
+		source === "react-native" ||
+		source === "react-native-web" ||
+		source.startsWith("react-native-web/") ||
+		source.includes("/react-native-web/") ||
+		source === "react-native-css" ||
+		source.startsWith("react-native-css/") ||
+		source.includes("/react-native-css/")
+	);
+}
+
+function shouldStubPrefixerOnSsr(source: string): boolean {
+	return source === "inline-style-prefixer" || source.includes("inline-style-prefixer");
+}
+
+function shouldStubRnSvgOnSsr(source: string): boolean {
+	return (
+		source === "react-native-svg" ||
+		source.startsWith("react-native-svg/") ||
+		source.includes("/react-native-svg/")
+	);
+}
 
 function stubRnWebOnSsr(): Plugin {
 	return {
 		name: "stub-rn-web-on-ssr",
 		enforce: "pre",
 		resolveId(source) {
-			if (this.environment.name !== "ssr") {
+			if (isViteClientEnvironment(this)) {
 				return;
 			}
 			const cssComponent = /^react-native-css\/components\/([A-Za-z_][A-Za-z0-9_]*)$/.exec(source);
 			if (cssComponent?.[1]) {
 				return `${ssrCssComponentPrefix}${cssComponent[1]}`;
 			}
-			if (
-				source === "react-native" ||
-				source === "react-native-web" ||
-				source.startsWith("react-native-web/") ||
-				source === "react-native-css" ||
-				source.startsWith("react-native-css/")
-			) {
+			if (shouldStubPrefixerOnSsr(source)) {
+				return ssrCreatePrefixer;
+			}
+			if (shouldStubRnSvgOnSsr(source)) {
+				return ssrRnSvgStub;
+			}
+			if (shouldStubRnWebOnSsr(source)) {
 				return ssrRnWebStub;
 			}
 		},
@@ -59,6 +90,59 @@ function stubRnWebOnSsr(): Plugin {
 			const exportName = id.slice(ssrCssComponentPrefix.length);
 			const stub = JSON.stringify(ssrRnWebStub);
 			return `import { Box } from ${stub};\nexport const ${exportName} = Box;\nexport default Box;\n`;
+		},
+		transform(_code, id) {
+			if (isViteClientEnvironment(this)) {
+				return;
+			}
+			const filePath = id.split("?")[0] ?? id;
+			if (
+				filePath.includes("/inline-style-prefixer/") ||
+				filePath.endsWith("ssr-create-prefixer.ts")
+			) {
+				if (filePath.endsWith("ssr-create-prefixer.ts")) {
+					return;
+				}
+				return {
+					code: "export default function createPrefixer() {\n\treturn function prefix(style) {\n\t\treturn style;\n\t};\n}\n",
+					map: null,
+				};
+			}
+			if (filePath.includes("/react-native-svg/") && !filePath.includes("ssr-rn-svg-stub")) {
+				return {
+					code: `export * from ${JSON.stringify(ssrRnSvgStub)};\nexport { default } from ${JSON.stringify(ssrRnSvgStub)};\n`,
+					map: null,
+				};
+			}
+			if (filePath.includes("/react-native-web/") && !filePath.includes("ssr-rn-web-stub")) {
+				return {
+					code: `export * from ${JSON.stringify(ssrRnWebStub)};\nexport { default } from ${JSON.stringify(ssrRnWebStub)};\n`,
+					map: null,
+				};
+			}
+		},
+	};
+}
+
+const ssrPwaStub = "\0ssr-pwa-register";
+
+function stubPwaOnSsr(): Plugin {
+	return {
+		name: "stub-pwa-on-ssr",
+		enforce: "pre",
+		resolveId(source) {
+			if (this.environment.name !== "ssr") {
+				return;
+			}
+			if (source === "workbox-window" || source.includes("virtual:pwa-register")) {
+				return ssrPwaStub;
+			}
+		},
+		load(id) {
+			if (id !== ssrPwaStub) {
+				return;
+			}
+			return "export function registerSW() {\n\treturn () => {};\n}\n";
 		},
 	};
 }
@@ -111,6 +195,10 @@ export default defineConfig(({ command }) => {
 			alias: {
 				...rnWebAliases(),
 				"react-native": reactNativeWebEntry,
+				"workbox-window": path.join(
+					installedWebPackageDir("workbox-window"),
+					"build/workbox-window.prod.es5.mjs",
+				),
 				"use-sync-external-store/shim/with-selector": withSelectorCjs,
 				"use-sync-external-store/shim/with-selector.js": withSelectorCjs,
 			},
@@ -127,7 +215,15 @@ export default defineConfig(({ command }) => {
 			exclude: shareReact ? [...rnJsxExclude, ...reactPrebundleIds] : rnJsxExclude,
 		},
 		ssr: {
-			noExternal: rnWebSsrNoExternal,
+			noExternal: [
+				...rnWebSsrNoExternal,
+				"react-native",
+				"react-native-web",
+				"react-native-css",
+				"inline-style-prefixer",
+				"css-in-js-utils",
+				"react-native-svg",
+			],
 			optimizeDeps: {
 				exclude: shareReact ? [...rnJsxExclude, ...reactPrebundleIds] : rnJsxExclude,
 			},
@@ -138,12 +234,16 @@ export default defineConfig(({ command }) => {
 					alias: {
 						"react-native": ssrRnWebStub,
 						"react-native-web": ssrRnWebStub,
+						"react-native-svg": ssrRnSvgStub,
+						"inline-style-prefixer": ssrCreatePrefixer,
+						"inline-style-prefixer/lib/createPrefixer": ssrCreatePrefixer,
 					},
 				},
 			},
 		},
 		plugins: [
 			stubRnWebOnSsr(),
+			stubPwaOnSsr(),
 			...(shareReact ? [shareSingleReact()] : []),
 			preferNodeModuleEsmPlugin(),
 			stubReanimatedWorkletsVersionCheck(),
@@ -158,12 +258,72 @@ export default defineConfig(({ command }) => {
 				spa: {
 					enabled: true,
 				},
+				prerender: {
+					autoStaticPathsDiscovery: false,
+				},
 				router: {
 					routeFileIgnorePattern: String.raw`\.test\.tsx$`,
 				},
 			}),
 			viteReact(),
 			tailwindcss(),
+			VitePWA({
+				registerType: "autoUpdate",
+				injectRegister: false,
+				strategies: "generateSW",
+				manifestFilename: "manifest.json",
+				includeAssets: [
+					"og.svg",
+					"logo192.png",
+					"logo512.png",
+					"silktide/*",
+					"gtag-consent-default.js",
+				],
+				devOptions: {
+					enabled: false,
+				},
+				workbox: {
+					globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff2,json}"],
+					navigateFallback: "/_shell.html",
+				},
+				manifest: {
+					name: "Five Nines",
+					short_name: "Five Nines",
+					description: "Cloud tycoon ops console",
+					theme_color: "#0b1220",
+					background_color: "#0b1220",
+					display: "standalone",
+					start_url: "/",
+					scope: "/",
+					icons: [
+						{
+							src: "logo192.png",
+							sizes: "192x192",
+							type: "image/png",
+						},
+						{
+							src: "logo512.png",
+							sizes: "512x512",
+							type: "image/png",
+						},
+					],
+					shortcuts: [
+						{
+							name: "Play",
+							short_name: "Play",
+							description: "Open the ops console",
+							url: "/hub",
+							icons: [
+								{
+									src: "logo192.png",
+									sizes: "192x192",
+									type: "image/png",
+								},
+							],
+						},
+					],
+				},
+			}),
 		],
 	};
 });

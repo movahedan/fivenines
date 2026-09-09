@@ -4,6 +4,7 @@ import { ContactPage } from "../site/contact-page";
 import { siteHead } from "../site/site-head";
 
 export const Route = createFileRoute("/contact")({
+	ssr: false,
 	head: () =>
 		siteHead({
 			title: "Contact · Five Nines",

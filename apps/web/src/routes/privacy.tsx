@@ -4,6 +4,7 @@ import { PrivacyPage } from "../site/privacy-page";
 import { siteHead } from "../site/site-head";
 
 export const Route = createFileRoute("/privacy")({
+	ssr: false,
 	head: () =>
 		siteHead({
 			title: "Privacy · Five Nines",

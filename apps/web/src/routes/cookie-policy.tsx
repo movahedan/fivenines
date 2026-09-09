@@ -4,6 +4,7 @@ import { CookiePolicyPage } from "../site/cookie-policy-page";
 import { siteHead } from "../site/site-head";
 
 export const Route = createFileRoute("/cookie-policy")({
+	ssr: false,
 	head: () =>
 		siteHead({
 			title: "Cookie policy · Five Nines",

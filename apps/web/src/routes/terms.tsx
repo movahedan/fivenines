@@ -4,6 +4,7 @@ import { siteHead } from "../site/site-head";
 import { TermsPage } from "../site/terms-page";
 
 export const Route = createFileRoute("/terms")({
+	ssr: false,
 	head: () =>
 		siteHead({
 			title: "Terms · Five Nines",

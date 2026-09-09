@@ -187,6 +187,9 @@ export default defineConfig(({ command }) => {
 				spa: {
 					enabled: true,
 				},
+				prerender: {
+					autoStaticPathsDiscovery: false,
+				},
 				router: {
 					routeFileIgnorePattern: String.raw`\.test\.tsx$`,
 				},

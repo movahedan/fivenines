@@ -6,7 +6,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createMemoryHistory } from "@tanstack/history";
+import { createMemoryHistory } from "@tanstack/react-router";
 import { RouterServer } from "@tanstack/react-router/ssr/server";
 import { attachRouterServerSsrUtils } from "@tanstack/router-core/ssr/server";
 import { createElement } from "react";

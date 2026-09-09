@@ -18,7 +18,7 @@ After the contract's stated setup allowance, initialize a patience budget in hou
 
 B = 6 × (1 + 2 × trust/100 + reputation/100 − 0.25 × hatred/100).
 
-Freeze that budget when the allowance expires; decrement it by one each simulated hour until zero, then withdraw and refund as agreed. This is deterministic, not another random roll. Across full score ranges trust changes B by 12h, reputation by 6h, and hatred by 1.5h: the agreed importance ordering is explicit. The minimum B is 4.5h; evaluate expiration on an outer-tick boundary. First acquaintance at trust 70, reputation 0, hatred 0 gets 14.4h after the 24h allowance, withdrawing at the first boundary reaching 38.4h if preparation never completes. No hidden resetting by toggling project state.
+Freeze that budget when the allowance expires; decrement it by one after each elapsed simulated hour, clamping at zero, then withdraw and refund as agreed. This is deterministic, not another random roll. Across full score ranges trust changes B by 12h, reputation by 6h, and hatred by 1.5h: the agreed importance ordering is explicit. The minimum B is 4.5h; evaluate expiration on an outer-tick boundary. First acquaintance at trust 70, reputation 0, hatred 0 gets 14.4h after the 24h allowance. The mathematical threshold is 24 + 14.4 = 38.4h after acceptance; with one-hour outer ticks, withdrawal occurs at hour 39, the first boundary at or after that threshold, if preparation never completes. No hidden resetting by toggling project state.
 
 ## Active-service tolerance
 
@@ -43,7 +43,7 @@ At reputation zero, only acquaintance-style appointment variants appear. At repu
 
 ## Commercial options
 
-No negotiation system, counteroffers, customer-wide price multiplier, or multi-project master agreement in this baseline. Each project has its own explicit contract. Rejecting or allowing an offer to expire removes that offer only, has no relationship penalty, and does not blacklist the customer. A later independently generated offer from that customer is allowed; the rejected offer is not reinstated by refresh. There is no permanent customer rejection feature. These are selected defaults under the user's delegation, not another approval queue.
+No negotiation system, counteroffers, customer-wide price multiplier, or multi-project master agreement in this baseline. Each project has its own explicit contract. Rejecting or allowing an offer to expire removes that offer only, has no relationship penalty, and does not blacklist the customer. A later independently generated offer from that customer is allowed; the rejected offer is not reinstated by refresh. There is no permanent customer rejection feature.
 
 Later incident-attribution decision qualifies the baseline above: unexplained failures count against the player; monitoring-proven customer software/data incidents are exempt from player SLA compensation. Player hardware/configuration incidents increase hatred; successful recovery of customer incidents reduces it once. Operational charts retain actual failures. Attribution, overlapping-cause accounting, and the recovery reward coefficient must be integrated before these earlier generic stress/settlement formulas are used as runtime policy.
 

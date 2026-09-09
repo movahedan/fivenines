@@ -26,7 +26,7 @@ These are outcome-sized slices, not fixed file lists. Inspect current code and m
 
 ## Acceptance and verification
 
-- Mobile uses four bottom navigation destinations and the central acceptance action; desktop uses expandable folder rails. Shared top status, bottom drawers and scroll/gesture rules match the approved design.
+- Mobile has five bottom-bar items: Projects, Inventory, the central New project action, Learning, and Finances. The four destinations switch views; New project opens available offers, and contract acceptance happens only after reviewing an offer inside the drawer; desktop uses expandable folder rails. Shared top status, bottom drawers and scroll/gesture rules match the approved design.
 - System rack, modules, balancers and asset actions preserve hierarchy and shared-project impact. Pending/rejected/disabled/destructive states remain understandable without hover.
 - The first-project then two-project multi-cycle validation flow succeeds under an attainable strategy, while overload and missing recovery can produce the intended losses and customer departure.
 - Charts, period summaries and debit/credit records reconcile with authoritative outcomes. Missing monitoring remains visibly missing; no presentation layer computes alternative economics.

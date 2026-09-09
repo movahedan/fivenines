@@ -13,6 +13,8 @@ The numerical experiments below are historical design-0.2 evidence, not new resu
 - Five finite-job templates have compatible example hosts and CPU/GPU lower-bound execution times within their deadlines.
 - Refund boundary and prorated termination arithmetic examples pass.
 
+The starter examples below use CPU utilization alone for power and omit other resource bottlenecks, faults and additional overhead. Their arithmetic matches [Hardware and economy](hardware-and-economy.md); they are not full-system operating-cost predictions.
+
 | Scenario | CPU | Weekly operating cost | Weekly income | Operating margin |
 |---|---|---|---|---|
 | 1 starter project(s) | 144.00 / 2000 CPU work/h | 17.77 | 80.00 | 62.23 |

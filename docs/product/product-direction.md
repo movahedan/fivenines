@@ -36,7 +36,7 @@ Implementation must preserve shared infrastructure, distinct components, prepara
 
 ## Core-loop validation checkpoints
 
-Opening Shift is not an intended product mode. The user described a flow for validating the game, not a timed campaign, tutorial mode, or player-facing checklist. Do not carry the prototype's 14-day ending or win conditions into the product.
+Opening Shift is not an intended product mode. The core-loop checkpoints validate gameplay; they are not a timed campaign, tutorial mode, or player-facing checklist. Do not carry the prototype's 14-day ending or win conditions into the product.
 
 Use the following working sequence to evaluate the first playable product:
 
@@ -60,6 +60,6 @@ A later checkpoint, after the initial playable product, is hiring and training a
 
 ## Independent platform delivery
 
-Website delivery, legal pages, cookies and consent, SEO and PWA work have merged into main; authentication and service health are also complete per the user. These platform capabilities remain independent of the game redesign. Their completed plans have been removed; current code and workspace guidance describe implementation.
+Website delivery, legal pages, cookies and consent, SEO and PWA work have merged into main; authentication and service health are also complete. These platform capabilities remain independent of the game redesign. Their completed plans have been removed; current code and workspace guidance describe implementation.
 
 Coordinate when work crosses the boundary: public product copy must describe actual availability, shared UI must preserve the mobile path, and transport work must not create a second simulation authority. These documents introduce no legal policy or change to consent behavior.

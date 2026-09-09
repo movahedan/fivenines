@@ -48,7 +48,7 @@ Responsibility changes only prospectively from monitoring detection. Earlier fai
 
 Overlapping causes: a player-owned fault independently sufficient to fail the same demand retains player responsibility. Only failures caused solely by an established customer-owned cause are exempt. Attribute at affected-demand-group scope, count each external failure once, and do not treat an unrelated project incident as grounds for blame or exemption.
 
-Prepared-server duplication uses 25% of the corresponding fresh installation/configuration work as its base, then applies the acting person's Deployment Automation factor (0.92 per completed level). Accumulate fractional work without subticks; apply readiness on an outer boundary. Hardware acquisition costs and actual data transfer are not discounted by this work factor. This is the selected numeric baseline for the user's faster, skill-dependent duplication rule.
+Prepared-server duplication uses 25% of the corresponding fresh installation/configuration work as its base, then applies the acting person's Deployment Automation factor (0.92 per completed level). Accumulate fractional work without subticks; apply readiness on an outer boundary. Hardware acquisition costs and actual data transfer are not discounted by this work factor. This makes project duplication faster than fresh preparation while retaining the skill effect.
 
 Duplication scope is the current project only, even on shared hardware. No Inventory action duplicates all hosted projects together.
 

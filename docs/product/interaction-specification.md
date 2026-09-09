@@ -1,6 +1,6 @@
 # Infrastructure interaction specification
 
-Status: delegated interface design, 2026-09-09. This specifies the interaction hierarchy requested by the user. Gameplay and balance documents remain authoritative for mechanics and costs. Catalog-only capabilities below are design coverage, not newly approved simulation mechanics.
+Status: approved interface design, 2026-09-09. This specifies the agreed interaction hierarchy. Gameplay and balance documents remain authoritative for mechanics and costs. Catalog-only capabilities below are design coverage, not newly approved simulation mechanics.
 
 ## Selection, ownership, and presentation
 
@@ -104,7 +104,7 @@ These extend the common service inspector rather than creating unrelated menus f
 | Authoritative DNS, Reverse Proxy, CDN, Private Networking | Compatible endpoints and dependency configuration | Do not introduce realistic zone/credential/certificate administration as required gameplay |
 | Rate Limiting | Policy configuration and effects supported by the engine | Legitimate rejected demand remains contractual demand; no free protection |
 
-For catalog-only capabilities with unsettled configuration fields, Figma should use the common inspector and an explicitly labeled capability concept. Do not invent production-ready forms or mechanics. This is a design boundary, not another coefficient questionnaire for the user.
+For catalog-only capabilities with unsettled configuration fields, Figma should use the common inspector and an explicitly labeled capability concept. Do not invent production-ready forms or mechanics. Unspecified controls remain outside the approved design.
 
 ## Project and operational work
 

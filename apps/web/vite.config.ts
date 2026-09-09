@@ -64,6 +64,29 @@ function stubRnWebOnSsr(): Plugin {
 	};
 }
 
+const ssrPwaStub = "\0ssr-pwa-register";
+
+function stubPwaOnSsr(): Plugin {
+	return {
+		name: "stub-pwa-on-ssr",
+		enforce: "pre",
+		resolveId(source) {
+			if (this.environment.name !== "ssr") {
+				return;
+			}
+			if (source === "workbox-window" || source.includes("virtual:pwa-register")) {
+				return ssrPwaStub;
+			}
+		},
+		load(id) {
+			if (id !== ssrPwaStub) {
+				return;
+			}
+			return "export function registerSW() {\n\treturn () => {};\n}\n";
+		},
+	};
+}
+
 const webPort = Number(process.env.WEB_PORT ?? process.env.PORT ?? "3000");
 
 const requireFromWeb = createRequire(import.meta.url);
@@ -112,6 +135,10 @@ export default defineConfig(({ command }) => {
 			alias: {
 				...rnWebAliases(),
 				"react-native": reactNativeWebEntry,
+				"workbox-window": path.join(
+					installedWebPackageDir("workbox-window"),
+					"build/workbox-window.prod.es5.mjs",
+				),
 				"use-sync-external-store/shim/with-selector": withSelectorCjs,
 				"use-sync-external-store/shim/with-selector.js": withSelectorCjs,
 			},
@@ -145,6 +172,7 @@ export default defineConfig(({ command }) => {
 		},
 		plugins: [
 			stubRnWebOnSsr(),
+			stubPwaOnSsr(),
 			...(shareReact ? [shareSingleReact()] : []),
 			preferNodeModuleEsmPlugin(),
 			stubReanimatedWorkletsVersionCheck(),

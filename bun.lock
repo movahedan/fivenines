@@ -87,6 +87,7 @@
         "react-dom": "19.2.8",
         "react-native-web": "0.21.2",
         "use-sync-external-store": "1.6.0",
+        "workbox-window": "7.4.1",
       },
       "devDependencies": {
         "@tailwindcss/vite": "4.3.3",

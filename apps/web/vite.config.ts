@@ -28,6 +28,7 @@ import {
 
 const webConfigDir = path.dirname(fileURLToPath(import.meta.url));
 const ssrRnWebStub = path.join(webConfigDir, "src/ssr-rn-web-stub.tsx");
+const ssrRnSvgStub = path.join(webConfigDir, "src/ssr-rn-svg-stub.tsx");
 const ssrCreatePrefixer = path.join(webConfigDir, "src/ssr-create-prefixer.ts");
 
 const ssrCssComponentPrefix = "\0ssr-rn-css-component:";
@@ -52,6 +53,14 @@ function shouldStubPrefixerOnSsr(source: string): boolean {
 	return source === "inline-style-prefixer" || source.includes("inline-style-prefixer");
 }
 
+function shouldStubRnSvgOnSsr(source: string): boolean {
+	return (
+		source === "react-native-svg" ||
+		source.startsWith("react-native-svg/") ||
+		source.includes("/react-native-svg/")
+	);
+}
+
 function stubRnWebOnSsr(): Plugin {
 	return {
 		name: "stub-rn-web-on-ssr",
@@ -66,6 +75,9 @@ function stubRnWebOnSsr(): Plugin {
 			}
 			if (shouldStubPrefixerOnSsr(source)) {
 				return ssrCreatePrefixer;
+			}
+			if (shouldStubRnSvgOnSsr(source)) {
+				return ssrRnSvgStub;
 			}
 			if (shouldStubRnWebOnSsr(source)) {
 				return ssrRnWebStub;
@@ -93,6 +105,12 @@ function stubRnWebOnSsr(): Plugin {
 				}
 				return {
 					code: "export default function createPrefixer() {\n\treturn function prefix(style) {\n\t\treturn style;\n\t};\n}\n",
+					map: null,
+				};
+			}
+			if (filePath.includes("/react-native-svg/") && !filePath.includes("ssr-rn-svg-stub")) {
+				return {
+					code: `export * from ${JSON.stringify(ssrRnSvgStub)};\nexport { default } from ${JSON.stringify(ssrRnSvgStub)};\n`,
 					map: null,
 				};
 			}
@@ -204,6 +222,7 @@ export default defineConfig(({ command }) => {
 				"react-native-css",
 				"inline-style-prefixer",
 				"css-in-js-utils",
+				"react-native-svg",
 			],
 			optimizeDeps: {
 				exclude: shareReact ? [...rnJsxExclude, ...reactPrebundleIds] : rnJsxExclude,
@@ -215,6 +234,7 @@ export default defineConfig(({ command }) => {
 					alias: {
 						"react-native": ssrRnWebStub,
 						"react-native-web": ssrRnWebStub,
+						"react-native-svg": ssrRnSvgStub,
 						"inline-style-prefixer": ssrCreatePrefixer,
 						"inline-style-prefixer/lib/createPrefixer": ssrCreatePrefixer,
 					},

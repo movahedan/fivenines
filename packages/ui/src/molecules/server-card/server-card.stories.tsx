@@ -59,7 +59,10 @@ export const Market: Story = {
 		opexLabel: "-$8/hr",
 		costLabel: "$800",
 		canAfford: true,
+		canAffordLease: true,
+		leaseLabel: "$1.47/h rent",
 		onBuy: () => undefined,
+		onLease: () => undefined,
 		dotClassName: "bg-warning shadow-glow-warning",
 		className: "w-80",
 	},
@@ -69,5 +72,22 @@ export const Unaffordable: Story = {
 	args: {
 		...Market.args,
 		canAfford: false,
+	},
+};
+
+export const FleetRelease: Story = {
+	args: {
+		...Fleet.args,
+		idLabel: "server-1 · leased",
+		onSell: undefined,
+		onRelease: () => undefined,
+	},
+};
+
+export const LeaseJailed: Story = {
+	args: {
+		...Market.args,
+		canAfford: false,
+		canAffordLease: false,
 	},
 };

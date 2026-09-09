@@ -94,7 +94,7 @@ function Hud({
 				<Button
 					accessibilityLabel={running ? "Pause" : "Play"}
 					size="icon"
-					variant="outline"
+					variant={running ? "outline" : "default"}
 					onClick={onToggleRunning}
 				>
 					<Icon as={running ? Pause : Play} size={16} />
@@ -104,7 +104,8 @@ function Hud({
 						accessibilityLabel={`Speed ×${String(tickSpeed)}`}
 						key={tickSpeed}
 						size="icon"
-						variant={speed === tickSpeed ? "default" : "outline"}
+						className="gap-0.5"
+						variant={speed === tickSpeed && running ? "default" : "outline"}
 						onClick={() => {
 							onSpeedChange?.(tickSpeed);
 						}}

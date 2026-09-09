@@ -61,7 +61,7 @@ export type {
 } from "./project";
 export { Project } from "./project";
 export type { ProjectTickMetrics, SlaHourSample } from "./project.metrics";
-export type { ServerInitial } from "./server";
+export type { ServerInitial, ServerTenure } from "./server";
 export { Server } from "./server";
 export type { ServerTickMetrics } from "./server.metrics";
 export type { RandomSource } from "./traffic/random-source";

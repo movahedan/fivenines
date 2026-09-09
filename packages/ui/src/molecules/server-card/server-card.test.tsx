@@ -70,6 +70,85 @@ describe("ServerCard", () => {
 		expect(onBuy).toHaveBeenCalledTimes(1);
 	});
 
+	it("renders BUY and LEASE and calls each callback when pressed", () => {
+		const onBuy = mock();
+		const onLease = mock();
+
+		render(
+			<ServerCard
+				canAfford
+				canAffordLease
+				costLabel="$800"
+				cpuLabel="8 cores"
+				label="m5.xlarge"
+				leaseLabel="$1.47/h rent"
+				onBuy={onBuy}
+				onLease={onLease}
+				opexLabel="-$8/hr"
+				ramLabel="16 GB"
+				variant="market"
+			/>,
+		);
+
+		expect(screen.getByText("$1.47/h rent")).toBeInTheDocument();
+
+		fireEvent.click(screen.getByRole("button", { name: "BUY" }));
+		fireEvent.click(screen.getByRole("button", { name: "LEASE" }));
+
+		expect(onBuy).toHaveBeenCalledTimes(1);
+		expect(onLease).toHaveBeenCalledTimes(1);
+	});
+
+	it("disables LEASE when canAffordLease is false", () => {
+		const onLease = mock();
+
+		render(
+			<ServerCard
+				canAfford
+				canAffordLease={false}
+				costLabel="$800"
+				cpuLabel="8 cores"
+				label="m5.xlarge"
+				leaseLabel="$1.47/h rent"
+				onBuy={() => undefined}
+				onLease={onLease}
+				opexLabel="-$8/hr"
+				variant="market"
+			/>,
+		);
+
+		expect(screen.getByRole("button", { name: "LEASE" })).toBeDisabled();
+		expect(screen.getByRole("button", { name: "BUY" })).toBeEnabled();
+
+		fireEvent.click(screen.getByRole("button", { name: "LEASE" }));
+
+		expect(onLease).not.toHaveBeenCalled();
+	});
+
+	it("shows RELEASE instead of SELL when onRelease is passed", () => {
+		const onRelease = mock();
+		const onSell = mock();
+
+		render(
+			<ServerCard
+				cpuLabel="1000 cores"
+				idLabel="server-1 · leased"
+				label="m5.large"
+				onRelease={onRelease}
+				onSell={onSell}
+				opexLabel="opex -$4/hr"
+				variant="fleet"
+			/>,
+		);
+
+		expect(screen.queryByRole("button", { name: "SELL" })).toBeNull();
+
+		fireEvent.click(screen.getByRole("button", { name: "RELEASE" }));
+
+		expect(onRelease).toHaveBeenCalledTimes(1);
+		expect(onSell).not.toHaveBeenCalled();
+	});
+
 	it("disables BUY when canAfford is false", () => {
 		const onBuy = mock();
 

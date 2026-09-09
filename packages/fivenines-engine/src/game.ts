@@ -121,6 +121,7 @@ export class Game {
 			opexCents: this.#opex.opexCents,
 			maintenanceCents: this.#opex.maintenanceCents,
 			powerCents: this.#opex.powerCents,
+			leaseCents: this.#opex.leaseCents,
 		};
 	}
 

@@ -156,11 +156,7 @@ Implementation: `applyCommand` in `src/game.utils.ts`.
 
 ## Related
 
-- Hosting platform initiative: `.cursor/plans/fivenines-hosting-platform.plan.md` — design `.cursor/plans/fivenines-hosting-platform.design.md`
-- Billing / PAYG: `.cursor/plans/fivenines-engine-billing.plan.md` — spec `.cursor/plans/fivenines-engine-billing.design.md`
-- Balance harness: `src/economy.balance.test.ts` — plan `.cursor/plans/fivenines-engine-balance.plan.md`
-- SLA: `.cursor/plans/fivenines-engine-sla.plan.md` — spec `.cursor/plans/fivenines-engine-sla.design.md`
-- Opex / cash: `.cursor/plans/fivenines-engine-opex.plan.md` — spec `.cursor/plans/fivenines-engine-opex.design.md`
-- Plan: `.cursor/plans/fivenines-engine-capacity.plan.md` (region / placement; traffic: `.cursor/plans/fivenines-engine-traffic.plan.md`)
-- Spec: `.cursor/plans/fivenines-engine-capacity.design.md`
-- Domain (kernel graph): `.cursor/plans/fivenines-engine-domain.design.md`
+- Intended behavior: [Product reference](../../docs/product/index.md)
+- Next implementation: [Project systems transition](../../.cursor/plans/project-systems-transition.plan.md)
+- Authored tuning: [Balance baseline](../../docs/product/balance/index.md)
+- Current behavior remains defined by this guide, source, and tests. Retired engine/hosting plans were deleted after product consolidation; the product reference does not imply that its future behavior is already implemented.

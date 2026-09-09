@@ -14,7 +14,7 @@
 
 You take contracts, buy servers, and live through simulated hours: capacity, cash, SLA, and jail. **Opening Shift** is the first playable slice — ops floor at **`/hub`**, debug harness at **`/lab`** (`Game` still ticks in the browser).
 
-Product story, how to play, and the GitHub board legend live on the **[wiki](https://github.com/movahedan/fivenines/wiki)**. Kernel numbers, commands, and phase plans stay in this git tree (`AGENTS.md`, `docs/CHEATSHEET.md`, `.cursor/plans/`). Work board: **[Five Nines](https://github.com/users/movahedan/projects/5)**.
+Product intent, gameplay, and the domain model live in **[docs/product](docs/product/index.md)**. Player-facing how-to-play and the GitHub board legend live on the **[wiki](https://github.com/movahedan/fivenines/wiki)**. Kernel numbers, commands, and phase plans stay in this git tree (`AGENTS.md`, `docs/CHEATSHEET.md`, `.cursor/plans/`). Work board: **[Five Nines](https://github.com/users/movahedan/projects/5)**.
 
 ## 🎯 What Makes This Special
 

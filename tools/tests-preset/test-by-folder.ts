@@ -115,7 +115,7 @@ async function runTestsByFolder(testPath = "src/") {
 
 	console.log("\n💡 If individual folders pass but 'bun test' fails,");
 	console.log("   this indicates cross-test interference (global mock state issues).");
-	console.log("   See docs/planning/24_BUN_TEST_ISOLATION_BUG_SOLUTION.md for details.");
+	console.log("   See tools/tests-preset/AGENTS.md for current test guidance.");
 
 	process.exit(failed > 0 ? 1 : 0);
 }

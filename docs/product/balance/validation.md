@@ -46,7 +46,7 @@ Configuration incidence: untrained eligible weekly probability is **4.1135%**; f
 
 Checkpoint sizes for finite templates range **102.4–819.2 MiB**. Space for two completed copies and an in-progress copy fits the catalog's smallest disk before unrelated datasets. I/O contention and storage competition still require engine integration tests.
 
-These are independent data/arithmetic checks. The repository-wide gate remains unavailable in this worktree due to missing react/jsx-dev-runtime, as reported earlier; runtime code was not changed.
+These are independent data/arithmetic checks; runtime code was not changed. See the current catalog consistency check below for repository-wide verification.
 
 ## Current catalog consistency check
 

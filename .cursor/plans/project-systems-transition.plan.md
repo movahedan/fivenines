@@ -89,7 +89,7 @@ bun run overall
 
 For the interface slice, run the affected UI/web tests under their workspace guidance, then `bun run overall`. Verify the Figma handoff journeys in browser and native-compatible component previews, including keyboard and touch affordances. Select graph/chart dependencies only after a compatibility/performance comparison against the actual shared UI stack; Figma prototype libraries are not automatically approved production dependencies.
 
-Do not claim success when a gate cannot start. The documentation worktree currently lacks `react/jsx-dev-runtime`; resolve its dependency environment before runtime verification. A documentation link/catalog check is not a substitute for engine tests.
+Do not claim success when a gate cannot start. If a gate cannot start, fix the environment and rerun it before reporting verification as passed. A documentation link/catalog check is not a substitute for engine tests.
 
 ## Documentation before each PR
 

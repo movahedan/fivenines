@@ -1,10 +1,10 @@
 # Technology catalog and dependencies
 
-The user delegated detailed catalog and numeric preparation. The [design-0.2 balance baseline](balance/index.md) now selects this library and supplies explicit research times, fees, resource baselines, workloads, and policy numbers. The conceptual descriptions below remain useful context; the baseline is the current authored numeric specification. It is not live engine configuration or a playtested final balance.
+The [design-0.2 balance baseline](balance/index.md) now selects this library and supplies explicit research times, fees, resource baselines, workloads, and policy numbers. The conceptual descriptions below remain useful context; the baseline is the current authored numeric specification. It is not live engine configuration or a playtested final balance.
 
 ## Status and reading conventions
 
-This is the delegated design catalog, not a claim about existing engine features or a requirement to implement all capabilities in one change. Basic application and database tools being initially available, research unlocking additional capabilities, and email/chat/video/payments as project traits are agreed. The authored catalog and dependencies are the working baseline; implementation and playtesting remain necessary.
+This is the authored design catalog, not a claim about existing engine features or a requirement to implement all capabilities in one change. Basic application and database tools being initially available, research unlocking additional capabilities, and email/chat/video/payments as project traits are agreed. The authored catalog and dependencies are the working baseline; implementation and playtesting remain necessary.
 
 Research is business-wide knowledge; installation, configuration, capacity, and coverage remain specific to deployments and projects. A researched technology does not become active everywhere. Project features describe customer requirements; technologies describe how the player can support them.
 

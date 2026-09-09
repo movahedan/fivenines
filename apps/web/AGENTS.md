@@ -7,8 +7,10 @@
 ## Overview
 
 - **Port:** 3000 (`WEB_PORT`)
-- **Stack:** Vite + `@tanstack/react-start` (`spa.enabled`) + `@tanstack/react-router` file routes. No runtime Node and no server functions. SPA shell prerender (`/_shell.html`) must not execute `react-native-web` (SSR aliases a stub; `/hub` `/lab` `/` are `ssr: false`). Login `redirect_uri` uses the play page origin, never the auth origin (`:3001`).
+- **Stack:** Vite + `@tanstack/react-start` (`spa.enabled`) + `@tanstack/react-router` file routes. No runtime Node and no server functions. SPA shell is `dist/client/_shell.html` (hub/lab fallback). Marketing HTML is prerendered (`index.html`, `about/index.html`, …). Login `redirect_uri` uses the play page origin, never the auth origin (`:3001`).
 - Production routes must not construct `Game` or `tick()` in the browser, except the temporary `/hub` and `/lab` clients below.
+- Marketing lives in `src/site/` (header/footer, home, legal, contact). Do not import `@packages/auth` from those files. `Play` is `/hub`.
+- `@packages/analytics`: `initAnalytics` + Silktide in `src/site/bootstrap-web-client.ts` (after first paint). GTM only when production, `VITE_GTM_CONTAINER_ID` set, and analytics consent. PWA via `vite-plugin-pwa` `generateSW` (`start_url: /`, Play shortcut `/hub`). No Firebase / FCM.
 - **`/hub` and `/lab` exceptions:** `src/hub/` and `src/lab/` construct `@packages/fivenines-engine` `Game` on the client (Opening Shift). Nest campaign/SSE is the future production caller. Clock SSE on `/hub` is session health (unauthenticated → login), not the sim clock.
 - Hub talks to Nest from the **browser** (`VITE_NESTJS_API_URL`). Do not add Start server functions or `@packages/nestjs-sdk/server`.
 - Pin `@tanstack/react-router` to the version `@tanstack/react-start` depends on (currently `1.170.32`). Do not reuse `@packages/shared-tanstack`'s older router pin in this app.
@@ -19,14 +21,19 @@ Routes live under `src/routes/` (same convention as xpertell product apps):
 
 | File | Route |
 |------|--------|
-| `src/routes/__root.tsx` | Root document shell (`html` / `head` / `Outlet`). No `AuthProvider`, fetcher, or `QueryClient`. |
-| `src/routes/index.tsx` | `/` — stub home (Play → `/hub`, Lab). Must not `restore()` or import `@packages/auth`. |
+| `src/routes/__root.tsx` | Root document shell (`html` / `head` / `#root` / `Outlet`). No `AuthProvider`, fetcher, or `QueryClient`. Silktide + Consent Mode script tags. |
+| `src/routes/index.tsx` | `/` — marketing home (Play → `/hub`). Must not `restore()` or import `@packages/auth`. |
+| `src/routes/about.tsx` | `/about` |
+| `src/routes/privacy.tsx` | `/privacy` |
+| `src/routes/terms.tsx` | `/terms` |
+| `src/routes/cookie-policy.tsx` | `/cookie-policy` (`openCookiePreferences`) |
+| `src/routes/contact.tsx` | `/contact` (mailto + GitHub + wiki) |
 | `src/routes/hub.tsx` | `/hub` — `PlayProviders` + session gate + clock-SSE health; renders `HubSession` (ops floor) |
 | `src/routes/lab.tsx` | `/lab` — `PlayProviders` + session-gated verbose engine harness (`LabSession`) |
 
 `src/play/play-providers.tsx` mounts `QueryClientProvider`, `AuthProvider` (`restoreOnMount={false}`, `playerAuthSession`), and `FetcherSettingsProvider` (Nest `baseURL` + `createAuthFetcherBindings`). Hub/lab tests wrap `AuthProvider` only; they do not need the Nest fetcher.
 
-`src/router.tsx` exports `getRouter()` (required by Start). Use `trailingSlash: "never"`. `src/routeTree.gen.ts` is generated on Vite build/dev — do not hand-edit. SPA fallback is `dist/client/_shell.html` (copied to `index.html` after build). There is no JSON `/status` on web.
+`src/router.tsx` exports `getRouter()` (required by Start). Use `trailingSlash: "never"`. `src/routeTree.gen.ts` is generated on Vite build/dev — do not hand-edit. Hub/lab SPA fallback is `dist/client/_shell.html`. Marketing is `WEB_PRERENDER=1 bun scripts/prerender-web.ts` after `vite build` (`export:check` asserts `<title>` + `og:image`). There is no JSON `/status` on web.
 
 ## Hub
 
@@ -57,12 +64,13 @@ bun test apps/web/src/routes/lab.test.tsx
 ```bash
 bun run turbo run dev --filter=@apps/web   # http://play.fivenines.com:3000 (hosts file; hub/lab need Nest :3002 + auth :3001)
 bun run turbo run build --filter=@apps/web
+bun run --filter=@apps/web export:check
 bun run --filter=@apps/web preview:static  # bunx serve dist/client -s
 bun run typecheck --filter=@apps/web
-bun test apps/web
+bun test apps/web packages/analytics
 ```
 
-Browser API origin: `VITE_NESTJS_API_URL` (default `http://api.fivenines.com:3002`). Auth origin: `VITE_AUTH_URL`. Player origin: `VITE_APP_ORIGIN`. Vite `allowedHosts` includes `play.fivenines.com`. Home must not `restore()`.
+Browser API origin: `VITE_NESTJS_API_URL` (default `http://api.fivenines.com:3002`). Auth origin: `VITE_AUTH_URL`. Player origin: `VITE_APP_ORIGIN` (absolute OG URLs). Optional `VITE_GTM_CONTAINER_ID` (no `GTM-` prefix). Vite `allowedHosts` includes `play.fivenines.com`. Home must not `restore()`.
 
 Health: prod nginx and Check probe `GET /` for the string `Five Nines` in the built shell HTML. Dev Vite is the same (`<title>` / home copy). Auth, Nest, and Storybook still use JSON `GET /status`.
 

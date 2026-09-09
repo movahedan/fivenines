@@ -6,6 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { defineConfig, type Plugin } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 
 import {
 	esmifyReactNativeSvgTransform,
@@ -164,6 +165,63 @@ export default defineConfig(({ command }) => {
 			}),
 			viteReact(),
 			tailwindcss(),
+			VitePWA({
+				registerType: "autoUpdate",
+				injectRegister: false,
+				strategies: "generateSW",
+				manifestFilename: "manifest.json",
+				includeAssets: [
+					"og.svg",
+					"logo192.png",
+					"logo512.png",
+					"silktide/*",
+					"gtag-consent-default.js",
+				],
+				devOptions: {
+					enabled: false,
+				},
+				workbox: {
+					globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff2,json}"],
+					navigateFallback: "/_shell.html",
+				},
+				manifest: {
+					name: "Five Nines",
+					short_name: "Five Nines",
+					description: "Cloud tycoon ops console",
+					theme_color: "#0b1220",
+					background_color: "#0b1220",
+					display: "standalone",
+					start_url: "/",
+					scope: "/",
+					icons: [
+						{
+							src: "logo192.png",
+							sizes: "192x192",
+							type: "image/png",
+						},
+						{
+							src: "logo512.png",
+							sizes: "512x512",
+							type: "image/png",
+						},
+					],
+					shortcuts: [
+						{
+							name: "Play",
+							short_name: "Play",
+							description: "Open the ops console",
+							url: "/hub",
+							icons: [
+								{
+									src: "logo192.png",
+									sizes: "192x192",
+									type: "image/png",
+								},
+							],
+						},
+					],
+				},
+			}),
 		],
 	};
 });

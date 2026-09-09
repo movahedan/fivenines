@@ -23,7 +23,8 @@
 			"!**/src/generated",
 			"!**/routeTree.gen.ts",
 			"!**/.output",
-			"!**/.tanstack"
+			"!**/.tanstack",
+			"!apps/web/public/silktide"
 		]
 	},
 	"formatter": {

@@ -2,7 +2,7 @@
 
 # 🏎️ Fivenines
 
-**Cloud tycoon sim:** customers offer projects, you buy servers, each tick is one simulated hour. `@packages/fivenines-engine` is the authority for physics, cash/opex/jail, SLA ppm, and PAYG billing. Play the Opening Shift harness at **`/lab`** on `@apps/web` (`Game` in the browser for now; Nest campaign/SSE comes later).
+**Cloud tycoon sim:** customers offer projects, you buy servers, each tick is one simulated hour. `@packages/fivenines-engine` is the authority for physics, cash/opex/jail, SLA ppm, and PAYG billing. Play the Opening Shift at **`/hub`** on `@apps/web` (same app as the marketing site). `Game` still runs in the browser for now; Nest campaign/SSE comes later.
 
 <div align="center">
 <img src="https://pbs.twimg.com/media/F6GHgqBWYAAOwUX?format=jpg&name=4096x4096" alt="Fivenines Banner" width="600" />
@@ -59,7 +59,7 @@ Docker is the foundation for running the full multi-service layout: use **`bun r
 
 > **Curated frameworks** that **naturally align** with Bun's philosophy and performance
 
-Player UI is **TanStack Start in SPA mode** (`@apps/web`, static `dist/client` in prod, no Node). The control plane is **NestJS** plus an **Orval** SDK. Auth is a separate SSR app. Shared UI lives in Storybook. No extra marketing apps in this repo.
+Player UI **and** the marketing site are **TanStack Start in SPA mode** (`@apps/web`, static `dist/client` in prod, no Node). Play is **`/hub`**. The control plane is **NestJS** plus an **Orval** SDK. Auth is a separate SSR app. Shared UI lives in Storybook. No second landings app.
 
 </div>
 

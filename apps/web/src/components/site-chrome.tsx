@@ -1,5 +1,6 @@
-import type { ReactElement, ReactNode } from "react";
+import type { ReactNode } from "react";
 
+import { ManageCookiesButton } from "./manage-cookies-button";
 import { GITHUB_URL, WIKI_URL } from "./site-links";
 
 const NAV = [
@@ -15,7 +16,11 @@ const FOOTER = [
 	{ href: "/contact", label: "Contact" },
 ] as const;
 
-export function SiteChrome({ children }: { readonly children: ReactNode }): ReactElement {
+interface SiteChromeProps {
+	readonly children: ReactNode;
+}
+
+export function SiteChrome({ children }: SiteChromeProps) {
 	return (
 		<div className="flex min-h-screen flex-col bg-background text-foreground">
 			<header className="border-b border-border px-6 py-4">
@@ -47,17 +52,7 @@ export function SiteChrome({ children }: { readonly children: ReactNode }): Reac
 								{item.label}
 							</a>
 						))}
-						<button
-							className="hover:underline"
-							onClick={() => {
-								void import("@packages/analytics").then((mod) => {
-									mod.openCookiePreferences();
-								});
-							}}
-							type="button"
-						>
-							Manage cookies
-						</button>
+						<ManageCookiesButton className="hover:underline" />
 					</nav>
 					<div className="flex flex-wrap gap-4">
 						<a className="hover:underline" href={GITHUB_URL} rel="noreferrer" target="_blank">

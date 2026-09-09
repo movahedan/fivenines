@@ -10,7 +10,7 @@ import { useEffect } from "react";
 
 import "@packages/ui/style.css";
 
-import { bootstrapWebClient } from "../site/bootstrap-web-client";
+import { bootstrapWebClient } from "./-bootstrap-web-client";
 
 function RootError({ error }: ErrorComponentProps) {
 	const message = error instanceof Error ? error.message : String(error);

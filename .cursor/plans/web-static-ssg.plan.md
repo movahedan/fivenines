@@ -111,7 +111,7 @@ flowchart LR
 - `@apps/web` may depend on `@packages/ui`, `@packages/auth` (play routes only), `@packages/http`, `@packages/nestjs-sdk` **client** (hub clock), `@packages/fivenines-engine` (hub/lab), `@packages/analytics` (Phase 4).
 - `@packages/analytics` must **not** depend on Firebase, FCM, or `@apps/web`.
 - Do **not** add `@packages/analytics` as a blanket workspace `devDependency`.
-- Marketing UI lives in `apps/web/src/site/` (header/footer/pages). Do **not** put marketing into `@packages/ui/molecules` (ops chrome only).
+- Marketing page copy lives in the matching `apps/web/src/routes/*.tsx` file. Shared chrome (`SiteChrome`, `SitePage`) is `src/components/`. Do **not** put marketing into `@packages/ui/molecules` (ops chrome only).
 - Do **not** create `apps/landings`.
 
 ---
@@ -258,7 +258,7 @@ bun run turbo run typecheck --filter=@apps/web
 
 | Path | File | Notes |
 |------|------|-------|
-| `/` | `src/routes/index.tsx` + `src/site/home/` | Hero, how it works, FAQ, **Play → `/hub`** |
+| `/` | `src/routes/index.tsx` | Hero, how it works, FAQ, **Play → `/hub`** |
 | `/about` | `src/routes/about.tsx` | Studio / game pitch; wiki link |
 | `/privacy` | `src/routes/privacy.tsx` | Placeholder |
 | `/terms` | `src/routes/terms.tsx` | Placeholder |
@@ -276,9 +276,9 @@ bun run turbo run typecheck --filter=@apps/web
 
 ### Code/config surfaces (builder-workflow)
 
-- `apps/web/src/site/**`, `src/routes/{index,about,privacy,terms,cookie-policy,contact}.tsx`
-- `apps/web/src/lib/web-prerender-paths.ts`, `web-site-url.ts`
-- `apps/web/scripts/prerender-web.ts`, `export-check-web.ts`
+- `apps/web/src/components/**`, `src/routes/{index,about,privacy,terms,cookie-policy,contact}.tsx`
+- `apps/web/src/routes/-page-head.ts`, `-bootstrap-web-client.ts`
+- `apps/web/scripts/prerender-web.ts`, `export-check-web.ts`, `web-prerender-paths.ts`
 - `apps/web/public/` (og image, robots, sitemap)
 - `apps/web/package.json` `build` / `prerender` / `export:check`
 - `apps/web/.env.sample` — document `VITE_APP_ORIGIN` for absolute OG URLs

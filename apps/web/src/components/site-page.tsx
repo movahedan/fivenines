@@ -1,14 +1,13 @@
-import type { ReactElement, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { SiteChrome } from "./site-chrome";
 
-export function SitePage({
-	children,
-	title,
-}: {
+interface SitePageProps {
 	readonly children: ReactNode;
 	readonly title: string;
-}): ReactElement {
+}
+
+export function SitePage({ children, title }: SitePageProps) {
 	return (
 		<SiteChrome>
 			<article className="prose-none max-w-3xl space-y-4">
@@ -19,6 +18,10 @@ export function SitePage({
 	);
 }
 
-export function SiteParagraph({ children }: { readonly children: ReactNode }): ReactElement {
+interface SiteParagraphProps {
+	readonly children: ReactNode;
+}
+
+export function SiteParagraph({ children }: SiteParagraphProps) {
 	return <p className="text-base leading-7 text-muted-foreground">{children}</p>;
 }

@@ -12,12 +12,12 @@ import { attachRouterServerSsrUtils } from "@tanstack/router-core/ssr/server";
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 
+import { getRouter } from "../src/router";
 import {
 	prerenderPathToDistRelative,
 	WEB_PRERENDER_PATHS,
 	type WebPrerenderPath,
-} from "../src/lib/web-prerender-paths";
-import { getRouter } from "../src/router";
+} from "./web-prerender-paths";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const distDir = join(scriptDir, "../dist/client");

@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 
 import { fireEvent, render, screen } from "@testing-library/react";
 
-import { HomePage } from "./home-page";
+import { HomePage } from "./index";
 
 describe("HomePage", () => {
 	it("sends Play to the hub", () => {

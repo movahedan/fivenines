@@ -9,8 +9,8 @@
 - **Port:** 3000 (`WEB_PORT`)
 - **Stack:** Vite + `@tanstack/react-start` (`spa.enabled`) + `@tanstack/react-router` file routes. No runtime Node and no server functions. SPA shell is `dist/client/_shell.html` (hub/lab fallback). Marketing HTML is prerendered (`index.html`, `about/index.html`, …). Login `redirect_uri` uses the play page origin, never the auth origin (`:3001`).
 - Production routes must not construct `Game` or `tick()` in the browser, except the temporary `/hub` and `/lab` clients below.
-- Marketing lives in `src/site/` (header/footer, home, legal, contact). Do not import `@packages/auth` from those files. `Play` is `/hub`.
-- `@packages/analytics`: `initAnalytics` + Silktide in `src/site/bootstrap-web-client.ts` (after first paint). GTM only when production, `VITE_GTM_CONTAINER_ID` set, and analytics consent. PWA via `vite-plugin-pwa` `generateSW` (`start_url: /`, Play shortcut `/hub`). No Firebase / FCM.
+- Marketing page copy lives in the matching `src/routes/*.tsx` file. Shared chrome (`SiteChrome`, `SitePage`) is `src/components/`. Do not import `@packages/auth` from those files. `Play` is `/hub`.
+- `@packages/analytics`: `initAnalytics` + Silktide in `src/routes/-bootstrap-web-client.ts` (after first paint). GTM only when production, `VITE_GTM_CONTAINER_ID` set, and analytics consent. PWA via `vite-plugin-pwa` `generateSW` (`start_url: /`, Play shortcut `/hub`). No Firebase / FCM.
 - **`/hub` and `/lab` exceptions:** `src/hub/` and `src/lab/` construct `@packages/fivenines-engine` `Game` on the client (Opening Shift). Nest campaign/SSE is the future production caller. Clock SSE on `/hub` is session health (unauthenticated → login), not the sim clock.
 - Hub talks to Nest from the **browser** (`VITE_NESTJS_API_URL`). Do not add Start server functions or `@packages/nestjs-sdk/server`.
 - Pin `@tanstack/react-router` to the version `@tanstack/react-start` depends on (currently `1.170.32`). Do not reuse `@packages/shared-tanstack`'s older router pin in this app.
@@ -22,7 +22,7 @@ Routes live under `src/routes/` (same convention as xpertell product apps):
 | File | Route |
 |------|--------|
 | `src/routes/__root.tsx` | Root document shell (`html` / `head` / `#root` / `Outlet`). No `AuthProvider`, fetcher, or `QueryClient`. Silktide + Consent Mode script tags. |
-| `src/routes/index.tsx` | `/` — marketing home (Play → `/hub`). Must not `restore()` or import `@packages/auth`. |
+| `src/routes/index.tsx` | `/` — marketing home in this file (Play → `/hub`). Shared chrome from `src/components/`. Must not `restore()` or import `@packages/auth`. |
 | `src/routes/about.tsx` | `/about` |
 | `src/routes/privacy.tsx` | `/privacy` |
 | `src/routes/terms.tsx` | `/terms` |

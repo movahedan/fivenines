@@ -6,7 +6,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { prerenderPathToDistRelative, WEB_PRERENDER_PATHS } from "../src/lib/web-prerender-paths";
+import { prerenderPathToDistRelative, WEB_PRERENDER_PATHS } from "./web-prerender-paths";
 
 const distDir = join(fileURLToPath(new URL(".", import.meta.url)), "../dist/client");
 

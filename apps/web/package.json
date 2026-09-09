@@ -12,7 +12,7 @@
 		"preview:static": "bunx serve dist/client -s -l ${WEB_PORT:-${PORT:-3000}}",
 		"start": "bun run preview:static",
 		"typecheck": "tsc --noEmit",
-		"test": "bun --cwd ../.. test apps/web/src apps/web/scripts"
+		"test": "bun --cwd ../.. test apps/web/src apps/web/scripts/web-prerender-paths.test.ts"
 	},
 	"dependencies": {
 		"@packages/analytics": "workspace:*",

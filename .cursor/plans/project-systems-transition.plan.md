@@ -28,6 +28,8 @@ isProject: false
 
 # Project systems transition
 
+> Planning status: the [agreed milestone sequence](../../docs/milestones/README.md) supersedes this broad plan’s delivery ordering. The ten milestone documents now define delivery and acceptance. Retain this file only as transition context; create assigned-PR plans from the relevant milestone. Do not execute this entire document as one PR.
+
 Status: replacement execution plan, not runtime implementation. It supersedes the old hosting initiative's Phase 3 onward ordering. Its slices are not a new product milestone numbering system. No merge, push, deployment or engine rewrite is performed by the documentation task.
 
 ## Inputs and base reconciliation
@@ -97,7 +99,7 @@ After slice verification, update engine or app/package `AGENTS.md` only for beha
 
 ## PR sequence and risks
 
-Proposed order follows the dependency table: base reconciliation, model/catalog, solver, preparation, routing/recovery, contracts/progression, observation/interface. Cross-slice interfaces may require an earlier contract-only change; each PR must state which path is live and how legacy consumers remain valid. No automatic save migration is implied; transport/snapshot protocol remains deferred.
+The milestone sequence owns delivery order: mathematical foundations, entities/catalogs, demand/learning, preparation, execution, contracts, observation/recovery, routing/automation, catalog completion and integrated validation. The broad slices above are context, not PR assignments. Each PR must keep current application consumers runnable; no parallel legacy engine or compatibility layer is required. No automatic save migration is implied; transport/snapshot protocol remains deferred.
 
 | Risk | Mitigation |
 |---|---|

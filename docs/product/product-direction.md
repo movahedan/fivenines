@@ -4,7 +4,7 @@
 
 The existing hosting initiative remains useful through Phase 2: explicit placement and owned versus leased servers. Phase 3 onward must be redesigned around project systems, preparation work, and gradual business growth. Phase numbers in unrelated website plans are unaffected.
 
-This is a product direction, not a replacement implementation schedule. No new milestone numbering, deadline, or full rewrite has been approved.
+This document defines product direction. The [milestone sequence](../milestones/README.md) defines dependency-ordered implementation and verification; it does not set delivery deadlines.
 
 ## What to retain
 

@@ -6,52 +6,33 @@ disable-model-invocation: true
 
 # Initiative workflow
 
-End-to-end order for a planned feature in this repo. Each step uses one skill; **do not** merge steps into one mega-prompt.
+Use [Milestones and delivery workflow](../../../docs/milestones/README.md) as the standing agreement. Milestones coordinate outcomes; PR plans describe execution. Do not ask the user to restate the process or create a second orchestration system.
 
 ```mermaid
 flowchart LR
-  P[planning-workflow]
-  B[builder-workflow]
-  D[documentation-sync]
-  G[git-pr-workflow]
-  P --> B --> D --> G
+  M[Assigned milestone and latest code] --> P[planning-workflow for this PR]
+  P --> B[builder-workflow]
+  B --> D[documentation-sync]
+  D --> G[git-pr-workflow]
+  G --> R[Record PR status and verify merge]
+  R --> M
 ```
 
-Repeat **B → D → G** for each plan phase (each PR).
+Repeat **P → B → D → G** for each PR, refreshing the code and dependency state first. A phase inside a PR plan is an implementation step; it is not automatically another PR or a product milestone. Existing explicitly scoped multi-PR plans remain usable, but their next slice must be revalidated before execution.
 
-## Step 1 — Product context (optional)
+## Step 1 — Read milestone and product context
 
-**When:** Outcome or UX is still fuzzy.
+Read the assigned milestone and linked product references. Product discussion is not a required repeated brainstorming step. Reuse approved behavior and mathematics; ask only for material unresolved decisions. Update the proposed PR breakdown when current code justifies it, preserving agreed outcomes and recording the reason.
 
-**How:** Short chat (or brainstorming skill from superpowers cache) — problem, users, constraints, non-goals.
+## Step 2 — planning-workflow for the assigned PR
 
-**Output:** Bullets the planner pastes into the plan’s summary / Phase 1 design agreement. **Not** a substitute for the plan file.
+Produce `.cursor/plans/<slug>.plan.md` grounded in current code, with the milestone link, PR outcome, dependencies, code/config surfaces, verification and documentation impact. Simple low-impact tasks may use a concise task plan. No mandatory new agent per PR; agent reuse and delegation follow the milestone agreement and active authorization.
 
-## Step 2 — planning-workflow
+Proceed within existing execution authorization. A new scope or unapproved product change needs resolution; routine implementation details do not require another permission round.
 
-**When:** Multi-package work, phases, or “plan first.”
+## Step 3 — builder-workflow (assigned PR)
 
-**Output:** `.cursor/plans/<slug>.plan.md` (approved by you).
-
-**Plan must include per phase:**
-
-| Section | Owner skill |
-|---------|-------------|
-| Code/config surfaces, scouts, verify commands | builder-workflow |
-| **Documentation before PR** (path list) | documentation-sync — **after** build, **not** during |
-
-**Your message (minimal):**
-
-```text
-Use planning-workflow.
-Goal: …
-Constraints: …
-Phases: … (one PR per phase if applicable)
-```
-
-## Step 3 — builder-workflow (per phase)
-
-**When:** Plan approved; execute **one phase**.
+**When:** Execution is authorized; execute the assigned PR plan. Its internal phases are implementation steps, not separate PRs.
 
 **Scope:** **Code and config only** — no `docs/`, `AGENTS.md`, `README.md`, `.cursor/skills/` edits unless the plan labels a docs-only phase.
 
@@ -61,63 +42,64 @@ Phases: … (one PR per phase if applicable)
 
 ```text
 @.cursor/plans/<slug>.plan.md
-Use builder-workflow. Execute Phase N only.
+Use builder-workflow. Execute the assigned PR plan.
 Do not edit documentation tiers; those are step 4.
 ```
 
 **Do not attach:** rules bodies, full product spec, scout tables from prior runs.
 
-## Step 4 — documentation-sync (per phase, before PR)
+## Step 4 — documentation-sync (assigned PR)
 
-**When:** Phase **build is finished** (verify gate passed on code/config). **Before** any commit or PR for that phase.
+**When:** The assigned PR build is finished and its verification gate passed. Synchronize documentation before committing the PR slice.
 
 **Not:** During scout/implement/checkup. **Not** interleaved with implementer slices.
 
-**Input:** Plan section **Documentation before PR** for that phase + current branch diff.
+**Input:** The assigned plan’s **Documentation before PR** section and current branch diff.
 
 **Your message (minimal):**
 
 ```text
-Build for Phase N is complete (checkup passed).
-Use documentation-sync for paths listed in .cursor/plans/<slug>.plan.md Phase N "Documentation before PR".
+Build for the assigned PR is complete (checkup passed).
+Use documentation-sync for paths listed in .cursor/plans/<slug>.plan.md "Documentation before PR".
 ```
 
-## Step 5 — git-pr-workflow (per phase)
+## Step 5 — git-pr-workflow (assigned PR)
 
-**When:** Code **and** docs for the phase are done; ready to commit and open PR.
+**When:** Code and docs for the assigned PR are verified; commit/push/PR creation is authorized.
 
 **Prerequisite:** Step 4 finished (docs match code).
 
 **Your message (minimal):**
 
 ```text
-Use git-pr-workflow. Commit Phase N, push, open draft PR.
+Use git-pr-workflow. Commit the assigned slice, push, open draft PR.
 ```
 
-## One phase checklist
+## Assigned PR checklist
 
 ```text
-[ ] Plan approved (.cursor/plans/….plan.md)
-[ ] builder-workflow Phase N — checkup PASS (code/config only)
+[ ] Assigned PR plan ready; execution authorized (.cursor/plans/….plan.md)
+[ ] builder-workflow assigned PR — checkup PASS (code/config only)
 [ ] documentation-sync — plan’s doc list updated
 [ ] git-pr-workflow — commit, push, PR
-[ ] Merge or continue to Phase N+1
+[ ] Record PR link and actual state in the milestone
+[ ] Confirm merge, refresh code and plan the next assigned PR
 ```
 
 ## Context budget (what to paste)
 
 | Step | Paste |
 |------|--------|
-| Planning | Goal, constraints, phase count |
-| Builder | Plan path + phase number + execute |
-| Doc sync | Plan path + “Phase N doc list” + build complete |
-| Git/PR | Branch intent, draft vs ready, phase scope |
+| Planning | Milestone path and assigned PR outcome |
+| Builder | Plan path + assigned PR outcome + execute |
+| Doc sync | Plan path + “assigned PR doc list” + build complete |
+| Git/PR | Branch intent, draft vs ready, PR scope |
 
 ## Skill index
 
 | Skill | Role |
 |-------|------|
 | [planning-workflow](../planning-workflow/SKILL.md) | Write plan |
-| [builder-workflow](../builder-workflow/SKILL.md) | Execute phase (subagents) |
+| [builder-workflow](../builder-workflow/SKILL.md) | Execute the assigned slice; delegation only when authorized |
 | [documentation-sync](../documentation-sync/SKILL.md) | Docs after build, before PR |
 | [git-pr-workflow](../git-pr-workflow/SKILL.md) | Commit, push, PR |

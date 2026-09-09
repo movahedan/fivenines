@@ -8,7 +8,7 @@ The product and interface discussion is complete for the current design handoff.
 - Delegated catalogs: 61 technologies, nine hardware choices, 23 demand types, 12 continuous templates, five finite-job templates and five course families.
 - Approved navigation, bottom drawers, project workspace and object/action hierarchy.
 - [Figma Make handoff](figma-make-handoff.md), [interface brief](interface-design-brief.md) and [interaction specification](interaction-specification.md).
-- [Replacement execution plan](../../.cursor/plans/project-systems-transition.plan.md); obsolete plans and completed review reports are removed.
+- [Delivery milestones](../milestones/README.md), including proposed PR slices and acceptance scenarios; obsolete plans and completed review reports are removed.
 
 ## Remaining work, not unanswered product questions
 
@@ -21,7 +21,7 @@ The product and interface discussion is complete for the current design handoff.
 | Contracts and balance | Implement exact settlement and learning boundaries; run seeded scenarios and gameplay sessions, including distress/recovery |
 | Native-compatible UI | Select graph/chart rendering and interaction implementations; connect engine projections to approved components and flows |
 
-Each implementation slice needs its own tests and documentation synchronization before a PR. The replacement plan gives surfaces, dependency order and gates; it is not proof that the solver or runtime migration is complete.
+Each implementation slice needs its own tests and documentation synchronization before a PR. The milestones give outcomes, dependency order and gates; they are not proof that the solver or runtime migration is complete.
 
 ## Explicitly deferred
 

@@ -16,6 +16,10 @@ disable-model-invocation: true
 
 **Next step after approval:** [initiative-workflow](../initiative-workflow/SKILL.md) — **builder-workflow** → **documentation-sync** → **git-pr-workflow** per phase.
 
+## Milestone-driven PRs
+
+Read [Milestones and delivery workflow](../../../docs/milestones/README.md) and the assigned milestone before planning. Default to one current-code implementation plan per assigned PR; the milestone owns the multi-PR sequence. Revalidate predecessors and add a milestone link, estimated review size and documentation/status updates. The 20–30-file / 2,000–3,000-line range is guidance, not a hard gate. Do not reopen agreed product decisions or require renewed approval when execution is already authorized. Retire completed temporary plans after durable decisions and PR evidence are preserved. For this milestone-driven mode, the phase template below describes internal steps of the assigned PR; its historical one-phase-per-PR convention applies only to explicitly scoped multi-PR plans.
+
 ## Principles
 
 1. **Repo-grounded** — `Read` / `rg` / `Glob` before inventing paths; list assumptions and open questions.

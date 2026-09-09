@@ -67,7 +67,9 @@ describe("LabPage - session gate", () => {
 		});
 		const calls = assign.mock.calls as unknown as ReadonlyArray<ReadonlyArray<unknown>>;
 		expect(String(calls[0]?.[0] ?? "")).toContain("/login?");
-		expect(String(calls[0]?.[0] ?? "")).toContain("state=%2Flab");
+		expect(String(calls[0]?.[0] ?? "")).toContain(
+			"redirect_uri=http%3A%2F%2Fplay.fivenines.com%3A3000%2Flab",
+		);
 	});
 
 	it("shows the lab heading when the public hint cookie is set", async () => {

@@ -9,7 +9,6 @@ import { FetcherSettingsProvider } from "@packages/http/react";
 import { getBrowserApiBaseUrl } from "../browser-api-base-url";
 import { playerAuthSession } from "../player-session";
 import { viteAppOrigin, viteAuthOrigin } from "../vite-origins";
-import { playReturnOrigin } from "./play-return-origin";
 
 const authFetch = createAuthFetcherBindings(playerAuthSession);
 
@@ -30,11 +29,7 @@ export function PlayProviders({ children }: PlayProvidersProps): ReactElement {
 	);
 
 	const authOrigin = viteAuthOrigin();
-	const appOrigin = playReturnOrigin(
-		authOrigin,
-		viteAppOrigin(),
-		typeof window === "undefined" ? undefined : window.location.origin,
-	);
+	const appOrigin = viteAppOrigin();
 
 	return (
 		<QueryClientProvider client={queryClient}>

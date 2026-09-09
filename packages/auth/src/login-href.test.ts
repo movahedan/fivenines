@@ -3,6 +3,18 @@ import { describe, expect, it } from "bun:test";
 import { loginHref, logoutHref, redirectState } from "./login-href";
 
 describe("loginHref - configured origins", () => {
+	it("passes an absolute redirectUri through without using appOrigin", () => {
+		expect(
+			loginHref({
+				authOrigin: "http://auth.fivenines.com:3001",
+				appOrigin: "http://play.fivenines.com:3000",
+				redirectUri: "http://play.fivenines.com:3000/hub",
+			}),
+		).toBe(
+			"http://auth.fivenines.com:3001/login?redirect_uri=http%3A%2F%2Fplay.fivenines.com%3A3000%2Fhub&state=%2Fhub",
+		);
+	});
+
 	it("builds login URL and state from a relative redirectUri", () => {
 		expect(
 			loginHref({

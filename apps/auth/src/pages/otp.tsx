@@ -1,3 +1,4 @@
+import { authNavHref } from "../utils/auth-nav-href";
 import { AuthDocument } from "./auth-document";
 import { AuthReturnFields } from "./auth-return-fields";
 
@@ -15,9 +16,10 @@ type OtpPageProps = Readonly<{
 export function OtpPage(props: OtpPageProps) {
 	const action = props.step === "request" ? "/otp" : "/otp/verify";
 	const title = props.step === "request" ? "Email code" : "Enter code";
+	const ret = { redirectUri: props.redirectUri, state: props.state, next: props.next };
 
 	return (
-		<AuthDocument title={`${title} — Five Nines`}>
+		<AuthDocument brandHref={authNavHref("/login", ret)} title={`${title} — Five Nines`}>
 			<h1>{title}</h1>
 			{props.error ? <p className="error">{props.error}</p> : null}
 			{props.info ? <p className="info">{props.info}</p> : null}
@@ -50,8 +52,8 @@ export function OtpPage(props: OtpPageProps) {
 				<button type="submit">{props.step === "request" ? "Send code" : "Verify"}</button>
 			</form>
 			<p className="links">
-				<a href="/login">Password sign in</a>
-				<a href="/register">Register</a>
+				<a href={authNavHref("/login", ret)}>Password sign in</a>
+				<a href={authNavHref("/register", ret)}>Register</a>
 			</p>
 		</AuthDocument>
 	);

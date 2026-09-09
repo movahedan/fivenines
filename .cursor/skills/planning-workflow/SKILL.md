@@ -58,7 +58,7 @@ Use the structure in [plan-template.md](plan-template.md). Strong plans include:
 | Risk table | Risk → mitigation (often `rg` gates) |
 | Out of scope | Frozen boundaries |
 
-**Optional human spec:** `docs/planning/<topic>.md` for product narrative — link from the plan; do not duplicate long prose in both.
+**Product reference:** `docs/product/<topic>.md` owns product intent, entities, and relationships. Link from technical plans; do not duplicate the narrative in `.cursor/plans` or recreate `docs/planning`.
 
 ### Rename / move plans
 

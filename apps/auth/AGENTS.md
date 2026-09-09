@@ -60,9 +60,9 @@ src/
   index.tsx          # Bun.serve entry
   prisma/            # schema + migrations
   trpc/              # routers, auth logic, actions
-  pages/             # SSR login/logout
+  pages/             # SSR login/logout (`auth-document.tsx` shell)
   __tests__/
 scripts/             # seed, ensure-db, generate-dev-keys
 ```
 
-Logic lives under `src/trpc/` — not in `pages/` (CI: no direct Prisma in pages).
+Logic lives under `src/trpc/` — not in `pages/` (CI: no direct Prisma in pages). Login/register/OTP/logout SSR HTML shares `src/pages/auth-document.tsx` (ops tokens: `#050912` / `#00ff88`), not `@packages/ui`.

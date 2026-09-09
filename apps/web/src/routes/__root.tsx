@@ -29,10 +29,11 @@ function RootShell({ children }: { readonly children: ReactNode }): ReactElement
 			<head>
 				<meta charSet="utf-8" />
 				<meta content="width=device-width, initial-scale=1" name="viewport" />
-				<meta content="#0b1220" name="theme-color" />
+				<meta content="#050912" name="theme-color" />
 				<link href="/manifest.json" rel="manifest" />
 				<link href="/logo192.png" rel="apple-touch-icon" />
 				<link href="/silktide/silktide-consent-manager.css" rel="stylesheet" />
+				<link href="/silktide/fivenines-consent.css" rel="stylesheet" />
 				<script src="/gtag-consent-default.js" />
 				<HeadContent />
 			</head>

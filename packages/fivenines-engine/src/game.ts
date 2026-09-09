@@ -37,6 +37,7 @@ export type { AssetInitial, EngineCommand, GameAsset } from "./game.utils";
 
 export interface GameOptions {
 	random?: RandomSource;
+	rollIncidents?: boolean;
 }
 
 export interface GameInitial {
@@ -52,6 +53,7 @@ export class Game {
 	#assets: GameAsset[];
 	#hourIndex = 0;
 	#random: RandomSource;
+	#rollIncidents: boolean;
 	#cashCents: number;
 	#accountsReceivableCents: number;
 	#jailed: boolean;
@@ -75,6 +77,7 @@ export class Game {
 		this.#customers = initial.customers.map((customer) => new Customer(customer));
 		this.#assets = initial.assets.map((asset) => createAsset(asset));
 		this.#random = options?.random ?? new MathRandomSource();
+		this.#rollIncidents = options?.rollIncidents ?? false;
 		this.#cashCents = units.asFiniteInteger(initial.cashCents ?? STARTING_CASH_CENTS, "cashCents");
 		this.#accountsReceivableCents = units.asNonNegativeInteger(
 			initial.accountsReceivableCents ?? 0,
@@ -122,6 +125,7 @@ export class Game {
 			maintenanceCents: this.#opex.maintenanceCents,
 			powerCents: this.#opex.powerCents,
 			leaseCents: this.#opex.leaseCents,
+			monitoringCents: this.#opex.monitoringCents,
 		};
 	}
 
@@ -186,9 +190,34 @@ export class Game {
 			server.resetDemand();
 		}
 
+		const servers = [...this.#serversById.values()];
+
+		for (const server of servers) {
+			const wasDiscovered = server.outageDiscovered;
+			const wasHealth = server.health;
+
+			server.advanceIncidents(this.#rollIncidents, this.#random);
+
+			if (!wasDiscovered && server.outageDiscovered) {
+				events.push({
+					type: "outageDiscovered",
+					hourIndex: eventHourIndex,
+					serverId: server.id,
+					health: server.health,
+				});
+			}
+
+			if (wasHealth === "degraded" && server.health === "unavailable" && wasDiscovered) {
+				events.push({
+					type: "outageEscalated",
+					hourIndex: eventHourIndex,
+					serverId: server.id,
+				});
+			}
+		}
+
 		let totalDemand = 0;
 		let unroutableDemand = 0;
-		const servers = [...this.#serversById.values()];
 
 		for (const customer of this.customers) {
 			for (const project of customer.projects) {
@@ -221,10 +250,15 @@ export class Game {
 
 		for (const server of this.#serversById.values()) {
 			server.tick();
+			server.completeOutageHour();
 
 			const previousUtilization = utilizationByServerId.get(server.id) ?? 0;
 
-			if (previousUtilization < 100 && server.metrics.utilization >= 100) {
+			if (
+				previousUtilization < 100 &&
+				server.metrics.utilization >= 100 &&
+				(server.health === "ok" || server.outageDiscovered)
+			) {
 				events.push({
 					type: "serverSaturated",
 					hourIndex: eventHourIndex,

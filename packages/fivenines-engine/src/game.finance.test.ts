@@ -23,6 +23,7 @@ describe("Game - construct wallet", () => {
 			maintenanceCents: 0,
 			powerCents: 0,
 			leaseCents: 0,
+			monitoringCents: 0,
 		});
 	});
 

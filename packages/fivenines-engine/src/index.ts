@@ -22,6 +22,14 @@ export {
 	STARTING_CASH_CENTS,
 	salvageCents,
 } from "./catalog/economy-policy";
+export {
+	MONITORING_DISCOVERY_HOURS,
+	MONITORING_OPEX_CENTS_PER_HOUR,
+	MONITORING_RAM_MIB,
+	OUTAGE_DEGRADED_HOURS,
+	OUTAGE_DISCOVERY_DELAY_HOURS,
+	OUTAGE_ONSET_PPM,
+} from "./catalog/incident-policy";
 export type { ServerCatalogId } from "./catalog/kernel";
 export { SERVER_CATALOG, SERVER_CATALOG_IDS, SERVER_TIER_LABEL } from "./catalog/kernel";
 export type {
@@ -46,6 +54,7 @@ export type {
 	EngineEvent,
 	GameAsset,
 	GameInitial,
+	GameOptions,
 } from "./game";
 export { Game } from "./game";
 export type { GameFinanceSnapshot } from "./game.finance";
@@ -61,7 +70,7 @@ export type {
 } from "./project";
 export { Project } from "./project";
 export type { ProjectTickMetrics, SlaHourSample } from "./project.metrics";
-export type { ServerInitial, ServerTenure } from "./server";
+export type { ServerHealth, ServerInitial, ServerTenure } from "./server";
 export { Server } from "./server";
 export type { ServerTickMetrics } from "./server.metrics";
 export type { RandomSource } from "./traffic/random-source";

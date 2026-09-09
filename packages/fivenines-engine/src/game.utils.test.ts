@@ -280,3 +280,76 @@ describe("applyCommand - sellServer", () => {
 		expect(sold.assets.map((asset) => asset.id)).toEqual(["server-1"]);
 	});
 });
+
+describe("applyCommand - outage commands", () => {
+	it("starts an outage, installs monitoring, and repairs while jailed", () => {
+		const started = applyCommand(graphOf("served", { jailed: true }), {
+			type: "startOutage",
+			payload: { serverId: "server-1" },
+		});
+
+		expect(started.assets[0]?.health).toBe("degraded");
+		expect(started.jailed).toBe(true);
+
+		const monitored = applyCommand(started, {
+			type: "installMonitoring",
+			payload: { serverId: "server-1" },
+		});
+
+		expect(monitored.assets[0]?.monitoring).toBe(true);
+
+		const repaired = applyCommand(monitored, {
+			type: "repairServer",
+			payload: { serverId: "server-1" },
+		});
+
+		expect(repaired.assets[0]?.health).toBe("ok");
+		expect(repaired.jailed).toBe(true);
+	});
+
+	it("throws when startOutage names an unknown server", () => {
+		expect(() =>
+			applyCommand(graphOf("served"), {
+				type: "startOutage",
+				payload: { serverId: "server-9" },
+			}),
+		).toThrow("unknown server id: server-9");
+	});
+
+	it("throws when startOutage targets a box already in outage", () => {
+		const started = applyCommand(graphOf("served"), {
+			type: "startOutage",
+			payload: { serverId: "server-1" },
+		});
+
+		expect(() =>
+			applyCommand(started, {
+				type: "startOutage",
+				payload: { serverId: "server-1" },
+			}),
+		).toThrow("server is already in outage: server-1");
+	});
+
+	it("throws when repairServer targets a healthy box", () => {
+		expect(() =>
+			applyCommand(graphOf("served"), {
+				type: "repairServer",
+				payload: { serverId: "server-1" },
+			}),
+		).toThrow("server is not in outage: server-1");
+	});
+
+	it("throws when installMonitoring runs twice on the same box", () => {
+		const installed = applyCommand(graphOf("served"), {
+			type: "installMonitoring",
+			payload: { serverId: "server-1" },
+		});
+
+		expect(() =>
+			applyCommand(installed, {
+				type: "installMonitoring",
+				payload: { serverId: "server-1" },
+			}),
+		).toThrow("monitoring already installed: server-1");
+	});
+});

@@ -3,7 +3,7 @@ import type { ServerCatalogId } from "./catalog/kernel";
 import type { RegionId } from "./catalog/regions";
 import { Customer } from "./customer";
 import type { Project, ProjectStatus } from "./project";
-import { Server, type ServerTenure } from "./server";
+import { Server, type ServerHealth, type ServerTenure } from "./server";
 
 export type AssetInitial = {
 	kind: "server";
@@ -11,6 +11,9 @@ export type AssetInitial = {
 	catalogId: ServerCatalogId;
 	region: RegionId;
 	tenure?: ServerTenure;
+	health?: ServerHealth;
+	monitoring?: boolean;
+	outageDiscovered?: boolean;
 };
 
 export type GameAsset = Server;
@@ -24,7 +27,10 @@ export type EngineCommand =
 	| { type: "buyServer"; payload: { serverType: ServerCatalogId; region: RegionId } }
 	| { type: "leaseServer"; payload: { serverType: ServerCatalogId; region: RegionId } }
 	| { type: "sellServer"; payload: { serverId: string } }
-	| { type: "releaseServer"; payload: { serverId: string } };
+	| { type: "releaseServer"; payload: { serverId: string } }
+	| { type: "repairServer"; payload: { serverId: string } }
+	| { type: "installMonitoring"; payload: { serverId: string } }
+	| { type: "startOutage"; payload: { serverId: string } };
 
 export interface GameGraph {
 	readonly customers: readonly Customer[];
@@ -147,6 +153,18 @@ export function applyCommand(graph: GameGraph, command: EngineCommand): GameGrap
 				assets: removeServer(graph.assets, command.payload.serverId),
 			};
 		}
+		case "repairServer": {
+			assertServerExists(graph.assets, command.payload.serverId).repair();
+			return { ...graph };
+		}
+		case "installMonitoring": {
+			assertServerExists(graph.assets, command.payload.serverId).installMonitoring();
+			return { ...graph };
+		}
+		case "startOutage": {
+			assertServerExists(graph.assets, command.payload.serverId).startOutage();
+			return { ...graph };
+		}
 		default: {
 			throw new Error(`unknown command type: ${String((command as { type: unknown }).type)}`);
 		}
@@ -164,6 +182,9 @@ export function createAsset(initial: AssetInitial): GameAsset {
 				kind: "owned",
 				purchaseCents: SKU_ECONOMY[initial.catalogId].purchaseCents,
 			} satisfies ServerTenure),
+		health: initial.health,
+		monitoring: initial.monitoring,
+		outageDiscovered: initial.outageDiscovered,
 	});
 }
 

@@ -1,0 +1,6 @@
+export const OUTAGE_ONSET_PPM = 5_000;
+export const OUTAGE_DEGRADED_HOURS = 2;
+export const OUTAGE_DISCOVERY_DELAY_HOURS = 4;
+export const MONITORING_DISCOVERY_HOURS = 0;
+export const MONITORING_RAM_MIB = 64;
+export const MONITORING_OPEX_CENTS_PER_HOUR = 25;

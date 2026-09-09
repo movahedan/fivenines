@@ -1,3 +1,4 @@
+import { authNavHref } from "../utils/auth-nav-href";
 import { AuthDocument } from "./auth-document";
 import { AuthReturnFields } from "./auth-return-fields";
 
@@ -12,8 +13,10 @@ type RegisterPageProps = Readonly<{
 }>;
 
 export function RegisterPage(props: RegisterPageProps) {
+	const ret = { redirectUri: props.redirectUri, state: props.state, next: props.next };
+
 	return (
-		<AuthDocument title="Create account — Five Nines">
+		<AuthDocument brandHref={authNavHref("/login", ret)} title="Create account — Five Nines">
 			<h1>Create account</h1>
 			{props.error ? <p className="error">{props.error}</p> : null}
 			<form method="post" action="">
@@ -39,8 +42,8 @@ export function RegisterPage(props: RegisterPageProps) {
 				<button type="submit">Register</button>
 			</form>
 			<p className="links">
-				<a href="login">Sign in</a>
-				<a href="otp">Sign in with code</a>
+				<a href={authNavHref("/login", ret)}>Sign in</a>
+				<a href={authNavHref("/otp", ret)}>Sign in with code</a>
 			</p>
 		</AuthDocument>
 	);

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 interface AuthDocumentProps {
 	readonly title: string;
+	readonly brandHref?: string;
 	readonly children: ReactNode;
 }
 
@@ -83,7 +84,7 @@ const AUTH_SHELL_CSS = `
   .links a { color: var(--primary); margin-right: 1rem; }
 `;
 
-export function AuthDocument({ title, children }: AuthDocumentProps) {
+export function AuthDocument({ title, brandHref = "/login", children }: AuthDocumentProps) {
 	return (
 		<html lang="en">
 			<head>
@@ -100,7 +101,7 @@ export function AuthDocument({ title, children }: AuthDocumentProps) {
 			<body>
 				<main>
 					<p className="brand">
-						<a href="/login">Five Nines</a>
+						<a href={brandHref}>Five Nines</a>
 					</p>
 					{children}
 				</main>

@@ -16,7 +16,7 @@ todos:
     status: completed
   - id: docs-pr
     content: "Single plan on #101; stacked slices folded; PR titled Milestone 2"
-    status: in_progress
+    status: completed
 isProject: false
 ---
 

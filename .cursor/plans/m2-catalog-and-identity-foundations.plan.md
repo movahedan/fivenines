@@ -4,16 +4,16 @@ overview: "PR #64: isolated compiled catalogs (technology, hardware, demand, cou
 todos:
   - id: phase-1-catalog-compile
     content: "Compile baseline.json into isolated runtime catalog modules with integer work units; validate IDs, DAG, and references"
-    status: pending
+    status: completed
   - id: phase-1-identity-clock
     content: "Add identity ownership index and hour/catalog-version contracts; no command or coincidence tables"
-    status: pending
+    status: completed
   - id: phase-1-verify
     content: "Phase 1 gate: bun test packages/fivenines-engine && bun run turbo run typecheck --filter=@packages/fivenines-engine && bun run overall"
-    status: pending
+    status: completed
   - id: phase-1-docs
     content: "documentation-sync after checkup PASS"
-    status: pending
+    status: completed
   - id: phase-1-pr
     content: "git-pr-workflow stacked on docs/m2-base; link #64"
     status: pending

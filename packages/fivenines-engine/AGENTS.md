@@ -166,6 +166,14 @@ Root graphs (`evaluateRootOutcomes`, `estimateRootLatency`) count each customer 
 
 Ownership, tick order, and same-hour event order stay in product docs and the [milestone](../../docs/milestones/engine-architecture-and-mathematics.md). Do not encode those guidelines as engine modules.
 
+## Compiled catalogs
+
+`compileAuthoredCatalog()` in `src/catalog/compile.ts` translates [baseline.json](../../docs/product/balance/baseline.json) into isolated runtime records: technology edges as **ids**, hardware capacities in `src/work` units (`cpuWork`, `gpuWork`, `diskOps`, `networkMiB`, memory/disk occupancy), demand-type ids, and courses. `hoursPerTick` must be `1`. Design money stays on `hardware.design` and does **not** replace `SERVER_CATALOG` / `SKU_ECONOMY`. `Game` must not import `src/catalog/compile.ts`. Live SKUs remain Bronze–Diamond plus `thin-ram`.
+
+## Identity registry
+
+`src/identity/registry.ts` indexes `customer` | `project` | `asset` | `service` | `instance` by globally unique id and owner. `registerAll` is atomic. `assertHourIndex` accepts non-negative integers. `Game` must not import this tree yet. `service` / `instance` kinds exist for #65.
+
 ## Related
 
 - Intended behavior: [Product reference](../../docs/product/index.md)

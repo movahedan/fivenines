@@ -28,4 +28,6 @@ export type { DemandVariationId } from "../catalog/demand-variation";
 export { DEMAND_ARRIVAL_POLICY, DEMAND_VARIATION } from "../catalog/demand-variation";
 export type { DemandBatch, DemandEngineOptions, DemandHour } from "./engine";
 export { DemandEngine } from "./engine";
+export type { AdmitResult, ExecutionInput, QueueCohort } from "./queue";
+export { WorkQueue } from "./queue";
 export { SeededRandomSource, seedFromProjectId } from "./rng";

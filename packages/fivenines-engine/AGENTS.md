@@ -176,6 +176,10 @@ Live numbers live in `src/catalog/demand-types.ts`, `demand-rhythms.ts`, `demand
 
 Hourly arrival: `m = baseline × rhythm × campaign × spike`, then Gamma–Poisson (`k` from early/standard/volatile) and a multinomial split. `constant: true` skips the mixture and uses largest remainder. Finite jobs emit one frozen root from `activateFinite` and never hourly Poisson. Each project uses `SeededRandomSource` from its id. Arrival sample checks state `n` and tolerances in the assertion. Do not re-export this tree from `src/index.ts` until a consumer needs it (barrel imports would load it into Hub/Lab coverage).
 
+## Work queues
+
+`src/demand-engine/queue.ts` keeps arrival cohorts (`demand type` + arrival hour). Waiting age and job `completedCount` survive aggregation. Interactive/continuous expire after the arrival tick; queued work may remain for two further ticks; jobs do not expire here. Occupancy is `queueKiB` × count. Durable job working memory is tracked separately. A full queue rejects new batches and does not evict accepted work. `toExecutionInput()` is for M5; `Game` must not import this tree. There is no resource solver.
+
 ## Identity registry
 
 `src/identity/registry.ts` indexes `customer` | `project` | `asset` | `service` | `instance` by globally unique id and owner. `registerAll` is atomic. `assertHourIndex` accepts non-negative integers. `Game` must not import this tree yet.

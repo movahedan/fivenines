@@ -44,8 +44,8 @@ Connect Learning catalog, inline enrollment details and distinct learning progre
 | Slice | Status | PR | Verification evidence |
 |---|---|---|---|
 | Milestone 3 stack base | In review | [#104](https://github.com/movahedan/fivenines/pull/104) | Docs/plans only; `bun run overall` locally |
-| Typed demand generation | In review | this slice on #104 | engine tests + `bun run overall` |
-| Batch retention and queue state | Planned | [#68](https://github.com/movahedan/fivenines/issues/68) | Not run |
+| Typed demand generation | In review | [#105](https://github.com/movahedan/fivenines/pull/105) | engine tests + `bun run overall` |
+| Batch retention and queue state | In review | this slice on #105 | engine tests + `bun run overall` |
 | Enrollment and tuition lifecycle | Planned | [#69](https://github.com/movahedan/fivenines/issues/69) | Not run |
 | Learning and demand integration | Planned | [#70](https://github.com/movahedan/fivenines/issues/70) | Not run |
 

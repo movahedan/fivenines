@@ -17,7 +17,9 @@ This design-0.3 baseline answers delegated catalog and numeric design work. It i
 
 ## Runtime configuration boundary
 
-Preserve the existing `packages/fivenines-engine/src/catalog/` boundary. Future runtime catalog data and policy numbers belong there in focused modules: technology-catalog, research-policy, project-catalog, demand-catalog, traffic-policy, hardware-catalog, capacity-policy, economy-policy, commercial-policy, operation-policy, time-policy, and observation-policy. They are future module responsibilities, not new runtime files created by this documentation task.
+Preserve the existing `packages/fivenines-engine/src/catalog/` boundary. Live Game configuration is those TypeScript modules (today Bronze SKUs and the existing policy files). [baseline.json](baseline.json) is the authored design pack; `src/baseline/` checks it. Do not load that JSON as `Game` config, and do not add a compiler or translator object that produces a parallel runtime catalog. When the live numbers cut over, replace the TypeScript modules (or one versioned runtime snapshot) in place so there is a single boot source.
+
+Future runtime catalog data and policy numbers belong there in focused modules: technology-catalog, research-policy, project-catalog, demand-catalog, traffic-policy, hardware-catalog, capacity-policy, economy-policy, commercial-policy, operation-policy, time-policy, and observation-policy. They are future module responsibilities, not a compile pipeline and not new files created by this documentation task.
 
 Simulation classes consume validated, versioned configuration; UI consumes descriptions and computed results. Do not embed balance literals in Game, Server, DemandEngine, UI components, or transport handlers. Keep invariant algorithms, validation, and indexing outside raw tuning tables. Validate references and the technology DAG when loading configuration, not on every tick. Record catalog version in snapshots. Structural changes need migration; hot-reloading arbitrary values into an ongoing game is not implied. Accepted contract terms remain frozen for that contract; changing a catalog does not silently rewrite signed terms.
 

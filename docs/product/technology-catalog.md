@@ -1,6 +1,6 @@
 # Technology catalog and dependencies
 
-The [design-0.3 balance baseline](balance/index.md) now selects this library and supplies explicit research times, fees, resource baselines, workloads, and policy numbers. The conceptual descriptions below remain useful context; the baseline is the current authored numeric specification. It is not live engine configuration or a playtested final balance.
+The [design-0.3 balance baseline](balance/index.md) now selects this library and supplies explicit research times, fees, resource baselines, workloads, and policy numbers. The conceptual descriptions below remain useful context; the baseline is the current authored numeric specification. It is not live engine configuration or a playtested final balance. Live Game SKUs stay in engine `src/catalog/` TypeScript until a cutover replaces those modules; do not compile this catalog into a parallel runtime.
 
 ## Status and reading conventions
 

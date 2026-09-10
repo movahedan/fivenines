@@ -84,7 +84,7 @@ bun run overall
 
 ## What stays out of scope
 
-- Catalog compile, identity registry, project services, Hub/Lab UI (#64–#66).
+- Identity registry, project services, Hub/Lab UI (#64–#66). No catalog compiler.
 - Wiring `src/baseline/` or `src/work/` into `Game`.
 - Nest, auth, SDK, persistence.
 
@@ -93,7 +93,7 @@ bun run overall
 | PR | Content | Merge gate |
 |----|---------|------------|
 | Base | This phase | `bun run overall` |
-| #64 | Catalog and identity | engine tests + `bun run overall` |
+| #64 | Identity registry; keep baseline checker; no catalog compiler | engine tests + `bun run overall` |
 | #65 | Project services and shared assets | engine tests + `bun run overall` |
 | #66 | Application model integration | engine + web tests + `bun run overall` |
 

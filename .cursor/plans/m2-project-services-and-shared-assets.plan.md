@@ -6,7 +6,7 @@ todos:
     content: "Add service, instance, and shared-asset entities with dependency and placement edges"
     status: pending
   - id: phase-1-mutations
-    content: "Atomic candidate mutations; compile or invalidate graph indexes on topology change"
+    content: "Atomic candidate mutations; rebuild graph indexes on topology change"
     status: pending
   - id: phase-1-verify
     content: "Phase 1 gate: bun test packages/fivenines-engine && bun run turbo run typecheck --filter=@packages/fivenines-engine && bun run overall"
@@ -73,7 +73,7 @@ flowchart TD
 
 ### Code/config surfaces (builder-workflow)
 
-- `packages/fivenines-engine/src/topology/` (or `src/services/`): types + mutation + index compile
+- `packages/fivenines-engine/src/topology/` (or `src/services/`): types + mutation + index rebuild
 - Tests: two projects → one asset; two instances share config and diverge on host/health; config mutation isolated to one project; reject cycles/missing placements atomically
 - Do not edit `apps/web`, Nest, auth
 - Do not import topology from `Game.tick`

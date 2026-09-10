@@ -6,7 +6,7 @@ The product and interface discussion is complete for the current design handoff.
 
 - Product identity, entities, lifecycle, obligations, relationships, learning and recovery rules.
 - Delegated catalogs: 31 version-one technologies, 13 demand types, nine continuous templates and two finite-job templates; nine hardware choices and five course families. Twelve additional technologies, seven demand types, three continuous templates and three finite-job templates are disabled expansion candidates, not release requirements.
-- Approved navigation, bottom drawers, project workspace and object/action hierarchy.
+- Reconciled 2026-09-10 navigation, central offer/contract pages, contextual drawers, project workspace and object/action hierarchy, including existing Park/offline intent.
 - [Figma Make handoff](figma-make-handoff.md), [interface brief](interface-design-brief.md) and [interaction specification](interaction-specification.md).
 - [Delivery milestones](../milestones/README.md), including proposed PR slices and acceptance scenarios; obsolete plans and completed review reports are removed.
 
@@ -14,7 +14,7 @@ The product and interface discussion is complete for the current design handoff.
 
 | Work | What still needs evidence |
 |---|---|
-| Figma prototype generation and review | Produce actual desktop/mobile frames and linked flows; verify all interaction states and accessibility. Documents alone are not a finished visual design |
+| Figma reference and interaction completion | Design received and shell/workspace layout approved; preserve it in `apps/figma-design`. Implement missing action flows and correct fixtures/accessibility under the existing [delivery milestones](../milestones/README.md). The export is not a complete playable application |
 | Aggregate solver | Prove and implement multi-resource allocation, branch completion, queue transitions and latency estimates with conservation and order independence |
 | Data structures and lifecycle | Implement indexes, graph representation, batch state, service configuration and instance transitions against current Phase 2 code |
 | Routing and recovery | Verify readiness, replication, data transfer, observed health, incidents, replacement and automatic leasing under contention |
@@ -25,7 +25,6 @@ Each implementation slice needs its own tests and documentation synchronization 
 
 ## Explicitly deferred
 
-- Canvas connection gesture selection (drag versus Connect-and-select); compatibility and loop rules are settled.
 - State/command protocol, versioned snapshots and SSE synchronization. Login and eventual server authority are settled; frontend engine development continues for now.
 - Away-time simulation and its return report.
 - Employee hiring, assignment and management. Player courses and two shared learning slots remain in current scope.

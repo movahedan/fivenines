@@ -38,7 +38,7 @@ Apply the [shared verification gates](README.md#verification-gates) to each affe
 
 ## Interface integration
 
-Deliver offer list and full contract bottom drawer on both devices, bold key terms, explicit acceptance, top-bar financial status, Finances and project settlement details. Keep existing login requirement; do not add guest play.
+Deliver central offer browsing and full Contract Review on both devices, bold key terms, explicit acceptance, top-bar financial status with `OPEX/day` labeled as the estimated daily operating cost at the current state/rate, daily rent quotes and unchanged hourly accrual, business Finances and embedded project settlement details. Keep cash received, earned fixed fees, unearned advance, receivables, credits and liabilities distinct. Never count the acceptance advance again as extra earned revenue. Preserve setup patience and Park/Resume contract timing as the first commercial path is generalized. Keep existing login requirement; do not add guest play.
 
 ## Delivery record
 

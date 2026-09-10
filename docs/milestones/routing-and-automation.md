@@ -37,7 +37,7 @@ Apply the [shared verification gates](README.md#verification-gates) to each affe
 
 ## Interface integration
 
-Deliver nested-balancer selection and contextual actions, target availability, pending failover/replacement and blocked-cost warnings. Preserve mobile/desktop bottom-drawer semantics. Resolve the deferred connection gesture through the documented native compatibility comparison when implementation needs it.
+Deliver nested-balancer selection and contextual actions, target availability, pending failover/replacement and blocked-cost warnings. Extend the approved infrastructure workspace for graph and target actions absent from the export; preserve mobile/desktop bottom-drawer semantics for contextual target and impact flows. Central offer/contract pages are outside that drawer rule. Implement Select source → Connect → Select compatible destination with touch and keyboard access and no required drag. Use the same bottom-drawer context for target selection and recovery; graph-library selection still requires native compatibility verification.
 
 ## Delivery record
 

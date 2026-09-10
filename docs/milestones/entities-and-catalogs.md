@@ -36,7 +36,7 @@ Apply the [shared verification gates](README.md#verification-gates) to each affe
 
 ## Interface integration
 
-Introduce the final project/asset display identity and selection contracts in Projects and Inventory. Keep layout coordinates outside the engine. Detailed operations arrive with milestone 4.
+Introduce the final project/asset display identity and selection contracts in Projects and Inventory. Use the main project workspace rack as the shared server visual in project, Inventory and acquisition representations; adapt density and content without introducing unrelated server designs. Keep layout coordinates outside the engine. Detailed operations arrive with milestone 4.
 
 ## Delivery record
 

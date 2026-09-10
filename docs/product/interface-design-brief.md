@@ -1,6 +1,6 @@
 # Interface design brief
 
-Status: consolidated design direction, 2026-09-09. Navigation, shared drawers, project workspace behavior, and delegated interaction hierarchy are settled for design handoff. Fine visual treatments remain designer choices within these constraints. This document does not replace gameplay rules or claim runtime completion.
+Status: reconciled with the supplied Figma design on 2026-09-10. The user approved its final shell and workspace layout while retaining product capabilities absent from the prototype. The preserved [design reference](../../apps/figma-design/README.md) supplies visual treatment; this brief and the [interaction specification](interaction-specification.md) define the intended production interface. This document does not replace gameplay rules or claim runtime completion.
 
 ## Design objective
 
@@ -33,7 +33,7 @@ Existing example labels such as `1000 cores` must not become authoritative hardw
 
 - All interface copy, component names, and handoff documentation are English. Use familiar terms: Projects, Inventory, Technologies, Courses, Finances, Activity.
 - Gameplay requires login. The current browser engine is a development arrangement; the intended authority is the server, delivering state through SSE.
-- A project opens onto its infrastructure. Desktop keeps Status, Performance, and Finances in a right-side tabbed panel. Mobile uses separate project views. Component details use the desktop panel or a mobile bottom sheet.
+- A project opens into a vertically arranged workspace: a compact identity/action header, a collapsed Contract section, Infrastructure, and either the Setup checklist or Project status. Status, Performance, and Finances are tabs inside Project status beneath Infrastructure on both devices. Contextual component details must preserve access back to this workspace; the prototype does not yet implement their complete interaction.
 - Each server has a rack-shaped visual container with the current project's software inside and a brief resource summary underneath. Shared hardware retains one identity, capacity budget, and cost across project views.
 - Inventory is an alternative way to manage those same assets. Routine acquisition and placement can be completed inside a project.
 - Basic server state and compact consumption remain visible. Detailed monitoring, error history, diagnosis, and alerts depend on installed, operating coverage. Missing observations remain missing.
@@ -44,30 +44,34 @@ Existing example labels such as `1000 cores` must not become authoritative hardw
 
 ## Agreed navigation and persistent context
 
-Use Projects as the default destination. Desktop navigation: Projects, Inventory, Learning, Finances. Learning contains Technologies and Courses; Finances here is the business-wide view, distinct from project finances. Activity opens a shared feed from the shell. Settings and account stay secondary. Employee navigation is deferred with its feature.
+Use Projects as the default destination. Desktop navigation: Projects, Inventory, Learning, Finances. Learning contains Technologies and Courses; Finances here is the business-wide view, distinct from project finances. Activity opens a shared feed from the shell. Settings and account stay secondary. Show only functional account actions such as Settings and Sign out; omit Profile and What’s new until separately defined. Employee navigation is deferred with its feature.
 
-On mobile, use a tab view with bottom navigation ordered Projects, Inventory, a prominent central New project action, Learning, and Finances. On desktop, the four destinations use collapsible and expandable folder-like rail panels with vertically labeled tabs. Keep a top status bar on both devices. The New project action opens available offers; it does not generate a new offer or accept a contract immediately.
+On mobile, use a tab view with bottom navigation ordered Projects, Inventory, a prominent central New project action, Learning, and Finances. On desktop, Projects occupies a resizable, collapsible left panel. Inventory, Learning, and business Finances share a resizable right panel, with one destination open at a time and vertically labeled rail tabs. The central project workspace remains the main surface. Keep a top status bar on both devices. The New project action opens available offers; it does not generate a new offer or accept a contract immediately.
 
-Keep Operations progress floating on the left of the active content and Learning progress on the right. Operations includes installation, configuration, repair, migration, and automated replacement; Learning represents the two shared technology/course slots. Use compact collapsible indicators so these groups do not obscure the system or compete with the project inspector. Activity remains the event history rather than a permanent stack of event cards.
+On desktop, place compact Operations and Learning progress indicators in the top status bar. On mobile, use a compact progress strip above the bottom navigation. Operations includes installation, configuration, repair, migration, and automated replacement; Learning represents the two shared technology/course slots. Keep their identities and queues distinct even when they share a strip. Indicators open the relevant task or enrollment, with overflow access when space is limited. Activity remains the event history and opens from the shell in a right-side overlay; the account menu opens from the left.
 
 A project header means the compact identity strip within an already opened project workspace: project/customer name, service state, and access to its existing contract. It is not the offer-selection surface, a separate navigation step, or a substitute for full pre-acceptance details. Its exact visual treatment is a designer choice; no additional navigation step is required.
 
-## Shared bottom drawers and offer review
+## Offer review and contextual drawers
 
-New project opens an available-project list in a bottom drawer on both mobile and desktop. Selecting an offer reveals its full details within that drawer, including customer context, workload/features, requirements, and all contract terms. Provide a back action to the offer list that preserves its scroll position. Acceptance is an explicit action after review, with important contractual terms bold; the drawer provides the contractual modal surface without requiring another stacked modal. On acceptance, receive the advance and enter the project's setup workspace.
+New project opens a dedicated central offer page on desktop and the active content page on mobile. Browse the available offers with previous/next controls and an index/count; this navigates existing opportunities and never generates or refreshes one. The first offer can appear directly, without a separate list screen. Show an empty state when none are available. Preserve the selected offer and reading position when moving between offer details and full Contract Review.
 
-Bottom-drawer flows use the same content hierarchy and up/down interaction semantics on both devices; do not replace the desktop version with a centered dialog or side drawer. Dimensions may adapt to available space. Keep existing contextual desktop inspectors where already specified; this rule aligns flows that use bottom drawers rather than moving every panel into one.
+Review full contract opens a distinct review step in the same content area. Provide Back to the selected offer and Close to the previous workspace. Desktop uses two readable columns; mobile stacks them. Keep important contractual terms bold and acceptance explicit. Acceptance receives the advance once and opens the accepted project's setup workspace, including when no server exists yet. Closing or browsing never accepts work. Expired or already accepted offers cannot be accepted again.
 
-Horizontal and vertical scrolling retain the same meaning across devices. Mobile bottom tabs and desktop rail panels are the primary navigation distinction. Proposed gesture detail: drag the drawer handle to expand/collapse, scroll its body to read, and provide visible close/back controls plus keyboard access. Scrolling contract text must not accidentally dismiss the drawer, and gestures must never accept a contract. Exact snap positions and gesture thresholds remain implementation details.
+The retained Contract section in a project is available from acceptance onward, independently of hardware acquisition. Its default collapsed state preserves focus on Infrastructure. Keep cancellation and refund conditions complete; a setup allowance is followed by the agreed customer patience policy, not an automatic refund at the allowance boundary.
 
-Keep cash, business reputation, game time, and pause/speed reachable in the shell. Receivables, liabilities, relationship details, and all resource totals need not be permanent HUD counters. Show operational preparation separately from the two shared learning slots. A compact task indicator opens the work queue; it is not another full-time panel.
+Acquisition and material-impact action reviews retain bottom-drawer semantics on both devices. They need titles, visible Back/Close, readable scrollable content and named final actions. This requirement does not apply to the central offer/contract page, shell side overlays, or inline Inventory/Learning details. The exported acquisition component has missing styling; its broken rendering is an implementation correction, not a new layout rule.
+
+Horizontal and vertical scrolling retain the same meaning across devices. Mobile bottom tabs and desktop rail panels are the primary navigation distinction. Proposed gesture detail: drag the drawer handle to expand/collapse, scroll its body to read, and provide visible close/back controls plus keyboard access. Scrolling review content must not accidentally dismiss its surface, and gestures must never accept a contract. Exact snap positions and gesture thresholds remain implementation details.
+
+Keep cash, business reputation, game date/time, operating-cost context, and pause/speed reachable in the shell. Display rent quotes per day and label the shell cost `OPEX/day`: estimated daily operating cost at the current state/rate, not cash already paid. Actual rent still accrues hourly; financial details distinguish estimates from settled charges. The calendar date and day-progress treatment is presentational; simulation hours and billing boundaries remain authoritative. Receivables, liabilities, relationship details, and all resource totals need not be permanent HUD counters. Show operational preparation separately from the two shared learning slots. A compact task indicator opens the work queue; it is not another full-time panel.
 
 ## Required screen coverage
 
 | Surface | Main content | Main action or transition |
 |---|---|---|
 | Projects | Customer identity, project/workload type, state, required SLA, short trend, and an actionable status summary | Open project; view available offers |
-| Offers | A small reputation-appropriate selection with customer context, features, required technologies, and commercial summary | Review contract |
+| Offers | A central page with a small reputation-appropriate selection, previous/next navigation, customer context, features, technologies, and commercial summary | Review full contract |
 | Contract review | Bold advance, recurring/usage terms, setup cancellation/refund consequences, service obligations, and compensation | Accept contract and receive advance |
 | Project setup | The same infrastructure canvas used after launch, with a contextual requirements checklist and preparation progress | Acquire capacity, install/configure required services, then Start service |
 | Live infrastructure | Rack containers, project software, routing, selected component inspector, and concise resource/status cues | Inspect, configure, duplicate project deployment, migrate, repair, or manage capacity |
@@ -81,6 +85,8 @@ The first project should feel personal: an acquaintance's simple appointment-boo
 
 ## Infrastructure presentation
 
+The server rack in the main project workspace (`InfraCanvas.tsx`, `ServerRack` in the reference) is the visual source for servers everywhere. Inventory, acquisition, selection and detail views must reuse that recognizable shell, identity/tenure header, status lamp, software area where relevant, and resource-bar language. Adapt density and contextual content; do not copy the unstyled acquisition listing or invent an unrelated server card from incomplete secondary pages. This was explicitly clarified by the user during design review.
+
 Propose a left-to-right flow for an initial auto-layout: incoming demand, routing where installed, then application/worker and data dependencies. Server containers establish placement; arrows establish relationships. Freely moving a container changes presentation, not capacity or latency.
 
 At normal zoom, show each software instance as a distinct labeled module. Supporting capabilities can use compact modules or indicators that reveal coverage on selection. At distant zoom, collapse details into server name, condition, and a compact utilization cue. Re-expand when selected or zoomed in. Selection highlights related links; do not draw every monitoring-coverage line permanently over every traffic connection.
@@ -89,19 +95,19 @@ Distinguish traffic, data dependencies, and monitoring coverage with labels and 
 
 For shared hardware, show total use and an indication of other hosted projects. Rich project breakdowns follow monitoring availability. Power-off, sale, or lease release must expose affected projects before the action. Duplicate operations copy only the selected project's deployment, even when the server hosts other projects.
 
-Component selection replaces the right panel with name, state, host, configuration, work progress, and contextual actions. Preserve an explicit return to project information. Use one clear primary action for the current state; group less frequent lifecycle actions separately. Explain unavailable actions inline rather than relying on hover.
+Component selection opens contextual details with name, state, host, configuration, work progress, and actions. Keep these scoped to the selected object, distinct from the business-wide right panel. Use a bottom drawer on both desktop and mobile, with the same visual language and an explicit return to project information. Keep the business-wide right panel independent. Checklist items open this drawer directly at the required installation/configuration action; recovery and destination selection use the same contextual flow. Use one clear primary action for the current state; group less frequent lifecycle actions separately. Explain unavailable actions inline rather than relying on hover.
 
-Exact connection gestures remain deferred. Show compatible endpoints and connection outcomes in designs without committing the product to dragging or Connect-and-select. Provide a touch- and keyboard-accessible path in the eventual interaction design.
+Connections use Select source → Connect → Select compatible destination, accessible by touch and keyboard without requiring drag. Show compatible endpoints, explain invalid targets, and reject loops. Keep Add server available after the first acquisition. On mobile, contain pan and zoom within the infrastructure canvas; the surrounding page and headers must fit the viewport. Preserve the main rack design rather than clipping it or creating a different mobile server visual.
 
 ## Status, performance, and money
 
 | Project view | Suggested hierarchy |
 |---|---|
-| Status | Current service state; demand and completed-work trend; relevant waiting/failure summaries; observed resource pressure and incidents |
-| Performance | Selected billing period, contract target versus actual outcome, trend, and short factual explanations of losses or improvements |
+| Status | Current service health, contractual availability and target, failure budget, waiting/failure summaries and observed incidents; compact availability bars may summarize history |
+| Performance | Demand and completed work by compatible workload type, resource-use trends where observed, and factual explanations of losses or improvements |
 | Finances | Cash received, earned amounts, receivables/payables, operating costs, compensation/refunds, then the transaction breakdown and trend |
 
-Use sparklines in project rows and larger line charts in detail. Propose Current period / Previous period / Two periods ago as shared historical selectors. Label units by workload: requests, jobs, or the appropriate workload measure; do not sum incompatible units into one throughput line. Include chart legends, accessible textual summaries, and selected-point details on both touch and pointer devices.
+Use compact trends in project rows, thin availability bars in Status, and larger line or multi-series charts in detail. Preserve Current period / Previous period / Two periods ago as shared historical selectors even though the supplied example omits them. Contractual availability measures on-time successful demand, not time-based uptime. A current outage alone does not prove the period target has been breached. Label units by workload: requests, jobs, or the appropriate workload measure; do not sum incompatible units into one throughput line. Include chart legends, accessible textual summaries, and selected-point details on both touch and pointer devices.
 
 Use gaps for missing monitoring samples, not zero values or invented interpolation. Distinguish unavailable monitoring data from an actual service outage. Monitoring-derived diagnostics and contractual/accounting records are different information sources. Do not lock financial facts behind a monitoring upgrade.
 
@@ -119,7 +125,7 @@ Use subtle server lamps, preparation progress, and restrained flow animation to 
 
 Use the [Interaction specification](interaction-specification.md) for object/action ownership, state-dependent buttons, specialized capability sections, impact reviews, and required interaction frames. It supplies the delegated interaction hierarchy; do not invent controls from visual examples alone.
 
-Read [Introduction](introduction.md), [Gameplay](gameplay.md), [Domain model](domain-model.md), and this brief first. Consult the [Technology catalog](technology-catalog.md) and [Balance baseline](balance/index.md) for dependency and example consistency. Current implementation and historical Cursor plans must not override intended behavior. Preserve the approved visual identity; preserve the agreed navigation and interaction structure; present visual refinements for review without adding game rules.
+Read [Introduction](introduction.md), [Gameplay](gameplay.md), [Domain model](domain-model.md), and this brief first. Consult the [Technology catalog](technology-catalog.md) and [Balance baseline](balance/index.md) for dependency and example consistency. Current implementation and historical Cursor plans must not override intended behavior. Preserve the approved visual identity and the reconciled navigation and interaction structure. Extend missing controls in that visual language without adding game rules or treating absent frames as deferred capabilities.
 
 Produce linked desktop and mobile flows, reusable components and variants, and explicit empty, selected, unavailable, in-progress, failed, and recovered states. If the generated prototype uses a web stack, treat it as a design prototype; it does not settle production React Native graph/chart dependencies.
 

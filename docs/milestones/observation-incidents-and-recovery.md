@@ -40,7 +40,7 @@ Apply the [shared verification gates](README.md#verification-gates) to each affe
 
 ## Interface integration
 
-Complete monitoring details, error/alert activity, diagnostic and repair actions. Project Status, Performance and Finances use line charts and explanatory records as specified. Compare chart/rendering candidates for the actual shared React Native stack before adding dependencies.
+Complete monitoring details, error/alert activity, diagnostic and repair actions. Embedded project Status may use compact availability bars; Performance and Finances use detailed line/multi-series charts and explanatory records. All retain period selection, meaningful units, coverage gaps and accessible point details. An instantaneous outage is not automatically a period SLA breach; pressure alerts use the configured threshold and persistence. Basic status and contractual/accounting facts remain accessible without Monitoring, while detailed resource history and attribution require coverage. Compare chart/rendering candidates for the actual shared React Native stack before adding dependencies.
 
 ## Delivery record
 

@@ -4,7 +4,7 @@ Five Nines is a management game about building an infrastructure and operations 
 
 ## Reading guide
 
-For design generation, start with [Figma Make handoff](figma-make-handoff.md). It provides the prompt, reading order, required screens, and review criteria. The product discussion is closed for this handoff; remaining implementation and deferred work are tracked separately.
+For the approved visual direction, start with the preserved [Figma design reference](../../apps/figma-design/README.md), [interface brief](interface-design-brief.md), and [interaction specification](interaction-specification.md). The [Figma Make handoff](figma-make-handoff.md) remains extension guidance and a coverage checklist. Missing prototype interactions remain implementation work, not automatic product deferrals.
 
 | Document | Question it answers |
 |---|---|
@@ -39,4 +39,4 @@ The public wiki can explain the game to players. It does not replace this produc
 
 Gameplay owns behavioral rules; Domain model owns vocabulary and relationships. The interface brief and interaction specification own approved presentation and action hierarchy. The balance JSON owns authored numeric defaults, with companion documents explaining their interpretation. Historical plans and source UI screenshots cannot override those targets. Code and workspace guidance describe current implementation, not proof that the target is already delivered.
 
-When a genuine contradiction remains, identify it explicitly before implementing dependent behavior. Do not choose whichever document was encountered last. The handoff and generated prototype summarize these sources rather than becoming a second product authority.
+When a genuine contradiction remains, identify it explicitly before implementing dependent behavior. Do not choose whichever document was encountered last. The approved prototype is the visual reference; its fixture values, inactive modules and incomplete callbacks do not override gameplay, domain or balance rules. Its imported prompts are historical inputs, not current repository instructions. Reconciled presentation decisions belong in the interface documents; the handoff and prototype do not become a second behavioral authority.

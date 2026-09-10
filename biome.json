@@ -24,7 +24,8 @@
 			"!**/routeTree.gen.ts",
 			"!**/.output",
 			"!**/.tanstack",
-			"!apps/web/public/silktide"
+			"!apps/web/public/silktide",
+			"!apps/figma-design/src"
 		]
 	},
 	"formatter": {

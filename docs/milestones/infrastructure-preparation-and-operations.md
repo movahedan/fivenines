@@ -20,13 +20,15 @@ These are outcome-sized slices, not fixed file lists. Inspect current code and m
 
 | Slice | Depends on | Deliverable |
 |---|---|---|
-| Acquaintance acceptance and advance | Milestone prerequisite | Implement the first offer, full contract drawer, upfront payment, setup cancellation/refund and explicit activation billing origin using the shared ledger boundary. |
+| Acquaintance acceptance and advance | Milestone prerequisite | Implement the first offer page, full Contract Review, upfront payment, setup allowance and subsequent patience/cancellation/refund, and explicit activation billing origin using the shared ledger boundary. |
 | Operational queue and readiness | Acquaintance acceptance and advance | Implement the single player operational queue, prerequisites, retained progress and skill-adjusted work. Define explicit ready/active states; readiness never silently starts a contract. |
 | Installation and configuration actions | Operational queue and readiness | Connect project service installation and shared configuration to instances. Implement power commands and their effects on readiness and volatile work, preserving persistent data. |
 | Duplication and transfer lifecycle | Installation and configuration actions | Implement project-only duplication preparation, destination compatibility and pending data-transfer state. Source service continues during preparation; completed data movement awaits milestone 5 allocation. |
 | System workspace operations | Duplication and transfer lifecycle | Integrate rack, installed-module selection, contextual actions and operational progress with desktop/mobile interaction hierarchy. Revalidate destructive/shared-asset actions against current engine state. |
 
 ## Acceptance and verification
+
+- Contract Review preserves offer identity on Back and never charges on Close. Setup allowance expiration starts the agreed patience policy rather than immediate cancellation. A signed contract remains inspectable before hardware acquisition. Park is unavailable during initial setup and cannot stop another project on shared hardware.
 
 - Accepting the acquaintance contract posts the actual advance once; cancelling during setup applies its agreed refund. The explicit Start action requires readiness and starts the project billing period, not a global week boundary. Buy/lease and setup costs use the shared money state.
 
@@ -40,7 +42,7 @@ Apply the [shared verification gates](README.md#verification-gates) to each affe
 
 ## Interface integration
 
-Deliver the rack/software action hierarchy, basic activity summary, selection inspector and bottom drawers from the interaction specification. Desktop rails and mobile navigation preserve the system workspace. Use basic state now; detailed monitoring arrives in milestone 7.
+Deliver the approved desktop left Projects panel, right business panels and mobile navigation, central offer/Contract Review pages, and vertically arranged project sections. Reuse the main workspace server-rack design in acquisition and Inventory details. Connect the rack/software action hierarchy, bottom-drawer object inspectors on both devices, acquisition/impact drawers and distinct task indicators in the desktop top bar/mobile progress strip. Acceptance opens setup before hardware exists; setup checklist items open the object drawer at real install/configure actions. Add server remains available after the first acquisition. Include project-scoped Park/Resume controls and blockers from Gameplay, with execution/accounting verified in milestone 5. Use basic state now; detailed monitoring arrives in milestone 7.
 
 ## Delivery record
 

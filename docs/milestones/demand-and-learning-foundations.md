@@ -37,7 +37,7 @@ Apply the [shared verification gates](README.md#verification-gates) to each affe
 
 ## Interface integration
 
-Connect Learning catalog, enrollment details and progress indicators to the final design. Include locked, active, paused, completed and insufficient-funds states. Do not wait until milestone 9 to make learning usable.
+Connect Learning catalog, inline enrollment details and distinct learning progress indicators in the desktop top bar/mobile strip to the final design. Completed course levels and active enrollments are different projections; show both shared slots, tuition coverage and resumption blockers. Use authored research durations, prices and prerequisites, not the export's hour-scale fixtures. Include locked, active, paused, completed and insufficient-funds states. Do not wait until milestone 9 to make learning usable.
 
 ## Delivery record
 

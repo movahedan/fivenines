@@ -38,7 +38,7 @@ Apply the [shared verification gates](README.md#verification-gates) to each affe
 
 ## Interface integration
 
-Complete technology prerequisite views, course effect explanations and project requirement links. Players can understand what research unlocks and what still needs installation and capacity.
+Complete technology prerequisite views, course effect explanations and project requirement links in the approved Learning layout. The export's eight technologies are only a fixture subset; retain all version-one subjects and workload families. Reconcile tuition/duration/prerequisite copy with the authored catalog and show completed benefits separately from ongoing enrollment. Players can understand what research unlocks and what still needs installation and capacity.
 
 ## Delivery record
 

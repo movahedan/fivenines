@@ -40,6 +40,9 @@ GitHub Actions secrets/variables: [GITHUB_WORKFLOW_ENV.md](GITHUB_WORKFLOW_ENV.m
 | `bun run --filter=@apps/web export:check` | Assert prerendered marketing HTML has `<title>` + `og:image` |
 | `bun run turbo run dev --filter=@apps/nestjs` | Control-plane API :3002 |
 | `bun run turbo run dev --filter=@apps/auth` | Auth service :3001 |
+| `bun run turbo run dev --filter=@apps/figma-design` | Preserved design reference at `http://127.0.0.1:3010`; local mockup, no backend required |
+| `bun run turbo run typecheck build --filter=@apps/figma-design` | Check all exported TypeScript and build the design reference |
+| `bun run --filter=@apps/figma-design preview` | Serve the built reference on :3010; stop its dev server first |
 | `bun run turbo run dev --filter=@packages/ui` | UI / Storybook :9000 (Node CLI; host vs Docker: one listener) |
 | `cd apps/nestjs && bun test` | Nest API tests (use app `bunfig.toml`) |
 | `cd packages/nestjs-sdk && bun run generate` | Regenerate Orval SDK from `openapi.yaml` |

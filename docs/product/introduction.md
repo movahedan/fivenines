@@ -30,4 +30,4 @@ Different workloads should make different infrastructure choices valuable. Hardw
 
 Web is the current delivery platform, with native mobile development intended to follow. The repository already invests in React Native UI components. New interaction designs, particularly infrastructure diagrams and charts, must account for touch interaction and native rendering from the outset.
 
-The product needs readable infrastructure and clear feedback. The agreed infrastructure canvas is freely editable without changing simulation behavior; its rendering library and exact connection gestures remain technical/deferred choices. Spline has been set aside.
+The product needs readable infrastructure and clear feedback. The agreed infrastructure canvas is freely editable without changing simulation behavior; its rendering library remains a technical choice. Connections use Select source → Connect → Select compatible destination, without requiring drag. Spline has been set aside.

@@ -74,6 +74,7 @@ Nested `AGENTS.md` under each app, package, and tool workspace.
 
 | Path | `name` | Port | Role | Guide |
 |------|--------|------|------|-------|
+| `apps/figma-design` | `@apps/figma-design` | 3010 | Preserved Figma visual reference, local preview only; no production gameplay | [AGENTS.md](apps/figma-design/AGENTS.md) |
 | `apps/web` | `@apps/web` | 3000 | Player + marketing UI (TanStack Start SPA, nginx `dist/client`); `/hub` `/lab` client `Game` | [AGENTS.md](apps/web/AGENTS.md) |
 | `apps/nestjs` | `@apps/nestjs` | 3002 | Feature flags control plane (OpenAPI) | [AGENTS.md](apps/nestjs/AGENTS.md) |
 | `apps/auth` | `@apps/auth` | 3001 | Auth (JWT, refresh, M2M). SSR login/register/OTP use ops tokens, not `@packages/ui` | [AGENTS.md](apps/auth/AGENTS.md) |

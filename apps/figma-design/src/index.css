@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+:root {
+  --bg-0: #04070f;
+  --bg-1: #070d1b;
+  --bg-2: #0a1220;
+  --bg-3: #0d1628;
+  --bg-4: #111e35;
+  --bg-5: #162540;
+  --border-0: #1a2d4a;
+  --border-1: #1f3558;
+  --border-2: #2a466e;
+
+  --green:       #22c55e;
+  --green-hi:    #4ade80;
+  --green-dim:   #166534;
+  --green-glow:  rgba(34,197,94,0.18);
+  --green-surf:  rgba(34,197,94,0.07);
+
+  --amber:      #f59e0b;
+  --amber-hi:   #fbbf24;
+  --amber-dim:  #92400e;
+  --amber-surf: rgba(245,158,11,0.08);
+
+  --red:      #ef4444;
+  --red-hi:   #fca5a5;
+  --red-dim:  #991b1b;
+  --red-surf: rgba(239,68,68,0.08);
+
+  --sky:    #38bdf8;
+  --sky-hi: #7dd3fc;
+
+  --txt-0: #e2eaf8;
+  --txt-1: #7a93b8;
+  --txt-2: #445977;
+  --txt-m: #93c5fd;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg-0);
+  color: var(--txt-0);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-1); border-radius: 2px; }
+
+/* ── Status lamps ── */
+.lamp { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+.lamp-g { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.lamp-a { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+.lamp-r { background: var(--red);   box-shadow: 0 0 6px var(--red); }
+.lamp-s { background: var(--sky);   box-shadow: 0 0 6px var(--sky); }
+.lamp-x { background: var(--border-2); }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.45} }
+.pulse { animation: pulse 1.8s ease-in-out infinite; }
+
+/* ── Resource bar ── */
+.rbar { height: 2px; border-radius: 1px; background: var(--border-0); overflow: hidden; }
+.rbar-fill { height: 100%; border-radius: 1px; transition: width .4s ease; }
+
+/* ── Section header dot ── */
+.sec-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 5px var(--green); flex-shrink: 0; }
+
+/* ── Panel tab strip ── */
+.panel-tab {
+  width: 28px;
+  flex-shrink: 0;
+  background: var(--bg-1);
+  border: 1px solid var(--border-0);
+  border-top: none;
+  border-bottom: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s;
+  position: relative;
+}
+.panel-tab:hover { background: var(--bg-3); }
+.panel-tab-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-family: var(--font-sans);
+  transition: color .15s;
+}
+
+/* ── Slide-in animations ── */
+@keyframes slide-left  { from { transform: translateX(-12px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes slide-right { from { transform: translateX( 12px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes slide-up    { from { transform: translateY( 16px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes fade-in     { from { opacity: 0; } to { opacity: 1; } }
+
+.anim-slide-left  { animation: slide-left  .18s ease; }
+.anim-slide-right { animation: slide-right .18s ease; }
+.anim-slide-up    { animation: slide-up    .22s ease; }
+.anim-fade        { animation: fade-in     .15s ease; }
+
+/* ── Data flow animation ── */
+@keyframes flow { to { stroke-dashoffset: -20; } }
+.flow { animation: flow .9s linear infinite; }
+
+/* ── Sparkline ── */
+.spark path { fill: none; stroke-width: 1.5; }
+
+/* ── Scrollable panel body ── */
+.panel-body { overflow-y: auto; flex: 1; min-height: 0; }
+
+/* ── Progress pulse ── */
+@keyframes prog-pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+.prog-pulse { animation: prog-pulse 1.6s ease-in-out infinite; }

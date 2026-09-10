@@ -1,6 +1,6 @@
 # Demand, work retention and learning foundations
 
-Milestone 3 of 10. Status: planned; no implementation PR is claimed delivered. Follow the [standing delivery workflow](README.md).
+Milestone 3 of 10. Status: in progress on the M3 base PR, stacked on [#101](https://github.com/movahedan/fivenines/pull/101) (`docs/m2-base`). Follow the [standing delivery workflow](README.md). Execution plans: [`.cursor/plans/m3-demand-and-learning-foundations.plan.md`](../../.cursor/plans/m3-demand-and-learning-foundations.plan.md).
 
 ## Outcome and boundaries
 
@@ -43,9 +43,12 @@ Connect Learning catalog, inline enrollment details and distinct learning progre
 
 | Slice | Status | PR | Verification evidence |
 |---|---|---|---|
-| Typed demand generation | Planned | — | Not run |
-| Batch retention and queue state | Planned | — | Not run |
-| Enrollment and tuition lifecycle | Planned | — | Not run |
-| Learning and demand integration | Planned | — | Not run |
+| Milestone 3 stack base | In progress | this branch on #101 | Docs/plans only; `bun run overall` on open |
+| Typed demand generation | Planned | [#67](https://github.com/movahedan/fivenines/issues/67) | Not run |
+| Batch retention and queue state | Planned | [#68](https://github.com/movahedan/fivenines/issues/68) | Not run |
+| Enrollment and tuition lifecycle | Planned | [#69](https://github.com/movahedan/fivenines/issues/69) | Not run |
+| Learning and demand integration | Planned | [#70](https://github.com/movahedan/fivenines/issues/70) | Not run |
+
+M2 [#66](https://github.com/movahedan/fivenines/issues/66) Hub/Lab shared-asset identity remains incomplete on #101. M3 does not pretend Projects/Inventory already share topology identities. Opening Shift still uses RPS `ProjectDemand`; typed DemandEngine is a later slice on this stack.
 
 No new product decision is required to begin planning. Implementation trade-offs belong in the assigned PR plan; escalate only a concrete contradiction or material scope change.

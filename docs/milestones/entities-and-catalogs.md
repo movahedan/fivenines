@@ -1,6 +1,6 @@
 # Entities and catalogs
 
-Milestone 2 of 10. Status: in progress on [#101](https://github.com/movahedan/fivenines/pull/101), stacked on [#98](https://github.com/movahedan/fivenines/pull/98). Follow the [standing delivery workflow](README.md). Execution plan: [`.cursor/plans/m2-entities-and-catalogs.plan.md`](../../.cursor/plans/m2-entities-and-catalogs.plan.md).
+Milestone 2 of 10. Status: in progress on [#101](https://github.com/movahedan/fivenines/pull/101), stacked on [#98](https://github.com/movahedan/fivenines/pull/98). Follow the [standing delivery workflow](README.md). Execution plan: [`.cursor/plans/m2-entities-and-catalogs.plan.md`](../../.cursor/plans/m2-entities-and-catalogs.plan.md). **Merge target is #101**, not the former stacked slice PRs ([#102](https://github.com/movahedan/fivenines/pull/102) / [#103](https://github.com/movahedan/fivenines/pull/103), closed into #101). Milestone 3 stacks on this same head.
 
 ## Outcome and boundaries
 

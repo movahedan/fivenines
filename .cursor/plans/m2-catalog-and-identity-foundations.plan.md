@@ -16,7 +16,7 @@ todos:
     status: completed
   - id: phase-1-pr
     content: "git-pr-workflow stacked on docs/m2-base; link #64"
-    status: pending
+    status: completed
 isProject: false
 ---
 

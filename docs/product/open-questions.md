@@ -23,9 +23,12 @@ The product and interface discussion is complete for the current design handoff.
 
 Each implementation slice needs its own tests and documentation synchronization before a PR. The milestones give outcomes, dependency order and gates; they are not proof that the solver or runtime migration is complete.
 
+## Design reconciliation closed
+
+The user explicitly approved all eight resolution groups in [Design reconciliation](design-reconciliation.md#final-decision-register). Inspector placement, Connect interaction, daily cost presentation, account scope and mobile canvas behavior are settled. No unresolved conflict from this export blocks development. Implementation and verification remain required; this does not mark capabilities delivered.
+
 ## Explicitly deferred
 
-- Canvas connection gesture selection (drag versus Connect-and-select); compatibility and loop rules are settled.
 - State/command protocol, versioned snapshots and SSE synchronization. Login and eventual server authority are settled; frontend engine development continues for now.
 - Away-time simulation and its return report.
 - Employee hiring, assignment and management. Player courses and two shared learning slots remain in current scope.

@@ -42,7 +42,7 @@ Apply the [shared verification gates](README.md#verification-gates) to each affe
 
 ## Interface integration
 
-Deliver the approved desktop left Projects panel, right business panels and mobile navigation, central offer/Contract Review pages, and vertically arranged project sections. Reuse the main workspace server-rack design in acquisition and Inventory details. Connect the rack/software action hierarchy, contextual inspectors, acquisition/impact drawers and distinct task indicators in the desktop top bar/mobile progress strip. Acceptance opens setup before hardware exists; setup checklist items reach real install/configure actions. Include project-scoped Park/Resume controls and blockers from Gameplay, with execution/accounting verified in milestone 5. Use basic state now; detailed monitoring arrives in milestone 7.
+Deliver the approved desktop left Projects panel, right business panels and mobile navigation, central offer/Contract Review pages, and vertically arranged project sections. Reuse the main workspace server-rack design in acquisition and Inventory details. Connect the rack/software action hierarchy, bottom-drawer object inspectors on both devices, acquisition/impact drawers and distinct task indicators in the desktop top bar/mobile progress strip. Acceptance opens setup before hardware exists; setup checklist items open the object drawer at real install/configure actions. Add server remains available after the first acquisition. Include project-scoped Park/Resume controls and blockers from Gameplay, with execution/accounting verified in milestone 5. Use basic state now; detailed monitoring arrives in milestone 7.
 
 ## Delivery record
 

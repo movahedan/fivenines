@@ -44,7 +44,7 @@ Existing example labels such as `1000 cores` must not become authoritative hardw
 
 ## Agreed navigation and persistent context
 
-Use Projects as the default destination. Desktop navigation: Projects, Inventory, Learning, Finances. Learning contains Technologies and Courses; Finances here is the business-wide view, distinct from project finances. Activity opens a shared feed from the shell. Settings and account stay secondary. Employee navigation is deferred with its feature.
+Use Projects as the default destination. Desktop navigation: Projects, Inventory, Learning, Finances. Learning contains Technologies and Courses; Finances here is the business-wide view, distinct from project finances. Activity opens a shared feed from the shell. Settings and account stay secondary. Show only functional account actions such as Settings and Sign out; omit Profile and What’s new until separately defined. Employee navigation is deferred with its feature.
 
 On mobile, use a tab view with bottom navigation ordered Projects, Inventory, a prominent central New project action, Learning, and Finances. On desktop, Projects occupies a resizable, collapsible left panel. Inventory, Learning, and business Finances share a resizable right panel, with one destination open at a time and vertically labeled rail tabs. The central project workspace remains the main surface. Keep a top status bar on both devices. The New project action opens available offers; it does not generate a new offer or accept a contract immediately.
 
@@ -64,7 +64,7 @@ Acquisition and material-impact action reviews retain bottom-drawer semantics on
 
 Horizontal and vertical scrolling retain the same meaning across devices. Mobile bottom tabs and desktop rail panels are the primary navigation distinction. Proposed gesture detail: drag the drawer handle to expand/collapse, scroll its body to read, and provide visible close/back controls plus keyboard access. Scrolling review content must not accidentally dismiss its surface, and gestures must never accept a contract. Exact snap positions and gesture thresholds remain implementation details.
 
-Keep cash, business reputation, game date/time, operating-cost context, and pause/speed reachable in the shell. Label the operating-cost interval explicitly. The calendar date and day-progress treatment is presentational; simulation hours and billing boundaries remain authoritative. Receivables, liabilities, relationship details, and all resource totals need not be permanent HUD counters. Show operational preparation separately from the two shared learning slots. A compact task indicator opens the work queue; it is not another full-time panel.
+Keep cash, business reputation, game date/time, operating-cost context, and pause/speed reachable in the shell. Display rent quotes per day and label the shell cost `OPEX/day`: estimated daily operating cost at the current state/rate, not cash already paid. Actual rent still accrues hourly; financial details distinguish estimates from settled charges. The calendar date and day-progress treatment is presentational; simulation hours and billing boundaries remain authoritative. Receivables, liabilities, relationship details, and all resource totals need not be permanent HUD counters. Show operational preparation separately from the two shared learning slots. A compact task indicator opens the work queue; it is not another full-time panel.
 
 ## Required screen coverage
 
@@ -95,9 +95,9 @@ Distinguish traffic, data dependencies, and monitoring coverage with labels and 
 
 For shared hardware, show total use and an indication of other hosted projects. Rich project breakdowns follow monitoring availability. Power-off, sale, or lease release must expose affected projects before the action. Duplicate operations copy only the selected project's deployment, even when the server hosts other projects.
 
-Component selection opens contextual details with name, state, host, configuration, work progress, and actions. Keep these scoped to the selected object, distinct from the business-wide right panel. Their detailed placement remains an implementation extension of the approved workspace; use the same visual language and an explicit return to project information. On mobile, a bottom sheet provides the contextual inspector. Use one clear primary action for the current state; group less frequent lifecycle actions separately. Explain unavailable actions inline rather than relying on hover.
+Component selection opens contextual details with name, state, host, configuration, work progress, and actions. Keep these scoped to the selected object, distinct from the business-wide right panel. Use a bottom drawer on both desktop and mobile, with the same visual language and an explicit return to project information. Keep the business-wide right panel independent. Checklist items open this drawer directly at the required installation/configuration action; recovery and destination selection use the same contextual flow. Use one clear primary action for the current state; group less frequent lifecycle actions separately. Explain unavailable actions inline rather than relying on hover.
 
-Exact connection gestures remain deferred. Show compatible endpoints and connection outcomes in designs without committing the product to dragging or Connect-and-select. Provide a touch- and keyboard-accessible path in the eventual interaction design.
+Connections use Select source → Connect → Select compatible destination, accessible by touch and keyboard without requiring drag. Show compatible endpoints, explain invalid targets, and reject loops. Keep Add server available after the first acquisition. On mobile, contain pan and zoom within the infrastructure canvas; the surrounding page and headers must fit the viewport. Preserve the main rack design rather than clipping it or creating a different mobile server visual.
 
 ## Status, performance, and money
 

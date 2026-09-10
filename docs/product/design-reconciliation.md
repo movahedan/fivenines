@@ -25,6 +25,23 @@ Keep the export unchanged as reference material. Correct fixture data, missing h
 
 The prototype's `InspectorPanel.tsx`, `Navigation.tsx` and `OfferDrawer.tsx` are not imported by its reachable entry tree. Their existence is not proof of final inspector, navigation or offer behavior. Acquisition remains imported, but its old drawer classes and color variables are absent from the exported stylesheet; its broken rendering does not replace the intended contextual bottom drawer.
 
+## Final decision register
+
+The user explicitly approved all eight proposed resolution groups after reviewing the discrepancy list. These are accepted decisions, not recommendations awaiting a later implementation discussion. Together with the earlier server-visual and Park decisions, they close every identified design/product conflict. Development can proceed against these documents; implementation and verification remain pending in their assigned milestones.
+
+| Group | Covered items | Approved resolution |
+|---|---|---|
+| Acceptance and preparation | C1, C2, C7 | Acceptance opens empty setup immediately; contract/checklist remain accessible; Back preserves the offer; actual acquisition occurs only on final confirmation. |
+| Contract and learning policy | C3, C4, C5 | Keep current setup patience and catalog research prices/durations/prerequisites. Distinguish completed course levels from active study and preserve two-slot enrollment rules. |
+| Money and costs | C6, C8, C9 | No double-counted advance. Rent accrues hourly; daily quotes and `OPEX/day` show estimated daily cost at the current state/rate. Separate actual financial postings from estimates. |
+| Monitoring and SLA | C10, C11, C12 | Basic state and contract/financial facts remain visible without Monitoring; detailed resource history and diagnosis require coverage. Use demand Availability, not time Uptime; distinguish current failure from period breach. |
+| Object details | C13 | Server/service selection opens a bottom drawer on both devices, independent of business panels. Checklist items open the required action directly in that drawer. |
+| Growth and recovery | C15, C16 | Retain full capability scope and persistent Add server access. Connections use Select source → Connect → Select compatible destination without required drag. Recovery/destination selection uses contextual drawers. |
+| Activity and account | C17 | Events open their related object/record. Show functional account actions such as Settings and Sign out; omit Profile and What’s new until separately defined. |
+| Mobile and charts | C18 | Retain the main rack design with canvas-contained pan/zoom and viewport-fitting page/header layouts. Charts have period selection and touch point inspection. Scenario navigation is prototype-only. |
+
+C14 follows the separately approved Park decision: stop only the selected project’s service, preserving contract timing and modern settlement without affecting co-hosted projects.
+
 ## Corrections during implementation
 
 These are dispositions against existing rules, not changes to the balance baseline. The named milestone owns implementation; the archive intentionally retains the original evidence.

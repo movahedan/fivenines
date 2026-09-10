@@ -6,7 +6,7 @@ The [interface brief](interface-design-brief.md) now follows the approved 2026-0
 
 ## Selection, ownership, and presentation
 
-Selecting an object highlights it and its relevant connections without moving or automatically fitting the canvas. Desktop selection opens contextual details within the project workspace without replacing business navigation; mobile selection opens its bottom sheet. Flows launched into a bottom drawer, including acquisition, target selection and impact reviews, retain that presentation on both devices. Offer browsing and Contract Review instead use the central content page. Returning preserves selection, canvas position, and list scroll.
+Selecting an object highlights it and its relevant connections without moving or automatically fitting the canvas. Selection opens the object’s bottom drawer on both desktop and mobile without replacing business navigation. Checklist entries open the same drawer at the required action; recovery and destination selection continue within this contextual flow. Flows launched into a bottom drawer, including acquisition, target selection and impact reviews, retain that presentation on both devices. Offer browsing and Contract Review instead use the central content page. Returning preserves selection, canvas position, and list scroll.
 
 Every inspector starts with object name, type, project where applicable, host, state, and scope. A server inspector lists all affected projects. A service inspector distinguishes shared project-service configuration from the selected instance's placement and runtime. Never let an instance's Configure button imply an instance-specific configuration override.
 
@@ -72,7 +72,7 @@ Add instance chooses compatible capacity and prepares another runtime of the sam
 
 | Surface/state | Actions | Required explanation |
 |---|---|---|
-| Targets section | Add destination, Remove destination, Open destination | Show target identity, host, compatibility, and observed eligibility; additions may target another balancer |
+| Targets section | Select source → Connect → Select compatible destination; Remove destination, Open destination | Show target identity, host, compatibility, and observed eligibility; additions may target another balancer |
 | Connection rejected | Choose another destination | Explain incompatible endpoint or routing loop; do not create the invalid link |
 | No usable destination | Configure destinations or inspect blocking target | Balancer health alone is not end-to-end project health |
 | Health Checks section | Configure checks, View checked targets | Unchecked is distinct from healthy; a powered-on host can contain failed software |

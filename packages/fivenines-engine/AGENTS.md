@@ -169,13 +169,7 @@ Ownership, tick order, and same-hour event order stay in product docs and the [m
 ## Related
 
 - Intended behavior: [Product reference](../../docs/product/index.md)
-- Assigned M1 plan: [engine architecture and mathematics](../../.cursor/plans/m1-engine-architecture-and-mathematics.plan.md)
-- Next implementation: [Project systems transition](../../.cursor/plans/project-systems-transition.plan.md) (ordering superseded by milestones)
-- Authored tuning: [Balance baseline](../../docs/product/balance/index.md)
-- Current behavior remains defined by this guide, source, and tests. Retired engine/hosting plans were deleted after product consolidation; the product reference does not imply that its future behavior is already implemented.
-
-- Intended behavior: [Product reference](../../docs/product/index.md)
-- Assigned M1 plan: [engine architecture and mathematics](../../.cursor/plans/m1-engine-architecture-and-mathematics.plan.md)
-- Next implementation: [Project systems transition](../../.cursor/plans/project-systems-transition.plan.md) (ordering superseded by milestones)
+- M1 (in review on #98): [engine architecture and mathematics](../../.cursor/plans/m1-engine-architecture-and-mathematics.plan.md)
+- M2 stack: [catalog and identity](../../.cursor/plans/m2-catalog-and-identity-foundations.plan.md) → [project services](../../.cursor/plans/m2-project-services-and-shared-assets.plan.md) → [application integration](../../.cursor/plans/m2-application-model-integration.plan.md)
 - Authored tuning: [Balance baseline](../../docs/product/balance/index.md)
 - Current behavior remains defined by this guide, source, and tests. Retired engine/hosting plans were deleted after product consolidation; the product reference does not imply that its future behavior is already implemented.

@@ -1,6 +1,6 @@
 # Entities and catalogs
 
-Milestone 2 of 10. Status: planned; no implementation PR is claimed delivered. Follow the [standing delivery workflow](README.md).
+Milestone 2 of 10. Status: in progress. Stack root is the M2 base branch on top of [#98](https://github.com/movahedan/fivenines/pull/98) (M1). Follow the [standing delivery workflow](README.md).
 
 ## Outcome and boundaries
 
@@ -42,8 +42,9 @@ Introduce the final project/asset display identity and selection contracts in Pr
 
 | Slice | Status | PR | Verification evidence |
 |---|---|---|---|
-| Catalog and identity foundations | Planned | — | Not run |
-| Project services and shared assets | Planned | — | Not run |
-| Application model integration | Planned | — | Not run |
+| Milestone 2 stack base (M1 closeout) | In progress | — | Branch `docs/m2-base` from #98 HEAD; M1 delivery records closed out; M2 PR plans written. Link filled after the base PR opens. |
+| Catalog and identity foundations | Planned | — | Issue [#64](https://github.com/movahedan/fivenines/issues/64). Plan: `.cursor/plans/m2-catalog-and-identity-foundations.plan.md` |
+| Project services and shared assets | Planned | — | Issue [#65](https://github.com/movahedan/fivenines/issues/65). Plan: `.cursor/plans/m2-project-services-and-shared-assets.plan.md` (revalidate after #64) |
+| Application model integration | Planned | — | Issue [#66](https://github.com/movahedan/fivenines/issues/66). Plan: `.cursor/plans/m2-application-model-integration.plan.md` (revalidate after #65) |
 
 No new product decision is required to begin planning. Implementation trade-offs belong in the assigned PR plan; escalate only a concrete contradiction or material scope change.

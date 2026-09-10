@@ -7,13 +7,13 @@ todos:
     status: completed
   - id: phase-1-verify
     content: "Phase 1 gate: bun run overall"
-    status: in_progress
+    status: completed
   - id: phase-1-docs
     content: "This PR is the documentation-sync"
     status: completed
   - id: phase-1-pr
     content: "git-pr-workflow: stack docs/m2-base on feature/m1-baseline-catalog-checker (#98)"
-    status: pending
+    status: completed
 isProject: false
 ---
 

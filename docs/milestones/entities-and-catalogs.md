@@ -42,7 +42,7 @@ Introduce the final project/asset display identity and selection contracts in Pr
 
 | Slice | Status | PR | Verification evidence |
 |---|---|---|---|
-| Milestone 2 stack base (M1 closeout) | In progress | — | Branch `docs/m2-base` from #98 HEAD; M1 delivery records closed out; M2 PR plans written. Link filled after the base PR opens. |
+| Milestone 2 stack base (M1 closeout) | In review | [#101](https://github.com/movahedan/fivenines/pull/101) | Stacked on #98. `bun overall` on `docs/m2-base`. M1 records closed out; M2 PR plans written. |
 | Catalog and identity foundations | Planned | — | Issue [#64](https://github.com/movahedan/fivenines/issues/64). Plan: `.cursor/plans/m2-catalog-and-identity-foundations.plan.md` |
 | Project services and shared assets | Planned | — | Issue [#65](https://github.com/movahedan/fivenines/issues/65). Plan: `.cursor/plans/m2-project-services-and-shared-assets.plan.md` (revalidate after #64) |
 | Application model integration | Planned | — | Issue [#66](https://github.com/movahedan/fivenines/issues/66). Plan: `.cursor/plans/m2-application-model-integration.plan.md` (revalidate after #65) |

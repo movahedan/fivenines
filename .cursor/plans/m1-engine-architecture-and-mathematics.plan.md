@@ -25,19 +25,19 @@ todos:
     status: completed
   - id: phase-2-pr
     content: "PR2 git-pr-workflow (draft, links #62)"
-    status: pending
+    status: completed
   - id: phase-3-graph
     content: "PR3 (#63): graph/outcome numerical fixtures and permutation checks"
-    status: pending
+    status: completed
   - id: phase-3-verify
     content: "PR3 gate: bun test packages/fivenines-engine && bun run turbo run typecheck --filter=@packages/fivenines-engine && bun run overall"
-    status: pending
+    status: completed
   - id: phase-3-docs
     content: "PR3 documentation-sync after checkup PASS"
-    status: pending
+    status: completed
   - id: phase-3-pr
     content: "PR3 git-pr-workflow (draft, links #63)"
-    status: pending
+    status: completed
 isProject: false
 ---
 

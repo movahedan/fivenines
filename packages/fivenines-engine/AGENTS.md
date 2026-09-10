@@ -180,6 +180,6 @@ Live tunables stay in `src/catalog/` TypeScript (`kernel.ts` Bronze–Diamond pl
 
 - Intended behavior: [Product reference](../../docs/product/index.md)
 - M1 (in review on #98): [engine architecture and mathematics](../../.cursor/plans/m1-engine-architecture-and-mathematics.plan.md)
-- M2 stack: [catalog and identity](../../.cursor/plans/m2-catalog-and-identity-foundations.plan.md) → [project services](../../.cursor/plans/m2-project-services-and-shared-assets.plan.md) → [application integration](../../.cursor/plans/m2-application-model-integration.plan.md)
+- M2: [entities and catalogs](../../.cursor/plans/m2-entities-and-catalogs.plan.md)
 - Authored tuning: [Balance baseline](../../docs/product/balance/index.md)
 - Current behavior remains defined by this guide, source, and tests. Retired engine/hosting plans were deleted after product consolidation; the product reference does not imply that its future behavior is already implemented.

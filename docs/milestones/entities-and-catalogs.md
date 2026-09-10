@@ -1,6 +1,6 @@
 # Entities and catalogs
 
-Milestone 2 of 10. Status: in progress. Stack root is the M2 base branch on top of [#98](https://github.com/movahedan/fivenines/pull/98) (M1). Follow the [standing delivery workflow](README.md).
+Milestone 2 of 10. Status: in progress on [#101](https://github.com/movahedan/fivenines/pull/101), stacked on [#98](https://github.com/movahedan/fivenines/pull/98). Follow the [standing delivery workflow](README.md). Execution plan: [`.cursor/plans/m2-entities-and-catalogs.plan.md`](../../.cursor/plans/m2-entities-and-catalogs.plan.md).
 
 ## Outcome and boundaries
 
@@ -16,7 +16,7 @@ Product sources: [domain model](../product/domain-model.md), [technology catalog
 
 ## Proposed PR sequence
 
-These are outcome-sized slices, not fixed file lists. Inspect current code and merged predecessors before planning each PR. Keep the app runnable, integrate the corresponding production UI, and split a slice when its actual review surface warrants it.
+These are outcome-sized slices. They landed on one PR ([#101](https://github.com/movahedan/fivenines/pull/101)); #66 is still open on that branch.
 
 | Slice | Depends on | Deliverable |
 |---|---|---|
@@ -42,10 +42,9 @@ Introduce the final project/asset display identity and selection contracts in Pr
 
 | Slice | Status | PR | Verification evidence |
 |---|---|---|---|
-| Milestone 2 stack base (M1 closeout) | In review | [#101](https://github.com/movahedan/fivenines/pull/101) | Stacked on #98. `bun overall` on `docs/m2-base`. M1 records closed out; M2 PR plans written. |
-| Catalog and identity foundations | In review | [#102](https://github.com/movahedan/fivenines/pull/102) | Stacked on #101. `IdentityRegistry` + `assertHourIndex`; no catalog compiler. `src/baseline/` remains the JSON checker. Live SKUs stay Bronze. `Game` unwired. |
-| Project services and shared assets | In review | [#103](https://github.com/movahedan/fivenines/pull/103) | Stacked on #102. `TopologyGraph` services/instances/shared assets; `Game` unwired. `bun overall`. |
-| Application model integration | Planned | — | Issue [#66](https://github.com/movahedan/fivenines/issues/66). Plan: `.cursor/plans/m2-application-model-integration.plan.md` (revalidate after #65) |
+| Catalog and identity foundations | Folded into #101 | [#102](https://github.com/movahedan/fivenines/pull/102) closed into #101 | `IdentityRegistry` + `assertHourIndex`; no catalog compiler. `src/baseline/` remains the JSON checker. Live SKUs stay Bronze. `Game` unwired. |
+| Project services and shared assets | Folded into #101 | [#103](https://github.com/movahedan/fivenines/pull/103) closed into #101 | `TopologyGraph` services/instances/shared assets; `Game` unwired. |
+| Application model integration | Planned | [#101](https://github.com/movahedan/fivenines/pull/101) | Issue [#66](https://github.com/movahedan/fivenines/issues/66). Remaining work on the Milestone 2 PR. |
 
 No new product decision is required to begin planning. Implementation trade-offs belong in the assigned PR plan; escalate only a concrete contradiction or material scope change.
 

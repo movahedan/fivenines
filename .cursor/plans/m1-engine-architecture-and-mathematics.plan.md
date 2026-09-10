@@ -13,16 +13,16 @@ todos:
     status: completed
   - id: phase-1-pr
     content: "PR1 git-pr-workflow (draft, links #61)"
-    status: pending
+    status: completed
   - id: phase-2-resources
     content: "PR2 (#62): resource/work reference model and analytical fixtures"
-    status: pending
+    status: completed
   - id: phase-2-verify
     content: "PR2 gate: bun test packages/fivenines-engine && bun run turbo run typecheck --filter=@packages/fivenines-engine && bun run overall"
-    status: pending
+    status: completed
   - id: phase-2-docs
     content: "PR2 documentation-sync after checkup PASS"
-    status: pending
+    status: completed
   - id: phase-2-pr
     content: "PR2 git-pr-workflow (draft, links #62)"
     status: pending

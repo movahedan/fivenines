@@ -154,9 +154,22 @@ Both sell and release throw while a **served** project routes to that box; a **p
 
 Implementation: `applyCommand` in `src/game.utils.ts`.
 
+## Authored catalog check
+
+`src/baseline/` loads [baseline.json](../../docs/product/balance/baseline.json) and fails tests if IDs collide, the technology DAG cycles, a project mix does not sum to 1, a policy guard is violated, or a version-one entry depends on expansion. It is **not** live Game configuration. `Game` must not import it. Technology DAG edges and project `technologies` use catalog **names**; mix keys and finite-job `demand` use demand-type **ids**.
+
+Ownership, tick order, and same-hour event order stay in product docs and the [milestone](../../docs/milestones/engine-architecture-and-mathematics.md). Do not encode those guidelines as engine modules.
+
 ## Related
 
 - Intended behavior: [Product reference](../../docs/product/index.md)
-- Next implementation: [Project systems transition](../../.cursor/plans/project-systems-transition.plan.md)
+- Assigned M1 plan: [engine architecture and mathematics](../../.cursor/plans/m1-engine-architecture-and-mathematics.plan.md)
+- Next implementation: [Project systems transition](../../.cursor/plans/project-systems-transition.plan.md) (ordering superseded by milestones)
+- Authored tuning: [Balance baseline](../../docs/product/balance/index.md)
+- Current behavior remains defined by this guide, source, and tests. Retired engine/hosting plans were deleted after product consolidation; the product reference does not imply that its future behavior is already implemented.
+
+- Intended behavior: [Product reference](../../docs/product/index.md)
+- Assigned M1 plan: [engine architecture and mathematics](../../.cursor/plans/m1-engine-architecture-and-mathematics.plan.md)
+- Next implementation: [Project systems transition](../../.cursor/plans/project-systems-transition.plan.md) (ordering superseded by milestones)
 - Authored tuning: [Balance baseline](../../docs/product/balance/index.md)
 - Current behavior remains defined by this guide, source, and tests. Retired engine/hosting plans were deleted after product consolidation; the product reference does not imply that its future behavior is already implemented.

@@ -1,6 +1,6 @@
 # Demand, work retention and learning foundations
 
-Milestone 3 of 10. Status: in progress on the M3 base PR, stacked on [#101](https://github.com/movahedan/fivenines/pull/101) (`docs/m2-base`). Follow the [standing delivery workflow](README.md). Execution plans: [`.cursor/plans/m3-demand-and-learning-foundations.plan.md`](../../.cursor/plans/m3-demand-and-learning-foundations.plan.md).
+Milestone 3 of 10. Status: in progress on [#104](https://github.com/movahedan/fivenines/pull/104), stacked on [#101](https://github.com/movahedan/fivenines/pull/101) (`docs/m2-base`). Follow the [standing delivery workflow](README.md). Execution plans: [`.cursor/plans/m3-demand-and-learning-foundations.plan.md`](../../.cursor/plans/m3-demand-and-learning-foundations.plan.md).
 
 ## Outcome and boundaries
 
@@ -43,7 +43,7 @@ Connect Learning catalog, inline enrollment details and distinct learning progre
 
 | Slice | Status | PR | Verification evidence |
 |---|---|---|---|
-| Milestone 3 stack base | In progress | this branch on #101 | Docs/plans only; `bun run overall` on open |
+| Milestone 3 stack base | In review | [#104](https://github.com/movahedan/fivenines/pull/104) | Docs/plans only; `bun run overall` locally |
 | Typed demand generation | Planned | [#67](https://github.com/movahedan/fivenines/issues/67) | Not run |
 | Batch retention and queue state | Planned | [#68](https://github.com/movahedan/fivenines/issues/68) | Not run |
 | Enrollment and tuition lifecycle | Planned | [#69](https://github.com/movahedan/fivenines/issues/69) | Not run |

@@ -2,6 +2,7 @@ import { SKU_ECONOMY, salvageCents } from "./catalog/economy-policy";
 import type { ServerCatalogId } from "./catalog/kernel";
 import type { RegionId } from "./catalog/regions";
 import { Customer } from "./customer";
+import type { LearningSubject } from "./learning/board";
 import type { Project, ProjectStatus } from "./project";
 import { Server, type ServerTenure } from "./server";
 
@@ -24,7 +25,11 @@ export type EngineCommand =
 	| { type: "buyServer"; payload: { serverType: ServerCatalogId; region: RegionId } }
 	| { type: "leaseServer"; payload: { serverType: ServerCatalogId; region: RegionId } }
 	| { type: "sellServer"; payload: { serverId: string } }
-	| { type: "releaseServer"; payload: { serverId: string } };
+	| { type: "releaseServer"; payload: { serverId: string } }
+	| { type: "enrollLearning"; payload: { subject: LearningSubject } }
+	| { type: "pauseLearning"; payload: { enrollmentId: string } }
+	| { type: "resumeLearning"; payload: { enrollmentId: string } }
+	| { type: "cancelLearning"; payload: { enrollmentId: string } };
 
 export interface GameGraph {
 	readonly customers: readonly Customer[];
@@ -96,7 +101,7 @@ export function applyCommand(graph: GameGraph, command: EngineCommand): GameGrap
 
 			return {
 				...graph,
-				cashCents: graph.cashCents - purchaseCents,
+				cashCents: postCashDelta(graph.cashCents, -purchaseCents),
 				assets: addCatalogServer(graph.assets, command.payload, {
 					kind: "owned",
 					purchaseCents,
@@ -129,7 +134,7 @@ export function applyCommand(graph: GameGraph, command: EngineCommand): GameGrap
 
 			return {
 				...graph,
-				cashCents: graph.cashCents + salvageCents(sold.tenure.purchaseCents),
+				cashCents: postCashDelta(graph.cashCents, salvageCents(sold.tenure.purchaseCents)),
 				assets: removeServer(graph.assets, command.payload.serverId),
 			};
 		}
@@ -151,6 +156,10 @@ export function applyCommand(graph: GameGraph, command: EngineCommand): GameGrap
 			throw new Error(`unknown command type: ${String((command as { type: unknown }).type)}`);
 		}
 	}
+}
+
+export function postCashDelta(cashCents: number, delta: number): number {
+	return cashCents + delta;
 }
 
 export function createAsset(initial: AssetInitial): GameAsset {

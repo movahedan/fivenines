@@ -4,16 +4,16 @@ overview: "Issue #69: two shared learning slots, monthly tuition on Game cash, p
 todos:
   - id: ledger
     content: "Shared cash posting helper used by buy/sell and tuition"
-    status: pending
+    status: completed
   - id: learning
     content: "LearningBoard: slots, enroll, pause, resume, cancel, complete, tick progress"
-    status: pending
+    status: completed
   - id: verify
     content: "bun test packages/fivenines-engine && bun run overall"
-    status: pending
+    status: completed
   - id: docs
     content: "documentation-sync: engine AGENTS + milestone row"
-    status: pending
+    status: completed
 isProject: false
 ---
 

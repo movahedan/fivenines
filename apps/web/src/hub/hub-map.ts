@@ -172,6 +172,10 @@ const COMMAND_LOG_TONE: Record<EngineCommand["type"], EventLogTone> = {
 	sellServer: "warn",
 	leaseServer: "success",
 	releaseServer: "warn",
+	enrollLearning: "success",
+	pauseLearning: "warn",
+	resumeLearning: "success",
+	cancelLearning: "warn",
 };
 
 export function commandLogTone(commandType: EngineCommand["type"]): EventLogTone {

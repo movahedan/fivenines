@@ -40,7 +40,7 @@ Apply the [shared verification gates](README.md#verification-gates) to each affe
 
 ## Interface integration
 
-Connect basic host activity and project execution summaries to real resource outcomes. Missing detailed telemetry must remain unavailable until monitoring exists; the UI cannot reconstruct a second solver.
+Connect compact host activity and embedded project Status/Performance/Finances to real resource outcomes. Show demand-based availability rather than labeling it time uptime; distinguish current service state from billing-period compliance. Inventory, project finances and the shell consume consistent costs and cash. Missing detailed telemetry must remain unavailable until monitoring exists; the UI cannot reconstruct a second solver. Verify a parked project continues its contractual demand/timing and costs, misses service normally, and resumes without resetting billing or stopping a co-hosted project. Preserve normal volatile-work and finite-job recovery rules. Hardware comparison must expose workload-relevant disk/GPU constraints beyond the four compact resource bars.
 
 ## Delivery record
 

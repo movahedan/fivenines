@@ -9,7 +9,7 @@ This is the product vocabulary and proposed relationship model. Existing engine 
 | Player | Makes decisions for the infrastructure business; distinct from customer organizations | Existing role, not an engine entity |
 | Business | Owns or leases infrastructure, earns revenue, pays costs, and develops reputation | Wallet/fleet exist; separate business entity undecided |
 | Customer | Commissions projects and owns the resulting product or business outcome | Existing engine entity |
-| Project | Groups a customer's requirements and the system or work delivered for them | Existing entity; meaning needs expansion |
+| Project | Groups a customer's requirements and the system or work delivered for them | Existing entity; meaning needs expansion; Park retains the contract while its service is offline, following Gameplay |
 | Contract | Defines what is supplied, how it is paid for, and the service or delivery commitment | Commercial terms exist on Project; separate entity undecided |
 | Contract obligation | A measurable promise, such as service availability or a job completion deadline | Continuous-service and finite-job evaluation specified; runtime implementation pending |
 | Reputation | Determines public standing and influences incoming opportunities | Delegated customer/offer policy; runtime integration pending |

@@ -8,6 +8,7 @@ This is a short map of the repository's essential responsibilities, checked agai
 |---|---|---|
 | [@apps/web](../../apps/web/AGENTS.md) | Player UI, public website, and browser debug harness | TanStack Start static SPA; no Start server functions or second backend. Hub and Lab currently construct Game locally; existing clock SSE is not simulation time. |
 | [@apps/nestjs](../../apps/nestjs/AGENTS.md) | Existing API/control plane and eventual game session transport | Keep simulation rules in the engine. Existing feature-flag Tenant/Project records are not game entities; further feature-flag development is cancelled. Game session migration is deferred. |
+| [@apps/figma-design](../../apps/figma-design/AGENTS.md) | Preserved Figma visual reference and local preview | Generated fixture source is isolated from production; no engine/auth dependency or deployment. Implement approved behavior in the real UI using the reconciliation record. |
 | [@apps/auth](../../apps/auth/AGENTS.md) | Login, sessions, JWT/refresh, and machine authentication | Auth logic belongs in its service layer; pages do not directly access Prisma. Preserve the existing redirect and token contracts. |
 
 Native mobile is an intended next application, not an existing workspace created by this documentation. Current shared React Native components do not imply that every web page or hook is already portable.

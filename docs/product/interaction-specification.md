@@ -1,10 +1,12 @@
 # Infrastructure interaction specification
 
-Status: approved interface design, 2026-09-09. This specifies the agreed interaction hierarchy. Gameplay and balance documents remain authoritative for mechanics and costs. Catalog-only capabilities below are design coverage, not newly approved simulation mechanics.
+Status: interaction hierarchy approved 2026-09-09; presentation and Park reconciled 2026-09-10. This specifies the agreed interaction hierarchy. Gameplay and balance documents remain authoritative for mechanics and costs. Catalog-only capabilities below are design coverage, not newly approved simulation mechanics.
+
+The [interface brief](interface-design-brief.md) now follows the approved 2026-09-10 design: central offer/contract pages, embedded project sections, business side panels and shell task progress. Contextual action and recovery requirements below remain in scope even when their controls are absent from the preserved prototype. The inactive exported `InspectorPanel.tsx` does not define the final layout.
 
 ## Selection, ownership, and presentation
 
-Selecting an object highlights it and its relevant connections without moving or automatically fitting the canvas. Desktop selection opens the contextual right inspector; mobile selection opens its bottom sheet. Flows launched into a bottom drawer, including acquisition, target selection, and contract review, retain that bottom-drawer presentation on both devices. Returning preserves selection, canvas position, and list scroll.
+Selecting an object highlights it and its relevant connections without moving or automatically fitting the canvas. Desktop selection opens contextual details within the project workspace without replacing business navigation; mobile selection opens its bottom sheet. Flows launched into a bottom drawer, including acquisition, target selection and impact reviews, retain that presentation on both devices. Offer browsing and Contract Review instead use the central content page. Returning preserves selection, canvas position, and list scroll.
 
 Every inspector starts with object name, type, project where applicable, host, state, and scope. A server inspector lists all affected projects. A service inspector distinguishes shared project-service configuration from the selected instance's placement and runtime. Never let an instance's Configure button imply an instance-specific configuration override.
 
@@ -110,20 +112,21 @@ For catalog-only capabilities with unsettled configuration fields, Figma should 
 
 | Context | Actions and behavior |
 |---|---|
-| Offer drawer | Select offer → full details and bold contract terms → Accept contract. Back preserves the list. No immediate acceptance from the global plus button |
+| Offer page and Contract Review | Browse available offers → full details → bold contract terms → Accept contract. Back preserves the selected offer and reading position. Close restores the prior workspace. No immediate acceptance from the global plus button |
 | Accepted, preparing | Requirements checklist links to the exact missing service/configuration; Start service only when ready |
-| Live project | Inspect Infrastructure / Status / Performance / Finances, View contract, Notify customer of interruption |
+| Live project | Inspect Infrastructure and embedded Status / Performance / Finances, expand Contract, Park project, Notify customer of interruption |
+| Parked project | Resume service when ready; inspect blockers and preserved contract timing. Park/Resume follows [Gameplay](gameplay.md#parking-and-resuming-a-project), with impact review before stopping work; no Park during initial setup |
 | Planned or existing interruption | Preview project scope and send the game's customer notice; no estimated restoration-time field; notice does not waive compensation |
 | Deployment duplication | Select source deployment for this project, destination capacity, review preparation/data work, confirm operation |
 | Ended contract | View outcome and remaining resource costs; manage assets explicitly rather than assuming cancellation removes them |
 | Operational queue | View task, source/target, project, progress and blockers; Cancel where supported by the work policy, preserving preparation progress |
 | Learning slots | View technology/course, tuition and progress; cancellation/resumption follows paid coverage and preserved progress rules |
 
-Do not add operational priority controls through a task list. Keep Operations left and Learning right in the active page; customer/financial events go to Activity. A click on an event opens the relevant object or retained record without changing simulation state.
+Do not add operational priority controls through a task list. Place distinct Operations and Learning indicators in the desktop top bar and the mobile strip above navigation; customer/financial events go to Activity. A click on an event opens the relevant object or retained record without changing simulation state.
 
 ## Impact reviews and removal
 
-Use bottom-drawer reviews consistently on both devices. Include action verb, exact target, affected projects/services, immediate cost/proceeds, continuing costs, and applicable loss of volatile work or persistent data. Offer a neutral Back and a specifically named final action. Require review for power-off, destructive removal, destination removal that disrupts service, and restore/promotion with material impact. Ordinary selection and opening configuration do not require confirmation.
+Use bottom-drawer reviews consistently on both devices. Include action verb, exact target, affected projects/services, immediate cost/proceeds, continuing costs, and applicable loss of volatile work or persistent data. Offer a neutral Back and a specifically named final action. Require review for Park project, power-off, destructive removal, destination removal that disrupts service, and restore/promotion with material impact. Ordinary selection and opening configuration do not require confirmation.
 
 Never fabricate a precise financial penalty before its outcome is known. State that missed service remains subject to the contract and distinguish projected amounts from settled liability. Highlight known data/work loss; do not promise that uninstall, sale, or lease release retains data unless the data lifecycle actually guarantees it.
 

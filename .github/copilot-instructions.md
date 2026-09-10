@@ -33,3 +33,5 @@ When performing a code review, do not demand a 336-hour tick loop in tests. Use 
 When performing a code review, keep comments short, severity-tagged in Copilot’s usual High/Medium/Low, and include a suggested change when the fix is local.
 
 Path-specific review notes: `.github/instructions/*.instructions.md` (`applyTo`). Cursor reaches the same files via root `AGENTS.md` and `.cursor/rules/code-review.mdc`.
+
+The isolated `apps/figma-design/src/**` is a preserved generated visual reference, not a production route. Its fixture numbers, mock clock and inactive components are intentionally retained and documented in `docs/product/design-reconciliation.md`; do not request a production rewrite of the archive. Review its wrapper, provenance and isolation normally. Production apps/packages must not import this reference or copy its mock mechanics as authoritative behavior.

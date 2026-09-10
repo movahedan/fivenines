@@ -52,7 +52,7 @@ Change the existing engine directly. There is no live legacy game to preserve an
 
 Architecture and mathematics determine dependency order. Prepare missing foundations before their consumers rather than adding disposable calculations to make a screen appear functional. Keep tunables in the catalog/policy boundary.
 
-The user will arrange the complete Figma desktop/mobile design in advance. Its generated code is disposable design material, not production architecture. Implement the corresponding final UI in the real application alongside each capability, preserving shared React Native components. Do not schedule a temporary UI or postpone all UI integration to milestone 10. Lab is a lightweight diagnostic aid, with no separate milestone or duplicate full management interface.
+The user supplied the Figma desktop/mobile design on 2026-09-10 and approved its shell/workspace layout. Preserve its generated source in [the reference application](../../apps/figma-design/README.md); it is visual reference material, not production architecture. The [reconciliation record](../product/design-reconciliation.md) maps incomplete interactions and fixture corrections to the existing milestones. Missing controls do not defer capabilities or mark them delivered. Implement the corresponding final UI in the real application alongside each capability, preserving shared React Native components. Do not schedule a temporary UI or postpone all UI integration to milestone 10. Lab is a lightweight diagnostic aid, with no separate milestone or duplicate full management interface.
 
 Employees, away-time simulation and server/Nest/SSE migration remain deferred. Login and eventual server authority remain agreed product rules.
 

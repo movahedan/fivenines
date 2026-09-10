@@ -24,6 +24,16 @@ The player performs one operational task requiring attention at a time, with sub
 
 The contract must explain when obligations and revenue begin. Payment at acceptance and the right to withdraw after excessive setup delay are agreed below. Activation is an explicit player action: Start service begins live demand, SLA obligations, and the first weekly billing period. Before activation, the setup commitment and customer withdrawal rules apply. Preparing a new project must not be confused with taking an existing service offline.
 
+## Parking and resuming a project
+
+Park project retains the contract while taking that project's service offline. It is distinct from closing the workspace and from globally pausing simulation time. This restores the existing Park/offline intent to the product reference; it does not reinstate the old single-server route or served-hours recurring-fee calculation.
+
+For an activated project, demand, its original billing period or delivery deadline, and customer consequences continue. Missed work remains subject to the signed contract and the current compensation/attribution rules. Parking does not cancel the agreement, refund it immediately, waive compensation or reset activation. Usage income requires successful delivery. Fixed-fee and settlement handling follow [Contracts and time](balance/contracts-and-time.md), including prepaid amounts and customer departure.
+
+Scope the operation to the selected project's deployments. Do not power off, sell or release shared hardware, move other projects, or erase persistent data as a side effect. Stopping processes follows the existing volatile-work, durable-queue and checkpoint rules; preview applicable loss before confirming. Asset costs continue according to ownership and power state. Customer interruption notice remains a separate action and does not waive compensation.
+
+Expose Park for activated, non-ended projects, including degraded service; a project still in initial setup has nothing to park. Resume service requires ready infrastructure and follows the normal restart/preparation rules, preserving the original contract timing. Finite work cannot restart lost computation from zero: usable checkpoint and original-deadline rules still apply. Parked, resuming and blocked states must be visible rather than implying instant healthy service.
+
 ## Account access and game state
 
 Playing requires login from the start, including project preparation. Guest play and migration of guest progress into an account are excluded. This replaces the earlier proposal to require authentication only at activation.
@@ -34,11 +44,11 @@ The engine currently runs in the frontend to support engine development. Keep th
 
 ## Reviewing a contract
 
-The New project action opens available offers in a bottom drawer on both mobile and desktop. Selecting an offer reveals its complete details and contract in that drawer, where the player explicitly accepts it. The first interaction must make it clear that the player is entering an agreement, not merely adding a project to a list.
+The New project action opens an offer page in the central workspace on desktop and the active content area on mobile. The player browses available offers, opens full Contract Review, and explicitly accepts the selected contract. Back preserves the selected offer; Close returns without accepting it. The first interaction must make it clear that the player is entering an agreement, not merely adding a project to a list.
 
 Emphasize the important terms in bold: **payment due at acceptance**, **recurring and usage charges**, **required service level or delivery commitment**, **setup cancellation and refund conditions**, and **the compensation schedule**. Display the relevant measurement period and resource/capability requirements in understandable language. Distinguish delayed setup from failing an obligation after service starts.
 
-The modal must remain readable and scrollable on mobile, with clear accept and dismiss actions. Dismissing it must not accept the project or collect payment. Do not expose internal policy class names or raw engine encodings as contract copy.
+The review page must remain readable and scrollable on mobile, with clear accept, back and close actions. Leaving it must not accept the project or collect payment. Do not expose internal policy class names or raw engine encodings as contract copy.
 
 ## Demand patterns and advance notice
 
@@ -297,7 +307,7 @@ Represent each server as a rack-shaped visual container, with the current projec
 
 Keep the server's shared identity visible: software shown for the current project uses the same hardware as any other projects hosted there. The activity monitor represents server-level activity; distinguish total resource use from any project-specific breakdown. Its baseline presentation is a brief textual consumption summary, with richer detail supplied by installed monitoring. Metric selection and coverage follow the observation baseline.
 
-Selecting a software component temporarily shows its details and actions in the desktop right-side panel. On mobile, open the same content in a bottom sheet. Selecting a server or software component exposes its relevant operational actions and preparation progress. Required missing components should be understandable from the project view. Use compact indicators for supporting capabilities, revealing details on selection, so multiple servers remain readable on mobile. Dependencies, placement, and traffic routing retain their distinct meanings even when shown together.
+Selecting a software component shows its contextual details and actions within the project workspace, following the reconciled interface brief rather than replacing the business-wide right panel. On mobile, open the same content in a bottom sheet. Selecting a server or software component exposes its relevant operational actions and preparation progress. Required missing components should be understandable from the project view. Use compact indicators for supporting capabilities, revealing details on selection, so multiple servers remain readable on mobile. Dependencies, placement, and traffic routing retain their distinct meanings even when shown together.
 
 Canvas layout is freely editable and does not change processing behavior. Allow connections only between compatible components and suggest required project connections. Load balancers may connect to other load balancers, but reject routing loops. These routing rules do not imply that every kind of graph edge has identical semantics.
 

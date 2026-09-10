@@ -1,4 +1,7 @@
 import { describe, expect, it } from "bun:test";
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { assertHourIndex } from "./clock";
 import { type IdentityRecord, IdentityRegistry } from "./registry";
@@ -55,6 +58,15 @@ describe("identity registry - atomic insert", () => {
 
 		expect(registry.get("customer", "acme").kind).toBe("customer");
 		expect(() => registry.get("project", "ok")).toThrow("unknown project id: ok");
+	});
+});
+
+describe("identity registry - Game boundary", () => {
+	it("keeps Game.tick free of identity imports", () => {
+		const gamePath = resolve(dirname(fileURLToPath(import.meta.url)), "../game.ts");
+		const source = readFileSync(gamePath, "utf8");
+
+		expect(source.includes("identity/")).toBe(false);
 	});
 });
 

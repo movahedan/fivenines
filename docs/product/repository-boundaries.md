@@ -39,7 +39,7 @@ Links above are relative to this product directory; the workspace documents own 
 
 ## Rules that cross boundaries
 
-- All balance-changing catalogs, coefficients, factors, and policies remain isolated from simulation behavior in the engine's `src/catalog/` directory, following the existing convention. The authored numeric specification lives in [Balance](balance/index.md) until runtime implementation. Game, Server, demand generation, UI, and transport must consume configuration rather than embed tuning literals.
+- All balance-changing catalogs, coefficients, factors, and policies remain isolated from simulation behavior in the engine's `src/catalog/` directory, following the existing convention. The authored numeric specification lives in [Balance](balance/index.md) until a cutover writes those numbers into the live TypeScript modules (or one versioned runtime snapshot). Do not compile `baseline.json` into a second in-memory catalog. Game, Server, demand generation, UI, and transport must consume configuration rather than embed tuning literals.
 
 - Read the root and relevant nested `AGENTS.md` before editing. Use workspace package names in filters and scopes.
 - The engine determines outcomes. UI displays them; a future server hosts the same engine rather than reimplementing its formulas.

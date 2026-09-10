@@ -162,6 +162,8 @@ Implementation: `applyCommand` in `src/game.utils.ts`.
 
 `src/work/` is independent share/conservation math for later allocation. It does not run inside `Server.tick`. Throughput dimensions (`cpuWork`, `gpuWork`, `diskOps`, `networkMiB`) are per tick; occupancy (`residentMemoryMiB`, `queuedMemoryMiB`, `diskCapacityMiB`) is retained. GPU work on a host with `gpuCount === 0` is infeasible, not CPU. Contended capacity uses demand-proportional shares (including backlog) with largest-remainder integers and FIFO within a project share.
 
+Root graphs (`evaluateRootOutcomes`, `estimateRootLatency`) count each customer root once. Required-child failure blocks the root; optional children (shop receipt email) do not. Parallel required branches join by max wait+processing; estimates are not a millisecond clock. `Game` must not import this tree.
+
 Ownership, tick order, and same-hour event order stay in product docs and the [milestone](../../docs/milestones/engine-architecture-and-mathematics.md). Do not encode those guidelines as engine modules.
 
 ## Related

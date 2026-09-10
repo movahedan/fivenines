@@ -36,5 +36,9 @@ describe("Game - learning commands", () => {
 		).toThrow("cannot enrollLearning while jailed");
 		expect(game.cashCents).toBe(-20_000);
 		expect(STARTING_CASH_CENTS).toBeGreaterThan(0);
+		expect(
+			new Game({ customers: [], assets: [] }).learningCatalog.find((row) => row.id === "monitoring")
+				?.status,
+		).toBe("available");
 	});
 });

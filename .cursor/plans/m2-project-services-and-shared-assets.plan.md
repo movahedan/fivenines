@@ -4,16 +4,16 @@ overview: "PR #65: project services, deployment instances, shared asset identity
 todos:
   - id: phase-1-entities
     content: "Add service, instance, and shared-asset entities with dependency and placement edges"
-    status: pending
+    status: completed
   - id: phase-1-mutations
     content: "Atomic candidate mutations; compile or invalidate graph indexes on topology change"
-    status: pending
+    status: completed
   - id: phase-1-verify
     content: "Phase 1 gate: bun test packages/fivenines-engine && bun run turbo run typecheck --filter=@packages/fivenines-engine && bun run overall"
-    status: pending
+    status: completed
   - id: phase-1-docs
     content: "documentation-sync after checkup PASS"
-    status: pending
+    status: completed
   - id: phase-1-pr
     content: "git-pr-workflow stacked on #64; link #65"
     status: pending

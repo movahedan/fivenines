@@ -52,6 +52,12 @@ export class IdentityRegistry {
 		return owned === undefined ? [] : [...owned];
 	}
 
+	clone(): IdentityRegistry {
+		const copy = new IdentityRegistry();
+		copy.#restore(this.#snapshot());
+		return copy;
+	}
+
 	#registerOne(record: IdentityRecord): void {
 		if (record.id.length === 0) {
 			throw new Error(`empty ${record.kind} id`);

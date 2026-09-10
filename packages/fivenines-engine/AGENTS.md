@@ -172,7 +172,11 @@ Ownership, tick order, and same-hour event order stay in product docs and the [m
 
 ## Identity registry
 
-`src/identity/registry.ts` indexes `customer` | `project` | `asset` | `service` | `instance` by globally unique id and owner. `registerAll` is atomic. `assertHourIndex` accepts non-negative integers. `Game` must not import this tree yet. `service` / `instance` kinds exist for #65.
+`src/identity/registry.ts` indexes `customer` | `project` | `asset` | `service` | `instance` by globally unique id and owner. `registerAll` is atomic. `assertHourIndex` accepts non-negative integers. `Game` must not import this tree yet.
+
+## Topology graph
+
+`src/topology/graph.ts` holds project services, deployment instances, shared assets, dependency edges, and placement. Mutations are atomic and rebuild instance-by-asset indexes. Live `Game` still routes one `RouteTarget` and must not import this tree.
 
 ## Related
 

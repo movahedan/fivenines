@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" role="img" aria-labelledby="title desc">
+  <title id="title">Five Nines — Build the cloud. Keep your promises.</title>
+  <desc id="desc">A dark operations-console banner with green typography and a network of illuminated infrastructure nodes.</desc>
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#1a2631" stroke-width="1"/></pattern>
+    <radialGradient id="glow"><stop stop-color="#1b7d4c" stop-opacity=".28"/><stop offset="1" stop-color="#090e16" stop-opacity="0"/></radialGradient>
+    <linearGradient id="line"><stop stop-color="#173c2c"/><stop offset="1" stop-color="#56ef91"/></linearGradient>
+  </defs>
+  <rect width="1280" height="420" rx="18" fill="#090e16"/>
+  <rect x="700" width="580" height="420" fill="url(#grid)" opacity=".65"/>
+  <ellipse cx="1000" cy="210" rx="300" ry="240" fill="url(#glow)"/>
+  <path d="M0 1H1280" stroke="#35d878" stroke-width="2"/>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <g fill="#61e795" font-size="13" font-weight="700" letter-spacing="3"><circle cx="54" cy="49" r="4"/><text x="69" y="54">FIVE NINES</text></g>
+    <text x="52" y="133" fill="#f1f6f8" font-size="66" font-weight="750" letter-spacing="-3">Build the cloud.</text>
+    <text x="52" y="208" fill="#61e795" font-size="66" font-weight="750" letter-spacing="-3">Keep your promises.</text>
+    <text x="55" y="260" fill="#a2b0c0" font-size="20">A cloud tycoon about capacity, cash, and consequences.</text>
+    <path d="M55 308H680" stroke="#253340"/>
+    <g fill="#a2b0c0" font-family="monospace" font-size="12" letter-spacing="1.5">
+      <text x="55" y="344">01 / ACCEPT</text><text x="255" y="344">02 / BUILD</text><text x="449" y="344">03 / OPERATE</text>
+    </g>
+    <text x="55" y="389" fill="#607287" font-size="11" letter-spacing="2">SMALL BEGINNINGS. CRITICAL INFRASTRUCTURE.</text>
+  </g>
+  <g fill="none" stroke="url(#line)" stroke-width="2">
+    <path d="M842 184H898Q916 184 916 166V114H978"/>
+    <path d="M842 184H898Q916 184 916 202V273H978"/>
+    <path d="M1118 114H1150Q1168 114 1168 132V256H1198" opacity=".55"/>
+    <path d="M1118 273H1198" opacity=".55"/>
+  </g>
+  <g font-family="monospace">
+    <rect x="780" y="151" width="83" height="66" rx="9" fill="#0d1920" stroke="#2b5940"/>
+    <text x="799" y="180" fill="#61e795" font-size="18">↗</text><text x="794" y="201" fill="#899daf" font-size="9">DEMAND</text>
+    <g fill="#0d1920" stroke="#2b5940"><rect x="978" y="70" width="140" height="89" rx="10"/><rect x="978" y="230" width="140" height="89" rx="10"/></g>
+    <g fill="#61e795"><circle cx="995" cy="91" r="3"/><circle cx="995" cy="251" r="3"/></g>
+    <g fill="#dce8ee" font-size="10"><text x="1007" y="95">APPLICATION</text><text x="1007" y="255">DATABASE</text></g>
+    <g stroke="#22362e" stroke-width="5"><path d="M993 117H1103M993 132H1103M993 277H1103M993 292H1103"/></g>
+    <g stroke="#4bce7e" stroke-width="5"><path d="M993 117H1055M993 132H1081M993 277H1032M993 292H1072"/></g>
+    <circle cx="1205" cy="267" r="7" fill="#61e795"/>
+    <text x="962" y="370" fill="#577766" font-size="11" letter-spacing="3">EVERY HOUR COUNTS</text>
+  </g>
+</svg>

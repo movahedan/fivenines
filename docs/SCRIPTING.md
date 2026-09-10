@@ -44,5 +44,5 @@ When adding a new script, prefer the existing helpers (`renderAndExit`, `StepPro
 
 ## Where to go next
 
-- Commands: [`docs/CHEATSHEET.md`](./CHEATSHEET.md). Setup: [README § Quick start](../README.md#quick-start). Map: [`AGENTS.md`](../AGENTS.md).
+- Commands: [`docs/CHEATSHEET.md`](./CHEATSHEET.md). Setup: [Build guide](help-build-it.md#run-locally). Map: [`AGENTS.md`](../AGENTS.md).
 - Conventions for Bun subcommand CLIs and Ink step progress: `.cursor/skills/monorepo-script-commands/SKILL.md` in this repo.

@@ -221,6 +221,11 @@ export function HubSession() {
 						tone: "info",
 					},
 					{ label: "OPEX / hour", value: formatters.cents(opexCents), tone: "warning" },
+					{
+						label: "LEARN",
+						value: `${String(game.learning.slotsUsed)}/2`,
+						tone: "info",
+					},
 				]}
 				onSpeedChange={setSpeed}
 				onToggleRunning={toggleRunning}
@@ -465,6 +470,91 @@ export function HubSession() {
 					</div>
 				</section>
 			</main>
+			<section
+				aria-label="Learning"
+				className="flex h-48 min-h-0 shrink-0 flex-col overflow-hidden border-t border-border bg-panel"
+			>
+				<PanelHeader
+					count={game.learning.slotsUsed}
+					label="Learning"
+					tone="info"
+					trailing={
+						<span className="font-mono text-xs text-muted-foreground">
+							Completed courses vs active enrollments are separate. Effects are not applied to
+							missing consumers. Projects/Inventory shared-asset identity is still incomplete.
+						</span>
+					}
+				/>
+				<div className="flex min-h-0 flex-1 gap-2 overflow-x-auto p-2">
+					{game.learningCatalog.map((row) => (
+						<div
+							className="flex w-56 shrink-0 flex-col gap-1 border border-border bg-card p-2 font-mono text-xs"
+							key={row.id}
+						>
+							<p className="font-semibold text-foreground">{row.name}</p>
+							<p className="text-muted-foreground">{row.status}</p>
+							<p className="text-muted-foreground">
+								{String(row.durationHours)}h · {formatters.cents(row.monthlyTuitionCents)}
+							</p>
+							{row.status === "available" ? (
+								<Button
+									disabled={jailed}
+									onClick={() => {
+										runCommand(
+											{ type: "enrollLearning", payload: { subject: row.subject } },
+											`Enrolled ${row.name}`,
+										);
+									}}
+									size="sm"
+								>
+									Enroll {row.name}
+								</Button>
+							) : null}
+							{row.status === "active" && row.enrollmentId !== undefined ? (
+								<Button
+									onClick={() => {
+										const enrollmentId = row.enrollmentId;
+
+										if (enrollmentId === undefined) {
+											return;
+										}
+
+										runCommand(
+											{ type: "pauseLearning", payload: { enrollmentId } },
+											`Paused ${row.name}`,
+										);
+									}}
+									size="sm"
+									variant="outline"
+								>
+									Pause {row.name}
+								</Button>
+							) : null}
+							{(row.status === "paused" || row.status === "insufficient-funds") &&
+							row.enrollmentId !== undefined ? (
+								<Button
+									disabled={jailed && row.status === "insufficient-funds"}
+									onClick={() => {
+										const enrollmentId = row.enrollmentId;
+
+										if (enrollmentId === undefined) {
+											return;
+										}
+
+										runCommand(
+											{ type: "resumeLearning", payload: { enrollmentId } },
+											`Resumed ${row.name}`,
+										);
+									}}
+									size="sm"
+								>
+									Resume {row.name}
+								</Button>
+							) : null}
+						</div>
+					))}
+				</div>
+			</section>
 			<section
 				aria-label="Event log"
 				className="flex h-40 min-h-0 shrink-0 flex-col overflow-hidden border-t border-border"

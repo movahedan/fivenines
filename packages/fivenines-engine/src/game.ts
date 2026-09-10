@@ -29,6 +29,7 @@ import {
 	postCashDelta,
 } from "./game.utils";
 import { LearningBoard, type LearningSnapshot } from "./learning/board";
+import { type LearningCatalogRow, learningCatalog } from "./learning/catalog-view";
 import type { Server } from "./server";
 import { MathRandomSource, type RandomSource } from "./traffic/random-source";
 
@@ -36,6 +37,8 @@ export type { EngineEvent } from "./game.events";
 export type { GameFinanceSnapshot } from "./game.finance";
 export type { GameTickMetrics } from "./game.metrics";
 export type { AssetInitial, EngineCommand, GameAsset } from "./game.utils";
+export type { LearningSnapshot, LearningSubject } from "./learning/board";
+export type { LearningCatalogRow, LearningRowStatus } from "./learning/catalog-view";
 
 export interface GameOptions {
 	random?: RandomSource;
@@ -146,6 +149,10 @@ export class Game {
 
 	get learning(): LearningSnapshot {
 		return this.#learning.snapshot();
+	}
+
+	get learningCatalog(): readonly LearningCatalogRow[] {
+		return learningCatalog(this.#learning.snapshot(), this.#cashCents);
 	}
 
 	dispatch(command: EngineCommand): Game {

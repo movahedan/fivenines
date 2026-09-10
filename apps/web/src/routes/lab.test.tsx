@@ -78,6 +78,7 @@ describe("LabPage - session gate", () => {
 		renderLab();
 
 		await waitForLab();
+		expect(screen.getByText("Demand inspect")).toBeTruthy();
 	});
 });
 

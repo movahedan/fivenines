@@ -64,8 +64,8 @@ Product rules stay in [product docs](../product/index.md). Do not ship TypeScrip
 
 | Slice | Status | PR | Verification evidence |
 |---|---|---|---|
-| Responsibilities and state transitions | In progress (local) | — | Catalog checker only: `packages/fivenines-engine/src/baseline/` against [baseline.json](../product/balance/baseline.json). Guideline directories (ownership/tick/commands/indexes as code) removed. `bun test packages/fivenines-engine` after the cut. Live `Game.tick` unchanged. |
-| Resource and work reference model | Planned | — | Not run |
-| Graph and outcome reference model | Planned | — | Not run |
+| Responsibilities and state transitions | In review | [#98](https://github.com/movahedan/fivenines/pull/98) | Catalog checker: `packages/fivenines-engine/src/baseline/` against [baseline.json](../product/balance/baseline.json). `bun overall` on the PR1 branch. Live `Game.tick` unchanged. |
+| Resource and work reference model | In review | [#99](https://github.com/movahedan/fivenines/pull/99) | Independent fixtures in `packages/fivenines-engine/src/work/` (`allocateProportional`, `settleHostTick`, `conserveWork`). CPU/GPU-infeasible/memory/network/disk cases, backlog shares, FIFO, largest-remainder conservation. Not wired to `Server.tick`. Stacked on #98. |
+| Graph and outcome reference model | In progress (local) | — | `evaluateRootOutcomes`, `estimateRootLatency` in `src/work/`. Converging DAG counts each root once; optional email is not a second root; join uses max, not sum. Not wired to `Game`. |
 
 No new product decision is required to begin planning. Implementation trade-offs belong in the assigned PR plan; escalate only a concrete contradiction or material scope change.

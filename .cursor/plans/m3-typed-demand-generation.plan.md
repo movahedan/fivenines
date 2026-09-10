@@ -4,16 +4,16 @@ overview: "Issue #67: per-project DemandEngine (mixtures, rhythms, campaigns, sp
 todos:
   - id: catalog
     content: "Cut v1 demand types, rhythms, variation, project templates, finite jobs into src/catalog integers"
-    status: pending
+    status: completed
   - id: engine
     content: "DemandEngine generate + finite activate; per-project RNG; no placement"
-    status: pending
+    status: completed
   - id: verify
     content: "bun test packages/fivenines-engine && bun run overall"
     status: pending
   - id: docs
     content: "documentation-sync: engine AGENTS + milestone delivery row"
-    status: pending
+    status: completed
 isProject: false
 ---
 

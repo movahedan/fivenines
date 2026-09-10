@@ -168,6 +168,14 @@ Ownership, tick order, and same-hour event order stay in product docs and the [m
 
 Live tunables stay in `src/catalog/` TypeScript (`kernel.ts` Bronze–Diamond plus `thin-ram`, economy/traffic/SLA policies). [baseline.json](../../docs/product/balance/baseline.json) is checked by `src/baseline/` only. Do not add a catalog compiler or a second JSON that Game loads. Cutover later replaces the live modules (or a versioned runtime snapshot) in place.
 
+## Demand engine
+
+`src/demand-engine/` generates typed root batches for a project. It does not place work, run `Server.tick`, or replace Opening Shift RPS (`ConstantDemand` / `ProjectDemand`). `Game` must not import this tree yet.
+
+Live numbers live in `src/catalog/demand-types.ts`, `demand-rhythms.ts`, `demand-variation.ts`, and `demand-projects.ts` (micro-units: `Math.round(value * 1_000_000)`). `baseline.json` is not loaded. Mixes are permille summing to 1000. Combined campaign × spike is capped at 6. Version-one templates are the default; expansion ids throw unless `allowExpansion` is set.
+
+Hourly arrival: `m = baseline × rhythm × campaign × spike`, then Gamma–Poisson (`k` from early/standard/volatile) and a multinomial split. `constant: true` skips the mixture and uses largest remainder. Finite jobs emit one frozen root from `activateFinite` and never hourly Poisson. Each project uses `SeededRandomSource` from its id. Arrival sample checks state `n` and tolerances in the assertion. Do not re-export this tree from `src/index.ts` until a consumer needs it (barrel imports would load it into Hub/Lab coverage).
+
 ## Identity registry
 
 `src/identity/registry.ts` indexes `customer` | `project` | `asset` | `service` | `instance` by globally unique id and owner. `registerAll` is atomic. `assertHourIndex` accepts non-negative integers. `Game` must not import this tree yet.

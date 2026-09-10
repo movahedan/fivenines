@@ -130,7 +130,7 @@ Everything you need to build rock-solid applications is right here! We've kept i
 
 ## 📦 **What's Inside**
 
-**Design reference** (`apps/figma-design`) — local preview on **3010**, preserving the supplied Figma design. See its [README](apps/figma-design/README.md) and [reconciliation decisions](docs/product/design-reconciliation.md); production gameplay remains in `apps/web`.
+**Design reference** (`apps/figma-design`) — local preview on **3010**, preserving the supplied Figma design. See its [README](apps/figma-design/README.md) and [interface brief](docs/product/interface-design-brief.md); production gameplay remains in `apps/web`.
 
 **🎮 web** (`apps/web`) — **Port 3000** - Player UI (TanStack Start SPA); **`/hub`** ops console, **`/lab`** client engine harness
 

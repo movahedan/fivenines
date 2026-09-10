@@ -1,6 +1,6 @@
 # Figma Make handoff
 
-Status: design received and presentation reconciled on 2026-09-10. Use the preserved [reference application](../../apps/figma-design/README.md) and [reconciliation record](design-reconciliation.md) for implementation. The prompt below is updated guidance for future extensions, not a claim that every required flow was delivered. Runtime implementation and visual usability validation remain separate work.
+Status: design received and presentation reconciled on 2026-09-10. Use the preserved [reference application](../../apps/figma-design/README.md) and [interaction specification](interaction-specification.md) for implementation. The prompt below is updated guidance for future extensions, not a claim that every required flow was delivered. Runtime implementation and visual usability validation remain separate work.
 
 ## Prompt to use with the attached product documents
 

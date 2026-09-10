@@ -4,7 +4,7 @@ Five Nines is a management game about building an infrastructure and operations 
 
 ## Reading guide
 
-For the approved visual direction, start with the preserved [Figma design reference](../../apps/figma-design/README.md), [interface brief](interface-design-brief.md), and [design reconciliation](design-reconciliation.md). The [Figma Make handoff](figma-make-handoff.md) remains extension guidance and a coverage checklist. Missing prototype interactions remain implementation work, not automatic product deferrals.
+For the approved visual direction, start with the preserved [Figma design reference](../../apps/figma-design/README.md), [interface brief](interface-design-brief.md), and [interaction specification](interaction-specification.md). The [Figma Make handoff](figma-make-handoff.md) remains extension guidance and a coverage checklist. Missing prototype interactions remain implementation work, not automatic product deferrals.
 
 | Document | Question it answers |
 |---|---|
@@ -15,7 +15,6 @@ For the approved visual direction, start with the preserved [Figma design refere
 | [Balance baseline](balance/index.md) | What authored catalog entries, policy numbers, and validation evidence support the next engine design? |
 | [Product direction](product-direction.md) | What changes next, what can be reused, and what stays independent? |
 | [Interface design brief](interface-design-brief.md) | Which UI constraints are agreed, which layouts are proposed, and what should a Figma Make handoff cover? |
-| [Design reconciliation](design-reconciliation.md) | Which export differences were accepted, corrected during implementation, or retained as missing coverage, and which milestones own them? |
 | [Interaction specification](interaction-specification.md) | Which actions belong to each infrastructure object, how are they prioritized, and what states and impact reviews must the design cover? |
 | [Repository boundaries](repository-boundaries.md) | Which application or package owns each technical responsibility? |
 | [Open questions](open-questions.md) | Which implementation, verification, and deferred work remains? |

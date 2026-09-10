@@ -1,6 +1,6 @@
 # Interface design brief
 
-Status: reconciled with the supplied Figma design on 2026-09-10. The user approved its final shell and workspace layout while retaining product capabilities absent from the prototype. The preserved [design reference](../../apps/figma-design/README.md) supplies visual treatment; [reconciliation](design-reconciliation.md) records differences and implementation corrections. This document does not replace gameplay rules or claim runtime completion.
+Status: reconciled with the supplied Figma design on 2026-09-10. The user approved its final shell and workspace layout while retaining product capabilities absent from the prototype. The preserved [design reference](../../apps/figma-design/README.md) supplies visual treatment; this brief and the [interaction specification](interaction-specification.md) define the intended production interface. This document does not replace gameplay rules or claim runtime completion.
 
 ## Design objective
 

@@ -14,7 +14,7 @@ The product and interface discussion is complete for the current design handoff.
 
 | Work | What still needs evidence |
 |---|---|
-| Figma reference and interaction completion | Design received and shell/workspace layout approved; preserve it in `apps/figma-design`. Implement missing action flows and correct fixtures/accessibility as mapped in [Design reconciliation](design-reconciliation.md). The export is not a complete playable application |
+| Figma reference and interaction completion | Design received and shell/workspace layout approved; preserve it in `apps/figma-design`. Implement missing action flows and correct fixtures/accessibility under the existing [delivery milestones](../milestones/README.md). The export is not a complete playable application |
 | Aggregate solver | Prove and implement multi-resource allocation, branch completion, queue transitions and latency estimates with conservation and order independence |
 | Data structures and lifecycle | Implement indexes, graph representation, batch state, service configuration and instance transitions against current Phase 2 code |
 | Routing and recovery | Verify readiness, replication, data transfer, observed health, incidents, replacement and automatic leasing under contention |
@@ -22,10 +22,6 @@ The product and interface discussion is complete for the current design handoff.
 | Native-compatible UI | Select graph/chart rendering and interaction implementations; connect engine projections to approved components and flows |
 
 Each implementation slice needs its own tests and documentation synchronization before a PR. The milestones give outcomes, dependency order and gates; they are not proof that the solver or runtime migration is complete.
-
-## Design reconciliation closed
-
-The user explicitly approved all eight resolution groups in [Design reconciliation](design-reconciliation.md#final-decision-register). Inspector placement, Connect interaction, daily cost presentation, account scope and mobile canvas behavior are settled. No unresolved conflict from this export blocks development. Implementation and verification remain required; this does not mark capabilities delivered.
 
 ## Explicitly deferred
 

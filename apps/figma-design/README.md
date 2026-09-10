@@ -19,7 +19,7 @@ The preview command serves the built `dist` on the same port; stop the developme
 
 ## What to follow
 
-Use the [interface brief](../../docs/product/interface-design-brief.md) and [interaction specification](../../docs/product/interaction-specification.md) with this app. [Design reconciliation](../../docs/product/design-reconciliation.md) records accepted presentation changes, fixture corrections and ownership in the existing milestones.
+Use the [interface brief](../../docs/product/interface-design-brief.md) and [interaction specification](../../docs/product/interaction-specification.md) with this app. Implementation belongs to the existing [delivery milestones](../../docs/milestones/README.md).
 
 The main project workspace rack (`src/InfraCanvas.tsx`, `ServerRack`) is the shared visual reference for servers in project, acquisition, Inventory and details. Adapt that design to each context; incomplete or unstyled server views elsewhere in the export are not independent approved designs.
 
@@ -44,7 +44,7 @@ Use the bottom journey arrows to inspect its 13 scenario frames. They are design
 - Acceptance does not open a usable empty setup workspace, and Contract Review Back does not return correctly.
 - Server/service selection does not open a complete inspector; install/configure, Park/Resume, growth and recovery are not connected.
 - Acquisition references old missing drawer styles. Mobile racks/headers can overflow; the journey control can cover navigation.
-- Finance/research/monitoring fixtures contain inconsistencies documented in the reconciliation record.
+- Finance, research and monitoring fixtures are illustrative; use the product rules and catalogs for actual values and visibility.
 - `InspectorPanel.tsx`, `Navigation.tsx` and `OfferDrawer.tsx` remain archived but are not used by the entry tree.
 
 These limitations remain visible so the export is an honest reference. Missing capabilities remain in the delivery milestones; passing this workspace's build is not evidence that those capabilities are implemented.

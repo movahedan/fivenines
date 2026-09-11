@@ -322,6 +322,30 @@ describe("HubPage - project routing", () => {
 		expect(screen.getByText("$250.00")).toBeTruthy();
 		expect(screen.queryByRole("alert")).toBeNull();
 	});
+
+	it("assigns the setup box and starts the first install from the ops floor", async () => {
+		stubSession();
+
+		renderHub();
+
+		await waitForOpsFloor();
+		fireEvent.click(screen.getByRole("button", { name: "Pause" }));
+		buyFirstMarketServer();
+		await setupFirstOffer();
+
+		fireEvent.click(screen.getByRole("button", { name: "Assign box" }));
+
+		await waitFor(() => {
+			expect(screen.getByRole("button", { name: "Install Application Runtime" })).toBeEnabled();
+		});
+
+		fireEvent.click(screen.getByRole("button", { name: "Install Application Runtime" }));
+
+		await waitFor(() => {
+			expect(screen.getByText("1/1")).toBeTruthy();
+		});
+		expect(screen.getByRole("button", { name: "Start" })).toBeDisabled();
+	});
 });
 
 describe("PlayButton - hub entry", () => {

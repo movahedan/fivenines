@@ -1,6 +1,6 @@
 # Resource allocation and system execution
 
-Milestone 5 of 10. Status: planned; no implementation PR is claimed delivered. Follow the [standing delivery workflow](README.md).
+Milestone 5 of 10. Status: in progress on the M5 stack branch from [#111](https://github.com/movahedan/fivenines/pull/111) (`feature/m4-infrastructure-preparation-and-operations`). Execution plan: [`.cursor/plans/m5-resource-allocation-and-execution.plan.md`](../../.cursor/plans/m5-resource-allocation-and-execution.plan.md). Follow the [standing delivery workflow](README.md). No slice is claimed delivered until its PR exists.
 
 ## Outcome and boundaries
 
@@ -46,10 +46,30 @@ Connect compact host activity and embedded project Status/Performance/Finances t
 
 | Slice | Status | PR | Verification evidence |
 |---|---|---|---|
-| Resource allocator | Planned | — | Not run |
-| Dependency graph execution | Planned | — | Not run |
-| Transfers and migration completion | Planned | — | Not run |
-| First-project settlement and playtest | Planned | — | Not run |
-| Integrated runtime projections | Planned | — | Not run |
+| Milestone 5 stack base | In review | [#119](https://github.com/movahedan/fivenines/pull/119) | Docs/plan on #111 head; later slices fold in after merge |
+| Resource allocator | Merged into #119 | [#120](https://github.com/movahedan/fivenines/pull/120) | [#76](https://github.com/movahedan/fivenines/issues/76); merged 2026-09-11 |
+| Dependency graph execution | Merged into #119 | [#121](https://github.com/movahedan/fivenines/pull/121) | [#77](https://github.com/movahedan/fivenines/issues/77); merged 2026-09-11 |
+| Transfers and migration completion | Merged into #119 | [#122](https://github.com/movahedan/fivenines/pull/122) | [#78](https://github.com/movahedan/fivenines/issues/78); merged 2026-09-11 |
+| First-project settlement and playtest | In review | [#123](https://github.com/movahedan/fivenines/pull/123) | [#79](https://github.com/movahedan/fivenines/issues/79); stacked on #119 |
+| Integrated runtime projections | In review | [#124](https://github.com/movahedan/fivenines/pull/124) | [#80](https://github.com/movahedan/fivenines/issues/80); stacked on #123 |
+
+## Playtest findings (#79)
+
+Seeded `FixedRandomSource(0.5)` on `openingInitial`: accept Maya, 5h setup (install + configure), start, then 168h. Numbers are cents.
+
+| Session | Cash after start | Cash after first week | Settlement | Notes |
+|---|---|---|---|---|
+| Healthy owned Bronze | 14_425 | −6_365 | periodPpm 1_000_000, credit 0, recurring 8_000 | Prepaid week close does not re-charge the 8_000 advance. Opex plus the 18_000 buy put the wallet below zero; jail stays off (`DEBT_LIMIT_CENTS` 20_000). |
+| Healthy leased Bronze | — | −13_796 | same SLA / 0 credit | Lease 147¢/h over setup + week is ~7_431¢ more expensive than owning after the purchase is already sunk. Last-hour `finance.leaseCents` 147 vs owned 0. |
+| Overloaded (park 80h mid-week, then resume) | — | −9_830 | hoursServed 88, periodPpm 501_994, credit 4_190 (full prorated revenue) | Parked hours still emit and miss. Billing origin does not reset. Resume keeps the same close hour. |
+| Debt recovery | — | −6_365 then **6_235** after sell | — | Unassign + sell credits 12_600 salvage (70% of 18_000). Never jailed. |
+
+Pacing / decision clarity: one healthy acquaintance week on a bought Bronze is playable and SLA-clean, but cash is already negative, so a second owned box for Opening Shift (two served contracts) is not affordable from the same wallet. Lease (or salvage) is the teaching fork. Parking is not a cheap way to dodge SLA: prepaid credits wipe the prorated fee whenever ppm misses the 80% target.
+
+Engine: `packages/fivenines-engine/src/playtest.first-project.test.ts`. Hub: Assign box + Install Application Runtime from the ops floor (`apps/web/src/routes/hub.test.tsx`).
+
+## Runtime projection notes (#80)
+
+Hub fleet cards now show DISK utilization from `server.metrics.diskLoad` plus GPU as **unavailable** on teaching SKUs (`gpuCount === 0`); market comparison lists disk MiB and GPU `none` beside CPU/RAM. Offers label **DEMAND** as baseline RPS, not cores. Active cards read service state, this-hour handled/emitted, last credit, and `game.pathHour` on the Active header. Telemetry copy stays `unavailable` — no reconstructed traces. `compileDemandGraph` stays a static lookup (≤8 nodes per type); permutation of `oneBronzeInitial` project order does not change handled totals (`src/projections.runtime.test.ts`). Hub tests ignore unexecuted `work/` and related kernel files in `bunfig.toml` the same way they already skip unused `rng.ts`.
 
 No new product decision is required to begin planning. Implementation trade-offs belong in the assigned PR plan; escalate only a concrete contradiction or material scope change.

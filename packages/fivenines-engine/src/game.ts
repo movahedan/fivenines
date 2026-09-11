@@ -1,6 +1,7 @@
 import { ids } from "@packages/shared/ids";
 import { units } from "@packages/shared/units";
 
+import { allocateHour, type PlacedDemand, type TransferHourProgress } from "./allocation/place";
 import { SETUP_WITHDRAWAL_REPUTATION_DELTA } from "./catalog/contract-policy";
 import { DEBT_LIMIT_CENTS, STARTING_CASH_CENTS } from "./catalog/economy-policy";
 import {
@@ -9,8 +10,10 @@ import {
 	parseInstallableServiceId,
 	SHARED_CONNECTION_TASK_ID,
 } from "./catalog/operations-policy";
+import { transferPayload } from "./catalog/transfer-policy";
 import { Customer, type CustomerInitial } from "./customer";
-import { placeProjectDemand } from "./demand";
+import type { DemandEngine } from "./demand-engine/engine";
+import type { WorkQueue } from "./demand-engine/queue";
 import {
 	accruePeriodPayg,
 	closeBillingPeriodIfDue,
@@ -43,26 +46,21 @@ import type { Project } from "./project";
 import type { Server } from "./server";
 import { spawnAcquaintanceIfDue } from "./setup-clock";
 import { MathRandomSource, type RandomSource } from "./traffic/random-source";
+import { EMPTY_PATH_HOUR, type PathHourSummary } from "./work/execute";
 
 export type { EngineEvent } from "./game.events";
 export type { GameFinanceSnapshot } from "./game.finance";
-export type { GameTickMetrics } from "./game.metrics";
 export type { AssetInitial, EngineCommand, GameAsset } from "./game.utils";
 export type { LearningSnapshot, LearningSubject } from "./learning/board";
 export type { LearningCatalogRow, LearningRowStatus } from "./learning/catalog-view";
 export type { OperationalSnapshot, OperationalTask } from "./operations/queue";
+export type { PathHourSummary } from "./work/execute";
 
 interface TickContext {
 	hour: number;
 	cash: number;
 	events: EngineEvent[];
 	rng: RandomSource;
-}
-
-interface PlacedDemand {
-	readonly projects: readonly Project[];
-	readonly totalDemand: number;
-	readonly unroutableDemand: number;
 }
 
 export interface GameOptions {
@@ -94,6 +92,9 @@ export class Game {
 	#metrics: GameTickMetrics = EMPTY_GAME_TICK_METRICS;
 	#events: EngineEvent[] = [];
 	#serversById: ReadonlyMap<string, Server> = new Map();
+	#workQueues = new Map<string, WorkQueue>();
+	#demandEngines = new Map<string, DemandEngine>();
+	#pathHour: PathHourSummary = EMPTY_PATH_HOUR;
 
 	constructor(initial: GameInitial, options?: GameOptions) {
 		const customerIds = initial.customers.map((customer) => customer.id);
@@ -185,6 +186,10 @@ export class Game {
 
 	get operations(): OperationalSnapshot {
 		return this.#operations.snapshot();
+	}
+
+	get pathHour(): PathHourSummary {
+		return this.#pathHour;
 	}
 
 	get reputation(): number {
@@ -309,43 +314,28 @@ export class Game {
 	}
 
 	#placeDemand(ctx: TickContext): PlacedDemand {
-		let totalDemand = 0;
-		let unroutableDemand = 0;
-
-		for (const customer of this.customers) {
-			for (const project of customer.projects) {
-				const demand = project.tick(ctx.hour, ctx.rng);
-
-				totalDemand += demand;
-
-				if (demand === 0) {
-					continue;
-				}
-
-				const route = project.route;
-				const routedServer =
-					route === undefined ? undefined : this.#serversById.get(route.serverId);
-
-				if (routedServer === undefined || !routedServer.poweredOn) {
-					unroutableDemand += demand;
-					continue;
-				}
-
-				unroutableDemand += placeProjectDemand(
-					routedServer,
-					demand,
-					project.region,
-					project.category,
-					project.id,
-				);
-			}
-		}
-
-		return {
+		const placed = allocateHour({
+			hour: ctx.hour,
+			rng: ctx.rng,
 			projects: this.customers.flatMap((customer) => customer.projects),
-			totalDemand,
-			unroutableDemand,
-		};
+			serversById: this.#serversById,
+			queues: this.#workQueues,
+			engines: this.#demandEngines,
+		});
+		this.#pathHour = placed.paths;
+		this.#applyTransferProgress(placed.transferProgress);
+
+		return placed;
+	}
+
+	#applyTransferProgress(progress: readonly TransferHourProgress[]): void {
+		for (const row of progress) {
+			this.#customers = [
+				...replaceProject(this.#customers, row.projectId, "accepted", (project) =>
+					project.withTransferProgress(row.networkHandled, row.diskHandled),
+				),
+			];
+		}
 	}
 
 	#tickServerPhysics(ctx: TickContext, simulatedHour: number): void {
@@ -737,7 +727,9 @@ export class Game {
 			!destination.poweredOn ||
 			destination.computeUnitsPerHour < sourceServer.computeUnitsPerHour ||
 			destination.memoryMiB < sourceServer.memoryMiB ||
-			destination.networkBytesPerHour < sourceServer.networkBytesPerHour
+			destination.networkBytesPerHour < sourceServer.networkBytesPerHour ||
+			destination.diskCapacityMiB < sourceServer.diskCapacityMiB ||
+			destination.diskOps < sourceServer.diskOps
 		) {
 			throw new Error(`destination is incompatible: ${destination.id}`);
 		}
@@ -753,7 +745,12 @@ export class Game {
 			copyId = `${source.id}-copy-${String(sequence)}`;
 		}
 
-		const copy = source.asDuplicate(copyId, destination.id, this.#hourIndex);
+		const copy = source.asDuplicate(
+			copyId,
+			destination.id,
+			this.#hourIndex,
+			transferPayload(sourceServer),
+		);
 
 		this.#customers = this.#customers.map((customer) => {
 			if (!customer.projects.some((project) => project.id === source.id)) {

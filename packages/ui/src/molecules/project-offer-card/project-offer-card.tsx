@@ -70,7 +70,7 @@ export function ProjectOfferCard({
 				</Text>
 			</View>
 			<View className="flex-row gap-1">
-				<MetricStat className="flex-1" label="CPU" tone="info" value={cpuLabel} />
+				<MetricStat className="flex-1" label="DEMAND" tone="info" value={cpuLabel} />
 				<MetricStat className="flex-1" label="PAYG" tone="primary" value={paygLabel} />
 				<MetricStat className="flex-1" label="SLA" tone="warning" value={slaLabel} />
 			</View>

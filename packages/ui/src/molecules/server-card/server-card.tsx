@@ -28,6 +28,11 @@ export interface ServerCardProps {
 	readonly cpuPercent?: number;
 	readonly netPercent?: number;
 	readonly ramPercent?: number;
+	readonly diskPercent?: number;
+	readonly gpuPercent?: number;
+	readonly diskLabel?: string;
+	readonly gpuLabel?: string;
+	readonly gpuUnavailableLabel?: string;
 	readonly canAfford?: boolean;
 	readonly canAffordLease?: boolean;
 	readonly leaseLabel?: string;
@@ -51,6 +56,11 @@ export function ServerCard({
 	cpuPercent,
 	netPercent,
 	ramPercent,
+	diskPercent,
+	gpuPercent,
+	diskLabel,
+	gpuLabel,
+	gpuUnavailableLabel,
 	canAfford,
 	canAffordLease,
 	leaseLabel,
@@ -81,6 +91,12 @@ export function ServerCard({
 					<MetricStat className={statWidth} label="CPU" tone="info" value={cpuLabel} />
 					{ramLabel ? (
 						<MetricStat className={statWidth} label="RAM" tone="info" value={ramLabel} />
+					) : null}
+					{diskLabel ? (
+						<MetricStat className={statWidth} label="DISK" tone="info" value={diskLabel} />
+					) : null}
+					{gpuLabel ? (
+						<MetricStat className={statWidth} label="GPU" tone="info" value={gpuLabel} />
 					) : null}
 				</View>
 				<View className="flex-row flex-wrap gap-x-2 gap-y-1">
@@ -142,6 +158,19 @@ export function ServerCard({
 			<FleetAxis capLabel={cpuLabel} name="CPU" percent={cpuPercent ?? 0} />
 			<FleetAxis capLabel={netLabel} name="NET" percent={netPercent ?? 0} />
 			<FleetAxis capLabel={ramLabel} name="RAM" percent={ramPercent ?? 0} />
+			{diskLabel === undefined ? null : (
+				<FleetAxis capLabel={diskLabel} name="DISK" percent={diskPercent ?? 0} />
+			)}
+			{gpuUnavailableLabel !== undefined ? (
+				<Text
+					accessibilityLabel={`GPU ${gpuUnavailableLabel}`}
+					className="font-mono text-xs text-muted-foreground"
+				>
+					GPU {gpuUnavailableLabel}
+				</Text>
+			) : gpuLabel === undefined && gpuPercent === undefined ? null : (
+				<FleetAxis capLabel={gpuLabel} name="GPU" percent={gpuPercent ?? 0} />
+			)}
 			<Text className="font-mono text-xs text-muted-foreground">{opexLabel}</Text>
 		</Card>
 	);

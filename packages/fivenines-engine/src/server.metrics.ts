@@ -19,6 +19,8 @@ export interface ServerTickMetrics {
 	cpuLoad: number;
 	netLoad: number;
 	memOcc: number;
+	diskLoad: number;
+	gpuLoad: number;
 	p95LatencyMs: number;
 	utilization: number;
 	errorPpm: number;
@@ -29,6 +31,8 @@ export interface ServerTickStocks {
 	networkBytesPerHour: number;
 	memoryMiB: number;
 	baseMemoryMiB: number;
+	gpuWork: number;
+	diskOps: number;
 	region: RegionId;
 }
 
@@ -44,6 +48,8 @@ export const EMPTY_SERVER_TICK_METRICS: ServerTickMetrics = {
 	cpuLoad: 0,
 	netLoad: 0,
 	memOcc: 0,
+	diskLoad: 0,
+	gpuLoad: 0,
 	p95LatencyMs: BASE_LATENCY_MS,
 	utilization: 0,
 	errorPpm: 0,
@@ -64,6 +70,13 @@ export function cpuLoadFromSlices(slices: readonly ServerDemandSlice[]): number 
 
 function assignedFromSlices(slices: readonly ServerDemandSlice[]): number {
 	return slices.reduce((sum, slice) => sum + slice.requests, 0);
+}
+
+function diskLoadFromSlices(slices: readonly ServerDemandSlice[]): number {
+	return slices.reduce(
+		(sum, slice) => sum + slice.requests * categoryCost(slice.category).diskOpsPerRequest,
+		0,
+	);
 }
 
 function netLoadFromSlices(slices: readonly ServerDemandSlice[]): number {
@@ -143,11 +156,15 @@ export function measureServerTick(
 	const assignedRequests = assignedFromSlices(slices);
 	const cpuLoad = cpuLoadFromSlices(slices);
 	const netLoad = netLoadFromSlices(slices);
+	const diskLoad = diskLoadFromSlices(slices);
+	const gpuLoad = 0;
 	const memOcc = memOccFromSlices(slices, assignedRequests, stocks.baseMemoryMiB);
 	const axes: readonly AxisLoad[] = [
 		{ load: cpuLoad, cap: stocks.computeUnitsPerHour },
 		{ load: netLoad, cap: stocks.networkBytesPerHour },
 		{ load: memOcc, cap: stocks.memoryMiB },
+		{ load: diskLoad, cap: stocks.diskOps },
+		{ load: gpuLoad, cap: stocks.gpuWork },
 	];
 	const handledRequests = assignedRequests === 0 ? 0 : handledFromFitRatios(assignedRequests, axes);
 	const droppedRequests = assignedRequests - handledRequests;
@@ -163,6 +180,8 @@ export function measureServerTick(
 		cpuLoad,
 		netLoad,
 		memOcc,
+		diskLoad,
+		gpuLoad,
 		p95LatencyMs: BASE_LATENCY_MS + utilization * LATENCY_MS_PER_UTIL_PERCENT + remoteExtraMs,
 		utilization,
 		errorPpm,

@@ -12,7 +12,8 @@ const meta: Meta<typeof ServerCard> = {
 		},
 		docs: {
 			description: {
-				component: "Fleet or market server card with CPU/NET/RAM bars or a buy action.",
+				component:
+					"Fleet or market server card with CPU/NET/RAM/DISK bars, GPU stocks, or a buy action.",
 			},
 		},
 	},
@@ -34,6 +35,9 @@ export const Fleet: Story = {
 		cpuPercent: 38,
 		netPercent: 12,
 		ramPercent: 8,
+		diskLabel: "65536 MiB",
+		diskPercent: 4,
+		gpuUnavailableLabel: "unavailable",
 		onSell: () => undefined,
 		dotClassName: "bg-info shadow-glow-info",
 		className: "w-80",
@@ -56,6 +60,8 @@ export const Market: Story = {
 		label: "m5.xlarge",
 		cpuLabel: "8 cores",
 		ramLabel: "16 GB",
+		diskLabel: "256 GiB",
+		gpuLabel: "none",
 		opexLabel: "-$8/hr",
 		costLabel: "$800",
 		canAfford: true,

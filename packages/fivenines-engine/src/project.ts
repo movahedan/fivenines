@@ -100,6 +100,8 @@ export interface PendingTransfer {
 	readonly status: "pending";
 	readonly sourceProjectId: string;
 	readonly destinationServerId: string;
+	readonly remainingNetworkMiB: number;
+	readonly remainingDiskOps: number;
 }
 
 function isProjectCategory(value: string): value is ProjectCategory {
@@ -352,7 +354,12 @@ export class Project {
 		return this.#transition("accepted", undefined, { connectionConfigured: true });
 	}
 
-	asDuplicate(copyId: string, destinationServerId: string, hourIndex: number): Project {
+	asDuplicate(
+		copyId: string,
+		destinationServerId: string,
+		hourIndex: number,
+		payload: { remainingNetworkMiB: number; remainingDiskOps: number },
+	): Project {
 		if (this.#status !== "served") {
 			throw new Error(`project is not served: ${this.id}`);
 		}
@@ -373,8 +380,37 @@ export class Project {
 				status: "pending",
 				sourceProjectId: this.id,
 				destinationServerId,
+				remainingNetworkMiB: payload.remainingNetworkMiB,
+				remainingDiskOps: payload.remainingDiskOps,
 			},
 			...(this.campaign === undefined ? {} : { campaign: this.campaign }),
+		});
+	}
+
+	withTransferProgress(networkHandled: number, diskHandled: number): Project {
+		if (this.pendingTransfer === undefined) {
+			return this;
+		}
+
+		const remainingNetworkMiB = Math.max(
+			0,
+			this.pendingTransfer.remainingNetworkMiB - networkHandled,
+		);
+		const remainingDiskOps = Math.max(0, this.pendingTransfer.remainingDiskOps - diskHandled);
+
+		if (remainingNetworkMiB === 0 && remainingDiskOps === 0) {
+			return this.#transition("accepted", undefined, {
+				pendingTransfer: undefined,
+				ready: true,
+			});
+		}
+
+		return this.#transition("accepted", undefined, {
+			pendingTransfer: {
+				...this.pendingTransfer,
+				remainingNetworkMiB,
+				remainingDiskOps,
+			},
 		});
 	}
 
@@ -556,11 +592,19 @@ export class Project {
 			return 0;
 		}
 
-		const emittedRequests = this.#demandModel.demandFor(hourIndex, random);
+		return this.recordEmitted(this.#demandModel.demandFor(hourIndex, random));
+	}
+
+	recordEmitted(emittedRequests: number): number {
+		if (this.#status !== "served" && this.#status !== "offline") {
+			this.#metrics = EMPTY_PROJECT_TICK_METRICS;
+
+			return 0;
+		}
 
 		this.#metrics = measureProjectTick(emittedRequests);
 
-		return emittedRequests;
+		return this.#metrics.emittedRequests;
 	}
 
 	tickCalendar(hourIndex: number, relationship: ProjectRelationship): ProjectCalendarTick {

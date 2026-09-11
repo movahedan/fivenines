@@ -197,6 +197,12 @@ describe("HubPage - ops landmarks", () => {
 		expect(screen.getByLabelText("CPU 0 percent")).toBeTruthy();
 		expect(screen.getByLabelText("NET 0 percent")).toBeTruthy();
 		expect(screen.getByLabelText("RAM 0 percent")).toBeTruthy();
+		expect(screen.getByLabelText("DISK 0 percent")).toBeTruthy();
+		expect(screen.getByLabelText("GPU unavailable")).toBeTruthy();
+		expect(screen.getAllByText("none").length).toBeGreaterThan(0);
+		expect(screen.getAllByText("65536 MiB").length).toBeGreaterThan(0);
+		expect(screen.getByText("120 RPS")).toBeTruthy();
+		expect(screen.getByText(/Paths 0 ok · 0 miss/)).toBeTruthy();
 	});
 
 	it("moves an accepted offer into the active panel", async () => {
@@ -321,6 +327,30 @@ describe("HubPage - project routing", () => {
 		});
 		expect(screen.getByText("$250.00")).toBeTruthy();
 		expect(screen.queryByRole("alert")).toBeNull();
+	});
+
+	it("assigns the setup box and starts the first install from the ops floor", async () => {
+		stubSession();
+
+		renderHub();
+
+		await waitForOpsFloor();
+		fireEvent.click(screen.getByRole("button", { name: "Pause" }));
+		buyFirstMarketServer();
+		await setupFirstOffer();
+
+		fireEvent.click(screen.getByRole("button", { name: "Assign box" }));
+
+		await waitFor(() => {
+			expect(screen.getByRole("button", { name: "Install Application Runtime" })).toBeEnabled();
+		});
+
+		fireEvent.click(screen.getByRole("button", { name: "Install Application Runtime" }));
+
+		await waitFor(() => {
+			expect(screen.getByText("1/1")).toBeTruthy();
+		});
+		expect(screen.getByRole("button", { name: "Start" })).toBeDisabled();
 	});
 });
 

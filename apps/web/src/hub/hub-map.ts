@@ -5,7 +5,9 @@ import type {
 	OpeningShiftFailReason,
 	OpeningShiftOutcome,
 	OpeningShiftSnapshot,
+	PathHourSummary,
 	Project,
+	ProjectStatus,
 	RegionId,
 	ServerCatalogId,
 	ServerTenure,
@@ -156,6 +158,94 @@ export function skuRamLabel(catalogId: ServerCatalogId): string {
 
 export function skuNetLabel(catalogId: ServerCatalogId): string {
 	return `${String(SERVER_CATALOG[catalogId].networkBytesPerHour)} B/h`;
+}
+
+export function skuDiskLabel(catalogId: ServerCatalogId): string {
+	return `${String(SERVER_CATALOG[catalogId].diskCapacityMiB)} MiB`;
+}
+
+export function skuGpuLabel(catalogId: ServerCatalogId): string {
+	const sku = SERVER_CATALOG[catalogId];
+
+	return sku.gpuCount === 0 ? "none" : `${String(sku.gpuCount)} GPU`;
+}
+
+export function skuGpuUnavailableLabel(catalogId: ServerCatalogId): string | undefined {
+	return SERVER_CATALOG[catalogId].gpuCount === 0 ? "unavailable" : undefined;
+}
+
+export function fleetHostProjection(asset: {
+	readonly catalogId: ServerCatalogId;
+	readonly computeUnitsPerHour: number;
+	readonly networkBytesPerHour: number;
+	readonly memoryMiB: number;
+	readonly diskOps: number;
+	readonly metrics: {
+		readonly cpuLoad: number;
+		readonly netLoad: number;
+		readonly memOcc: number;
+		readonly diskLoad: number;
+	};
+}): {
+	readonly cpuLabel: string;
+	readonly cpuPercent: number;
+	readonly netLabel: string;
+	readonly netPercent: number;
+	readonly ramLabel: string;
+	readonly ramPercent: number;
+	readonly diskLabel: string;
+	readonly diskPercent: number;
+	readonly gpuUnavailableLabel: string | undefined;
+} {
+	return {
+		cpuLabel: skuCpuLabel(asset.catalogId),
+		cpuPercent: axisPercent(asset.metrics.cpuLoad, asset.computeUnitsPerHour),
+		netLabel: skuNetLabel(asset.catalogId),
+		netPercent: axisPercent(asset.metrics.netLoad, asset.networkBytesPerHour),
+		ramLabel: skuRamLabel(asset.catalogId),
+		ramPercent: axisPercent(asset.metrics.memOcc, asset.memoryMiB),
+		diskLabel: skuDiskLabel(asset.catalogId),
+		diskPercent: axisPercent(asset.metrics.diskLoad, asset.diskOps),
+		gpuUnavailableLabel: skuGpuUnavailableLabel(asset.catalogId),
+	};
+}
+
+export function demandBaselineLabel(estimatedRequestsPerHour: number): string {
+	return `${String(estimatedRequestsPerHour)} RPS`;
+}
+
+export function hourWorkLabel(project: Project): string {
+	return `${String(project.metrics.handledRequests)} handled / ${String(project.metrics.emittedRequests)} emitted`;
+}
+
+export function lastCreditLabel(project: Pick<Project, "settlements">): string {
+	const settlement = project.settlements.at(-1);
+
+	if (settlement === undefined) {
+		return "—";
+	}
+
+	return formatters.cents(settlement.creditCents);
+}
+
+export function serviceStateLabel(status: ProjectStatus): string {
+	if (status === "offline") {
+		return "parked";
+	}
+
+	if (status === "served") {
+		return "serving";
+	}
+
+	return status;
+}
+
+export function pathHourLabel(paths: PathHourSummary): string {
+	if (paths.pending === 0) {
+		return `${String(paths.success)} ok · ${String(paths.fail)} miss`;
+	}
+
+	return `${String(paths.success)} ok · ${String(paths.fail)} miss · ${String(paths.pending)} pending`;
 }
 
 export function axisPercent(load: number, cap: number): number {

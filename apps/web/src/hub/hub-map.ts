@@ -359,7 +359,7 @@ export function openingShiftResultCopy(outcome: OpeningShiftOutcome): {
 	if (outcome.status === "won") {
 		return {
 			title: "Opening Shift complete",
-			body: "Positive cash, two healthy contracts, and no catastrophic settlement.",
+			body: "Positive cash, two healthy contracts, and no catastrophic settlement after one billing week.",
 		};
 	}
 

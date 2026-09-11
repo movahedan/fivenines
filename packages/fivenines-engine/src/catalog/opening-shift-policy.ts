@@ -1,7 +1,11 @@
 import type { ProjectStatus } from "../project";
-import { SLA_CREDIT_CATASTROPHE_PPM, slaCreditPpm } from "./commercial-policy";
+import {
+	BILLING_PERIOD_HOURS,
+	SLA_CREDIT_CATASTROPHE_PPM,
+	slaCreditPpm,
+} from "./commercial-policy";
 
-export const OPENING_SHIFT_HOURS = 14 * 24;
+export const OPENING_SHIFT_HOURS = BILLING_PERIOD_HOURS;
 
 export type OpeningShiftStatus = "in_progress" | "won" | "lost";
 

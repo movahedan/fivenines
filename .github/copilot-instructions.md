@@ -28,7 +28,7 @@ When performing a code review, flag ReDoS: nested quantifiers, overlapping `.*`,
 
 When performing a code review, ignore generated files (`**/routeTree.gen.ts`, `packages/nestjs-sdk/src/gen/**`, Prisma clients). Do not suggest hand-edits there.
 
-When performing a code review, do not demand a 336-hour tick loop in tests. Use helpers like `openingShiftOutcome` instead.
+When performing a code review, do not demand a full Opening Shift tick loop in policy unit tests. Use helpers like `openingShiftOutcome` instead.
 
 When performing a code review, keep comments short, severity-tagged in Copilot’s usual High/Medium/Low, and include a suggested change when the fix is local.
 

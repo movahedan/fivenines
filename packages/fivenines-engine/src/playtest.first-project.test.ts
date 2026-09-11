@@ -3,17 +3,23 @@ import { describe, expect, it } from "bun:test";
 import { APPOINTMENT_COMMERCIAL } from "./catalog/acquaintance-offer";
 import { BILLING_PERIOD_HOURS } from "./catalog/commercial-policy";
 import { DEBT_LIMIT_CENTS, SKU_ECONOMY, STARTING_CASH_CENTS } from "./catalog/economy-policy";
+import { OPENING_SHIFT_HOURS, openingShiftOutcome } from "./catalog/opening-shift-policy";
 import { DEFAULT_REGION } from "./catalog/regions";
 import { openingInitial } from "./fixtures";
 import { Game } from "./game";
 import { FixedRandomSource } from "./traffic/random-source";
 
 const MAYA = "maya-appointments";
+const LEE = "lee-appointments";
 
-function maya(game: Game) {
+function projectOf(game: Game, projectId: string) {
 	return game.customers
 		.flatMap((customer) => customer.projects)
-		.find((project) => project.id === MAYA);
+		.find((project) => project.id === projectId);
+}
+
+function maya(game: Game) {
+	return projectOf(game, MAYA);
 }
 
 function tickHours(game: Game, hours: number): void {
@@ -49,22 +55,56 @@ function completeMayaSetup(game: Game, tenure: "owned" | "leased"): string {
 		throw new Error("expected a Bronze after buy or lease");
 	}
 
-	game.dispatch({ type: "placeSetup", payload: { projectId: MAYA, serverId } });
-	game.dispatch({
-		type: "installService",
-		payload: { projectId: MAYA, serviceId: "application-runtime" },
-	});
-	finishActiveTask(game);
-	game.dispatch({
-		type: "installService",
-		payload: { projectId: MAYA, serviceId: "relational-database" },
-	});
-	finishActiveTask(game);
-	game.dispatch({ type: "configureConnection", payload: { projectId: MAYA } });
-	finishActiveTask(game);
-	game.dispatch({ type: "startProject", payload: { projectId: MAYA, serverId } });
+	finishFirstProjectSetup(game, MAYA, serverId);
 
 	return serverId;
+}
+
+function finishFirstProjectSetup(game: Game, projectId: string, serverId: string): void {
+	game.dispatch({ type: "placeSetup", payload: { projectId, serverId } });
+	game.dispatch({
+		type: "installService",
+		payload: { projectId, serviceId: "application-runtime" },
+	});
+	finishActiveTask(game);
+	game.dispatch({
+		type: "installService",
+		payload: { projectId, serviceId: "relational-database" },
+	});
+	finishActiveTask(game);
+	game.dispatch({ type: "configureConnection", payload: { projectId } });
+	finishActiveTask(game);
+	game.dispatch({ type: "startProject", payload: { projectId, serverId } });
+}
+
+function tickUntilOffered(game: Game, projectId: string): void {
+	for (let hour = 0; hour < 48; hour += 1) {
+		if (projectOf(game, projectId)?.status === "offered") {
+			return;
+		}
+
+		game.tick();
+	}
+
+	throw new Error(`offer did not spawn: ${projectId}`);
+}
+
+function openingShiftFromGame(game: Game) {
+	return openingShiftOutcome({
+		hourIndex: game.hourIndex,
+		cashCents: game.cashCents,
+		jailed: game.jailed,
+		projects: game.customers.flatMap((customer) =>
+			customer.projects.map((project) => ({
+				status: project.status,
+				windowAvailabilityPpm: project.metrics.windowAvailabilityPpm,
+				targetPpm: project.commercial.targetPpm,
+				settlements: project.settlements.map((settlement) => ({
+					periodPpm: settlement.periodPpm,
+				})),
+			})),
+		),
+	});
 }
 
 describe("Game - first-project settlement playtest", () => {
@@ -146,5 +186,22 @@ describe("Game - first-project settlement playtest", () => {
 		expect(game.cashCents).toBeGreaterThan(0);
 		expect(game.jailed).toBe(false);
 		expect(game.servers).toHaveLength(0);
+	});
+
+	it("wins Opening Shift after a healthy owned week with two acquaintance contracts on one Bronze", () => {
+		const game = new Game(openingInitial, { random: new FixedRandomSource(0.5) });
+		const serverId = completeMayaSetup(game, "owned");
+
+		tickUntilOffered(game, LEE);
+		game.dispatch({ type: "acceptProject", payload: { projectId: LEE } });
+		finishFirstProjectSetup(game, LEE, serverId);
+		tickHours(game, OPENING_SHIFT_HOURS - game.hourIndex);
+
+		expect(game.hourIndex).toBe(OPENING_SHIFT_HOURS);
+		expect(maya(game)?.status).toBe("served");
+		expect(projectOf(game, LEE)?.status).toBe("served");
+		expect(game.jailed).toBe(false);
+		expect(game.cashCents).toBeGreaterThan(0);
+		expect(openingShiftFromGame(game).status).toBe("won");
 	});
 });

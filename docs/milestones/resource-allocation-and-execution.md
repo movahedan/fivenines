@@ -64,7 +64,7 @@ Seeded `FixedRandomSource(0.5)` on `openingInitial`: accept Maya, 5h setup (inst
 | Overloaded (park 80h mid-week, then resume) | — | −9_830 | hoursServed 88, periodPpm 501_994, credit 4_190 (full prorated revenue) | Parked hours still emit and miss. Billing origin does not reset. Resume keeps the same close hour. |
 | Debt recovery | — | −6_365 then **6_235** after sell | — | Unassign + sell credits 12_600 salvage (70% of 18_000). Never jailed. |
 
-Pacing / decision clarity: one healthy acquaintance week on a bought Bronze is playable and SLA-clean, but cash is already negative, so a second owned box for Opening Shift (two served contracts) is not affordable from the same wallet. Lease (or salvage) is the teaching fork. Parking is not a cheap way to dodge SLA: prepaid credits wipe the prorated fee whenever ppm misses the 80% target.
+Pacing / decision clarity: one healthy acquaintance week on a bought Bronze ends cash-negative if that is the only advance. Opening Shift now ends at that same week (`OPENING_SHIFT_HOURS` = 168). Two acquaintance contracts on one owned Bronze stay cash-positive and win. A second owned box is still unaffordable from the first-week wallet; lease (or salvage) remains the expansion fork. Letting a second unpaid opex week run used to jail correct play. Parking is not a cheap way to dodge SLA: prepaid credits wipe the prorated fee whenever ppm misses the 80% target.
 
 Engine: `packages/fivenines-engine/src/playtest.first-project.test.ts`. Hub: Assign box + Install Application Runtime from the ops floor (`apps/web/src/routes/hub.test.tsx`).
 

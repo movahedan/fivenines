@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
+import { BILLING_PERIOD_HOURS } from "./commercial-policy";
 import type { OpeningShiftSnapshot } from "./opening-shift-policy";
 import { OPENING_SHIFT_HOURS, openingShiftOutcome } from "./opening-shift-policy";
 
@@ -21,11 +22,11 @@ function snapshot(overrides: Partial<OpeningShiftSnapshot> = {}): OpeningShiftSn
 }
 
 describe("opening-shift-policy - outcome", () => {
-	it("stays in progress before hour 336", () => {
+	it("stays in progress before the first billing week ends", () => {
 		expect(openingShiftOutcome(snapshot({ hourIndex: OPENING_SHIFT_HOURS - 1 })).status).toBe(
 			"in_progress",
 		);
-		expect(OPENING_SHIFT_HOURS).toBe(336);
+		expect(OPENING_SHIFT_HOURS).toBe(BILLING_PERIOD_HOURS);
 	});
 
 	it("wins when cash is positive, two contracts meet target, and no catastrophe credit", () => {

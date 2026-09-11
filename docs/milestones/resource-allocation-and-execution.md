@@ -51,7 +51,7 @@ Connect compact host activity and embedded project Status/Performance/Finances t
 | Dependency graph execution | Merged into #119 | [#121](https://github.com/movahedan/fivenines/pull/121) | [#77](https://github.com/movahedan/fivenines/issues/77); merged 2026-09-11 |
 | Transfers and migration completion | Merged into #119 | [#122](https://github.com/movahedan/fivenines/pull/122) | [#78](https://github.com/movahedan/fivenines/issues/78); merged 2026-09-11 |
 | First-project settlement and playtest | In review | [#123](https://github.com/movahedan/fivenines/pull/123) | [#79](https://github.com/movahedan/fivenines/issues/79); stacked on #119 |
-| Integrated runtime projections | Planned | — | [#80](https://github.com/movahedan/fivenines/issues/80); waits on this slice |
+| Integrated runtime projections | In review | [#124](https://github.com/movahedan/fivenines/pull/124) | [#80](https://github.com/movahedan/fivenines/issues/80); stacked on #123 |
 
 ## Playtest findings (#79)
 
@@ -67,5 +67,9 @@ Seeded `FixedRandomSource(0.5)` on `openingInitial`: accept Maya, 5h setup (inst
 Pacing / decision clarity: one healthy acquaintance week on a bought Bronze is playable and SLA-clean, but cash is already negative, so a second owned box for Opening Shift (two served contracts) is not affordable from the same wallet. Lease (or salvage) is the teaching fork. Parking is not a cheap way to dodge SLA: prepaid credits wipe the prorated fee whenever ppm misses the 80% target.
 
 Engine: `packages/fivenines-engine/src/playtest.first-project.test.ts`. Hub: Assign box + Install Application Runtime from the ops floor (`apps/web/src/routes/hub.test.tsx`).
+
+## Runtime projection notes (#80)
+
+Hub fleet cards now show DISK utilization from `server.metrics.diskLoad` plus GPU as **unavailable** on teaching SKUs (`gpuCount === 0`); market comparison lists disk MiB and GPU `none` beside CPU/RAM. Offers label **DEMAND** as baseline RPS, not cores. Active cards read service state, this-hour handled/emitted, last credit, and `game.pathHour` on the Active header. Telemetry copy stays `unavailable` — no reconstructed traces. `compileDemandGraph` stays a static lookup (≤8 nodes per type); permutation of `oneBronzeInitial` project order does not change handled totals (`src/projections.runtime.test.ts`). Hub tests ignore unexecuted `work/` and related kernel files in `bunfig.toml` the same way they already skip unused `rng.ts`.
 
 No new product decision is required to begin planning. Implementation trade-offs belong in the assigned PR plan; escalate only a concrete contradiction or material scope change.

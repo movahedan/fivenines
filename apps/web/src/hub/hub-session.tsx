@@ -34,20 +34,26 @@ import { ServerSelect } from "@/molecules/server-select/server-select";
 import {
 	addedAssetId,
 	assetTenureKind,
-	axisPercent,
 	commandLogTone,
+	demandBaselineLabel,
 	engineEventMessage,
 	engineEventTone,
 	evaluateOpeningShift,
+	fleetHostProjection,
+	hourWorkLabel,
+	lastCreditLabel,
 	openingShiftResultCopy,
+	pathHourLabel,
 	REGION_CLASS,
 	recoveryEtaLabel,
 	SKU_DOT_CLASS,
+	serviceStateLabel,
 	skuCostLabel,
 	skuCpuLabel,
+	skuDiskLabel,
 	skuFleetOpexLabel,
+	skuGpuLabel,
 	skuLeaseLabel,
-	skuNetLabel,
 	skuOpexLabel,
 	skuRamLabel,
 	slaPercent,
@@ -330,7 +336,7 @@ export function HubSession() {
 						<div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
 							{offers.map(({ customerId, project }) => (
 								<ProjectOfferCard
-									cpuLabel={formatters.coresCompact(project.estimatedRequestsPerHour)}
+									cpuLabel={demandBaselineLabel(project.estimatedRequestsPerHour)}
 									customerName={customerId}
 									disabled={jailed}
 									key={project.id}
@@ -366,7 +372,7 @@ export function HubSession() {
 						tone="primary"
 						trailing={
 							<span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-								{`Parked (${String(parked.length)})`}
+								{`Parked (${String(parked.length)}) · Paths ${pathHourLabel(game.pathHour)}`}
 							</span>
 						}
 					/>
@@ -701,13 +707,10 @@ export function HubSession() {
 											Inspect {asset.id}
 										</Button>
 										<ServerCard
-											cpuLabel={skuCpuLabel(asset.catalogId)}
-											cpuPercent={axisPercent(asset.metrics.cpuLoad, asset.computeUnitsPerHour)}
+											{...fleetHostProjection(asset)}
 											dotClassName={SKU_DOT_CLASS[asset.catalogId]}
 											idLabel={`${asset.id} · ${assetTenureKind(asset)}`}
 											label={`${SERVER_TIER_LABEL[asset.catalogId]} · ${asset.region}`}
-											netLabel={skuNetLabel(asset.catalogId)}
-											netPercent={axisPercent(asset.metrics.netLoad, asset.networkBytesPerHour)}
 											onRelease={
 												leased
 													? () => {
@@ -729,8 +732,6 @@ export function HubSession() {
 														}
 											}
 											opexLabel={skuFleetOpexLabel(asset.catalogId, asset.tenure)}
-											ramLabel={skuRamLabel(asset.catalogId)}
-											ramPercent={axisPercent(asset.metrics.memOcc, asset.memoryMiB)}
 											variant="fleet"
 										/>
 									</div>
@@ -778,7 +779,9 @@ export function HubSession() {
 										canAffordLease={canAffordLease}
 										costLabel={skuCostLabel(catalogId)}
 										cpuLabel={skuCpuLabel(catalogId)}
+										diskLabel={skuDiskLabel(catalogId)}
 										dotClassName={SKU_DOT_CLASS[catalogId]}
+										gpuLabel={skuGpuLabel(catalogId)}
 										key={catalogId}
 										label={SERVER_TIER_LABEL[catalogId]}
 										leaseLabel={skuLeaseLabel(catalogId)}
@@ -815,22 +818,11 @@ export function HubSession() {
 						not a topology id.
 					</p>
 					<ServerCard
-						cpuLabel={skuCpuLabel(inspectedAsset.catalogId)}
-						cpuPercent={axisPercent(
-							inspectedAsset.metrics.cpuLoad,
-							inspectedAsset.computeUnitsPerHour,
-						)}
+						{...fleetHostProjection(inspectedAsset)}
 						dotClassName={SKU_DOT_CLASS[inspectedAsset.catalogId]}
 						idLabel={`${inspectedAsset.id} · ${assetTenureKind(inspectedAsset)}`}
 						label={`${SERVER_TIER_LABEL[inspectedAsset.catalogId]} · ${inspectedAsset.region}`}
-						netLabel={skuNetLabel(inspectedAsset.catalogId)}
-						netPercent={axisPercent(
-							inspectedAsset.metrics.netLoad,
-							inspectedAsset.networkBytesPerHour,
-						)}
 						opexLabel={skuFleetOpexLabel(inspectedAsset.catalogId, inspectedAsset.tenure)}
-						ramLabel={skuRamLabel(inspectedAsset.catalogId)}
-						ramPercent={axisPercent(inspectedAsset.metrics.memOcc, inspectedAsset.memoryMiB)}
 						variant="fleet"
 					/>
 				</section>
@@ -981,6 +973,8 @@ function ActiveRowCard({
 		<ActiveProjectCard
 			currentHourLabel={slaShareLabel(project.metrics.availabilityPpm)}
 			customerName={customerId}
+			hourWorkLabel={hourWorkLabel(project)}
+			lastCreditLabel={lastCreditLabel(project)}
 			name={project.id}
 			onRoute={onRoute}
 			onSelectServer={onSelectServer}
@@ -994,6 +988,7 @@ function ActiveRowCard({
 			selectedServerId={selectedServerId}
 			serverLabel={serverLabel}
 			serverOptions={serverOptions}
+			serviceStateLabel={serviceStateLabel(project.status)}
 			slaLabel={slaShareLabel(windowPpm)}
 			slaPercent={slaPercent(windowPpm)}
 			slaStatusLabel={slaStatusLabel(windowPpm, targetPpm)}
@@ -1002,6 +997,7 @@ function ActiveRowCard({
 			sparklineTarget={sparklineTargetFromPpm(targetPpm)}
 			sparklineWarmingLabel={sparkline.length === 0 ? "warming" : undefined}
 			targetLabel={slaShareLabel(targetPpm)}
+			telemetryLabel="unavailable"
 			unassignLabel="PARK"
 		/>
 	);

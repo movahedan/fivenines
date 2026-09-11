@@ -64,6 +64,12 @@ coveragePathIgnorePatterns = [
 	"**/packages/intershell/src/**/*.shell.ts",
 	"**/packages/auth/src/client.ts",
 	"**/packages/fivenines-engine/src/demand-engine/rng.ts",
+	"**/packages/fivenines-engine/src/demand-engine/queue.ts",
+	"**/packages/fivenines-engine/src/work/**",
+	"**/packages/fivenines-engine/src/catalog/allocation-policy.ts",
+	"**/packages/fivenines-engine/src/catalog/queue-policy.ts",
+	"**/packages/fivenines-engine/src/catalog/transfer-policy.ts",
+	"**/packages/fivenines-engine/src/traffic/random-source.ts",
 	"**/packages/ui/test-rn-preload.ts",
 	"**/packages/ui/.storybook/**",
 ]

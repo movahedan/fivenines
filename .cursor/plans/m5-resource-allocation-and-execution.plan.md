@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: transfers
     content: "#78 allocate network/disk to transfers; atomic handover when dest ready"
-    status: pending
+    status: completed
   - id: playtest
     content: "#79 acquaintance settlement playtest; healthy vs overloaded"
     status: pending

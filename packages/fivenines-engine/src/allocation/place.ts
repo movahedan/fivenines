@@ -20,11 +20,18 @@ import {
 import { assertConserved, settleHostTick, type WorkItem, type WorkSettlement } from "../work/share";
 import type { WorkDimension } from "../work/units";
 
+export interface TransferHourProgress {
+	readonly projectId: string;
+	readonly networkHandled: number;
+	readonly diskHandled: number;
+}
+
 export interface PlacedDemand {
 	readonly projects: readonly Project[];
 	readonly totalDemand: number;
 	readonly unroutableDemand: number;
 	readonly paths: PathHourSummary;
+	readonly transferProgress: readonly TransferHourProgress[];
 }
 
 interface ItemMeta {
@@ -35,6 +42,7 @@ interface ItemMeta {
 	readonly optional: boolean;
 	readonly demandTypeId: DemandTypeId | undefined;
 	readonly arrivalHour: number;
+	readonly transfer: boolean;
 }
 
 export interface AllocateHourInput {
@@ -112,6 +120,8 @@ export function allocateHour(input: AllocateHourInput): PlacedDemand {
 	let unroutableDemand = 0;
 	let paths = EMPTY_PATH_HOUR;
 	const byServer = new Map<string, ProjectPlacement[]>();
+	const extraItems = new Map<string, WorkItem[]>();
+	const extraMeta = new Map<string, ItemMeta>();
 
 	for (const project of input.projects) {
 		const engine = demandEngineFor(project, input.engines, input.rng);
@@ -147,16 +157,32 @@ export function allocateHour(input: AllocateHourInput): PlacedDemand {
 		byServer.set(server.id, group);
 	}
 
-	for (const [serverId, group] of byServer) {
+	enqueueTransferItems(input.hour, input.projects, input.serversById, extraItems, extraMeta);
+
+	const handledByItem = new Map<string, WorkSettlement>();
+	const serverIds = new Set([...byServer.keys(), ...extraItems.keys()]);
+
+	for (const serverId of serverIds) {
 		const server = input.serversById.get(serverId);
 
 		if (server === undefined) {
 			continue;
 		}
 
-		const settled = settleServerHour(input.hour, server, group, input.queues);
+		const settled = settleServerHour(
+			input.hour,
+			server,
+			byServer.get(serverId) ?? [],
+			input.queues,
+			extraItems.get(serverId) ?? [],
+			extraMeta,
+		);
 		unroutableDemand += settled.unroutable;
 		paths = mergePathHours(paths, settled.paths);
+
+		for (const settlement of settled.settlements) {
+			handledByItem.set(settlement.itemId, settlement);
+		}
 	}
 
 	return {
@@ -164,6 +190,7 @@ export function allocateHour(input: AllocateHourInput): PlacedDemand {
 		totalDemand,
 		unroutableDemand,
 		paths,
+		transferProgress: progressForTransfers(input.projects, handledByItem),
 	};
 }
 
@@ -172,9 +199,11 @@ function settleServerHour(
 	server: Server,
 	group: readonly ProjectPlacement[],
 	queues: Map<string, WorkQueue>,
-): { unroutable: number; paths: PathHourSummary } {
-	const items: WorkItem[] = [];
-	const requestCostByItem = new Map<string, ItemMeta>();
+	transferItems: readonly WorkItem[],
+	transferMeta: ReadonlyMap<string, ItemMeta>,
+): { unroutable: number; paths: PathHourSummary; settlements: readonly WorkSettlement[] } {
+	const items: WorkItem[] = [...transferItems];
+	const requestCostByItem = new Map<string, ItemMeta>(transferMeta);
 	let retainedDiskMiB = 0;
 
 	for (const row of group) {
@@ -238,7 +267,7 @@ function settleServerHour(
 		);
 	}
 
-	return { unroutable, paths };
+	return { unroutable, paths, settlements };
 }
 
 function itemsForCategory(
@@ -386,6 +415,7 @@ function pushItem(
 		optional,
 		demandTypeId,
 		arrivalHour: arrivalTick,
+		transfer: false,
 	});
 }
 
@@ -403,6 +433,7 @@ function assignedByProjectFromSettlements(
 		if (
 			meta === undefined ||
 			meta.optional ||
+			meta.transfer ||
 			item.dimension === "residentMemoryMiB" ||
 			item.dimension === "queuedMemoryMiB" ||
 			item.dimension === "diskCapacityMiB"
@@ -521,4 +552,147 @@ function pathsForQueue(
 	}
 
 	return paths;
+}
+
+function enqueueTransferItems(
+	hour: number,
+	projects: readonly Project[],
+	serversById: ReadonlyMap<string, Server>,
+	extraItems: Map<string, WorkItem[]>,
+	extraMeta: Map<string, ItemMeta>,
+): void {
+	for (const project of projects) {
+		const transfer = project.pendingTransfer;
+
+		if (transfer === undefined) {
+			continue;
+		}
+
+		const sourceProject = projects.find((row) => row.id === transfer.sourceProjectId);
+		const sourceServerId = sourceProject?.route?.serverId;
+		const source = sourceServerId === undefined ? undefined : serversById.get(sourceServerId);
+		const destination = serversById.get(transfer.destinationServerId);
+
+		if (source === undefined || destination === undefined) {
+			continue;
+		}
+
+		pushTransferLeg(
+			hour,
+			project.id,
+			source,
+			"source",
+			transfer.remainingNetworkMiB,
+			transfer.remainingDiskOps,
+			extraItems,
+			extraMeta,
+		);
+		pushTransferLeg(
+			hour,
+			project.id,
+			destination,
+			"dest",
+			transfer.remainingNetworkMiB,
+			transfer.remainingDiskOps,
+			extraItems,
+			extraMeta,
+		);
+	}
+}
+
+function pushTransferLeg(
+	hour: number,
+	copyId: string,
+	server: Server,
+	leg: "source" | "dest",
+	remainingNetworkMiB: number,
+	remainingDiskOps: number,
+	extraItems: Map<string, WorkItem[]>,
+	extraMeta: Map<string, ItemMeta>,
+): void {
+	if (!server.poweredOn) {
+		return;
+	}
+
+	const items = extraItems.get(server.id) ?? [];
+
+	pushTransferItem(items, extraMeta, copyId, leg, "networkMiB", remainingNetworkMiB, hour);
+	pushTransferItem(items, extraMeta, copyId, leg, "diskOps", remainingDiskOps, hour);
+	extraItems.set(server.id, items);
+}
+
+function pushTransferItem(
+	items: WorkItem[],
+	extraMeta: Map<string, ItemMeta>,
+	copyId: string,
+	leg: "source" | "dest",
+	dimension: "networkMiB" | "diskOps",
+	amount: number,
+	hour: number,
+): void {
+	if (amount <= 0) {
+		return;
+	}
+
+	const id = transferItemId(copyId, leg, dimension);
+	items.push({
+		id,
+		projectId: copyId,
+		arrivalTick: hour,
+		dimension,
+		amount,
+		gpuWork: 0,
+		gpuMemoryMiB: 0,
+		waitPolicy: "queued",
+	});
+	extraMeta.set(id, {
+		projectId: copyId,
+		requests: amount,
+		cost: 1,
+		nodeId: undefined,
+		optional: true,
+		demandTypeId: undefined,
+		arrivalHour: hour,
+		transfer: true,
+	});
+}
+
+function progressForTransfers(
+	projects: readonly Project[],
+	handledByItem: ReadonlyMap<string, WorkSettlement>,
+): TransferHourProgress[] {
+	const progress: TransferHourProgress[] = [];
+
+	for (const project of projects) {
+		if (project.pendingTransfer === undefined) {
+			continue;
+		}
+
+		const networkHandled = Math.min(
+			handled(handledByItem, transferItemId(project.id, "source", "networkMiB")),
+			handled(handledByItem, transferItemId(project.id, "dest", "networkMiB")),
+		);
+		const diskHandled = Math.min(
+			handled(handledByItem, transferItemId(project.id, "source", "diskOps")),
+			handled(handledByItem, transferItemId(project.id, "dest", "diskOps")),
+		);
+
+		if (networkHandled > 0 || diskHandled > 0) {
+			progress.push({ projectId: project.id, networkHandled, diskHandled });
+		}
+	}
+
+	return progress;
+}
+
+function transferItemId(
+	copyId: string,
+	leg: "source" | "dest",
+	dimension: "networkMiB" | "diskOps",
+): string {
+	return `transfer:${copyId}:${leg}:${dimension}`;
+}
+
+function handled(handledByItem: ReadonlyMap<string, WorkSettlement>, itemId: string): number {
+	return handledByItem.get(itemId)?.handled ?? 0;
 }

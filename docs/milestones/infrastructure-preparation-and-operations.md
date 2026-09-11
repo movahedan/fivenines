@@ -48,7 +48,7 @@ Deliver the approved desktop left Projects panel, right business panels and mobi
 
 | Slice | Status | PR | Verification evidence |
 |---|---|---|---|
-| Milestone 4 stack base | In progress | — | Plan + milestone on #104 head; slice PRs stack here |
+| Milestone 4 stack base | In review | [#111](https://github.com/movahedan/fivenines/pull/111) | Docs/plan on #104 head; `bun overall` |
 | Acquaintance acceptance and advance | Planned | — | Not run |
 | Operational queue and readiness | Planned | — | Not run |
 | Installation and configuration actions | Planned | — | Not run |

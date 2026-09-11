@@ -8,30 +8,13 @@ import {
 	OFFER_INTERVAL_HOURS_AT_REPUTATION_ZERO,
 	OFFER_TTL_HOURS,
 	PENDING_OFFER_CAP_AT_REPUTATION_ZERO,
-	SETUP_WITHDRAWAL_REPUTATION_DELTA,
-	setupPatienceMilliHours,
 } from "./catalog/contract-policy";
 import { Customer } from "./customer";
-import { postCashDelta } from "./game.utils";
 import { Project, type ProjectInitial } from "./project";
 
-export interface SetupTickResult {
+export interface OfferMarketTick {
 	readonly customers: readonly Customer[];
-	readonly cashCents: number;
-	readonly reputation: number;
 	readonly lastOfferResolveHour: number;
-}
-
-function withProjects(customer: Customer, projects: readonly Project[]): Customer {
-	return new Customer(
-		{
-			id: customer.id,
-			trust: customer.trust,
-			hatred: customer.hatred,
-			projects: [],
-		},
-		projects,
-	);
 }
 
 function offeredCount(customers: readonly Customer[]): number {
@@ -96,108 +79,37 @@ function spawnAcquaintance(
 			return customer;
 		}
 
-		return withProjects(customer, [...customer.projects, spawned]);
+		return customer.withProjects([...customer.projects, spawned]);
 	});
 }
 
-function tickCustomerSetup(
-	customer: Customer,
-	hourIndex: number,
-	reputation: number,
-): { customer: Customer; refundCents: number; withdrawn: boolean; expired: boolean } {
-	let refundCents = 0;
-	let withdrawn = false;
-	let expired = false;
-	const projects = customer.projects.map((project) => {
-		if (
-			project.status === "offered" &&
-			project.offerTtlHours > 0 &&
-			hourIndex - project.offeredHour >= project.offerTtlHours
-		) {
-			expired = true;
-
-			return project.asExpired();
-		}
-
-		if (project.status !== "accepted" || project.ready || project.acceptedHour === undefined) {
-			return project;
-		}
-
-		const elapsed = hourIndex - project.acceptedHour;
-
-		if (elapsed < project.setupAllowanceHours) {
-			return project;
-		}
-
-		if (project.patienceMilliHours === undefined) {
-			return project.withPatienceMilliHours(
-				setupPatienceMilliHours(customer.trust, reputation, customer.hatred),
-			);
-		}
-
-		const remaining = Math.max(0, project.patienceMilliHours - 1_000);
-
-		if (remaining > 0) {
-			return project.withPatienceMilliHours(remaining);
-		}
-
-		refundCents += project.advancePostedCents;
-		withdrawn = true;
-
-		return project.asWithdrawn();
-	});
-
-	return {
-		customer: withProjects(customer, projects),
-		refundCents,
-		withdrawn,
-		expired,
-	};
-}
-
-export function tickSetupContracts(
+export function spawnAcquaintanceIfDue(
 	customers: readonly Customer[],
-	cashCents: number,
-	reputation: number,
 	hourIndex: number,
 	lastOfferResolveHour: number,
-): SetupTickResult {
-	let nextCash = cashCents;
-	let nextReputation = reputation;
-	let nextResolveHour = lastOfferResolveHour;
-	let nextCustomers = customers.map((customer) => {
-		const ticked = tickCustomerSetup(customer, hourIndex, reputation);
-
-		nextCash = postCashDelta(nextCash, -ticked.refundCents);
-
-		if (ticked.withdrawn) {
-			nextReputation += SETUP_WITHDRAWAL_REPUTATION_DELTA;
-			nextResolveHour = hourIndex;
-		}
-
-		if (ticked.expired) {
-			nextResolveHour = hourIndex;
-		}
-
-		return ticked.customer;
-	});
-
+): OfferMarketTick {
 	if (
-		offeredCount(nextCustomers) < PENDING_OFFER_CAP_AT_REPUTATION_ZERO &&
-		hourIndex - nextResolveHour >= OFFER_INTERVAL_HOURS_AT_REPUTATION_ZERO
+		offeredCount(customers) >= PENDING_OFFER_CAP_AT_REPUTATION_ZERO ||
+		hourIndex - lastOfferResolveHour < OFFER_INTERVAL_HOURS_AT_REPUTATION_ZERO
 	) {
-		const spec = nextAcquaintanceSpec(nextCustomers);
+		return {
+			customers,
+			lastOfferResolveHour,
+		};
+	}
 
-		if (spec !== undefined) {
-			nextCustomers = [...spawnAcquaintance(nextCustomers, spec, hourIndex)];
-		}
+	const spec = nextAcquaintanceSpec(customers);
+
+	if (spec === undefined) {
+		return {
+			customers,
+			lastOfferResolveHour,
+		};
 	}
 
 	return {
-		customers: nextCustomers,
-		cashCents: nextCash,
-		reputation: nextReputation,
-		lastOfferResolveHour: nextResolveHour,
+		customers: spawnAcquaintance(customers, spec, hourIndex),
+		lastOfferResolveHour,
 	};
 }
 

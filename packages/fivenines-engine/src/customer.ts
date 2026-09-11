@@ -32,4 +32,16 @@ export class Customer {
 		this.hatred = parseScore(initial.hatred ?? DEFAULT_HATRED, "hatred");
 		this.projects = liveProjects ?? initial.projects.map((project) => new Project(project));
 	}
+
+	withProjects(projects: readonly Project[]): Customer {
+		return new Customer(
+			{
+				id: this.id,
+				trust: this.trust,
+				hatred: this.hatred,
+				projects: [],
+			},
+			projects,
+		);
+	}
 }

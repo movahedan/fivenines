@@ -119,6 +119,18 @@ describe("hub-map - sla and sku labels", () => {
 
 		expect(game.metrics.handledRequests).toBeGreaterThan(0);
 		expect(shaped.metrics.handledRequests).toBeGreaterThan(0);
+
+		const duplicated = new Game(twoBronzeInitial, { random: new FixedRandomSource(0.5) });
+		duplicated.dispatch({
+			type: "duplicateProject",
+			payload: { projectId: "project-1", destinationServerId: "server-2" },
+		});
+		duplicated.tick();
+
+		expect(
+			duplicated.customers[0]?.projects.find((project) => project.id === "project-1-copy")
+				?.pendingTransfer?.remainingNetworkMiB,
+		).toBeGreaterThan(0);
 	});
 
 	it("tones learning commands and leaves completed base research on a new game", () => {

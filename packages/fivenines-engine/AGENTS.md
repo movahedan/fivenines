@@ -157,9 +157,9 @@ Learning enroll/pause/resume/cancel remain on the same union (see Learning below
 | `installService` | enqueue Application Runtime or Relational Database install (requires placement) |
 | `configureConnection` | enqueue the one shared connection task |
 | `powerOn` / `powerOff` | immediate; off drops volatile ops progress and live slices, keeps completed installs |
-| `duplicateProject` | copies **this** served project only onto a compatible destination; copy is `accepted` with `pendingTransfer`; source stays served |
+| `duplicateProject` | copies **this** served project only onto a compatible destination (CPU, RAM, net, disk capacity/IOPS); copy is `accepted` with `pendingTransfer` remaining network/disk; source stays served. Each tick allocates that work on source and dest; when both remaining counters hit 0, pending clears and the copy becomes ready in the same outer hour |
 
-Unknown project id or wrong source status throws. `startProject` throws when `ready` is false or `pendingTransfer` is set. Completing ops work never calls `startProject`. Cash-changing commands are `acceptProject` (credit advance), `cancelSetup` (debit refund), `buyServer` (debit purchase), and `sellServer` (credit salvage). `leaseServer` and `releaseServer` do not change cash. Any command carrying a `serverId` throws `unknown server id` when the box is absent.
+Unknown project id or wrong source status throws. `startProject` throws when `ready` is false or `pendingTransfer` is set. Completing ops work never calls `startProject` and still will not mark ready while a transfer remains. Cash-changing commands are `acceptProject` (credit advance), `cancelSetup` (debit refund), `buyServer` (debit purchase), and `sellServer` (credit salvage). `leaseServer` and `releaseServer` do not change cash. Any command carrying a `serverId` throws `unknown server id` when the box is absent.
 
 `acceptProject`, `startProject`, `buyServer`, `leaseServer`, `enqueueOperationalTask`, `placeSetup`, `installService`, and `configureConnection` throw while `jailed`; `cancelSetup` / `cancelOperationalTask` / `powerOn` / `powerOff` / `moveProject` / `unassignProject` / `assignProject` / `sellServer` / `releaseServer` / `declineProject` are allowed while jailed.
 
@@ -228,6 +228,6 @@ Hourly arrival: `m = baseline × rhythm × campaign × spike`, then Gamma–Pois
 - M2 (in review on #101): [entities and catalogs](../../.cursor/plans/m2-entities-and-catalogs.plan.md)
 - M3 (in review on #104): [demand, work retention and learning](../../.cursor/plans/m3-demand-and-learning-foundations.plan.md)
 - M4 (stacks on #104): [infrastructure preparation and operations](../../.cursor/plans/m4-infrastructure-preparation-and-operations.plan.md) — #71–#75 folded into [#111](https://github.com/movahedan/fivenines/pull/111).
-- M5 (stacks on #111): [resource allocation and system execution](../../.cursor/plans/m5-resource-allocation-and-execution.plan.md) — base [#119](https://github.com/movahedan/fivenines/pull/119), allocator [#120](https://github.com/movahedan/fivenines/pull/120), paths [#121](https://github.com/movahedan/fivenines/pull/121). Completed transfers and playtest are later slices.
+- M5 (stacks on #111): [resource allocation and system execution](../../.cursor/plans/m5-resource-allocation-and-execution.plan.md) — base [#119](https://github.com/movahedan/fivenines/pull/119), allocator [#120](https://github.com/movahedan/fivenines/pull/120), paths [#121](https://github.com/movahedan/fivenines/pull/121). Transfers consume allocated network/disk; playtest is a later slice.
 - Authored tuning: [Balance baseline](../../docs/product/balance/index.md)
 - Current behavior remains defined by this guide, source, and tests. Retired engine/hosting plans were deleted after product consolidation; the product reference does not imply that its future behavior is already implemented.

@@ -1,7 +1,7 @@
 import { ids } from "@packages/shared/ids";
 import { units } from "@packages/shared/units";
 
-import { allocateHour, type PlacedDemand } from "./allocation/place";
+import { allocateHour, type PlacedDemand, type TransferHourProgress } from "./allocation/place";
 import { SETUP_WITHDRAWAL_REPUTATION_DELTA } from "./catalog/contract-policy";
 import { DEBT_LIMIT_CENTS, STARTING_CASH_CENTS } from "./catalog/economy-policy";
 import {
@@ -10,6 +10,7 @@ import {
 	parseInstallableServiceId,
 	SHARED_CONNECTION_TASK_ID,
 } from "./catalog/operations-policy";
+import { transferPayload } from "./catalog/transfer-policy";
 import { Customer, type CustomerInitial } from "./customer";
 import type { DemandEngine } from "./demand-engine/engine";
 import type { WorkQueue } from "./demand-engine/queue";
@@ -322,8 +323,19 @@ export class Game {
 			engines: this.#demandEngines,
 		});
 		this.#pathHour = placed.paths;
+		this.#applyTransferProgress(placed.transferProgress);
 
 		return placed;
+	}
+
+	#applyTransferProgress(progress: readonly TransferHourProgress[]): void {
+		for (const row of progress) {
+			this.#customers = [
+				...replaceProject(this.#customers, row.projectId, "accepted", (project) =>
+					project.withTransferProgress(row.networkHandled, row.diskHandled),
+				),
+			];
+		}
 	}
 
 	#tickServerPhysics(ctx: TickContext, simulatedHour: number): void {
@@ -715,7 +727,9 @@ export class Game {
 			!destination.poweredOn ||
 			destination.computeUnitsPerHour < sourceServer.computeUnitsPerHour ||
 			destination.memoryMiB < sourceServer.memoryMiB ||
-			destination.networkBytesPerHour < sourceServer.networkBytesPerHour
+			destination.networkBytesPerHour < sourceServer.networkBytesPerHour ||
+			destination.diskCapacityMiB < sourceServer.diskCapacityMiB ||
+			destination.diskOps < sourceServer.diskOps
 		) {
 			throw new Error(`destination is incompatible: ${destination.id}`);
 		}
@@ -731,7 +745,12 @@ export class Game {
 			copyId = `${source.id}-copy-${String(sequence)}`;
 		}
 
-		const copy = source.asDuplicate(copyId, destination.id, this.#hourIndex);
+		const copy = source.asDuplicate(
+			copyId,
+			destination.id,
+			this.#hourIndex,
+			transferPayload(sourceServer),
+		);
 
 		this.#customers = this.#customers.map((customer) => {
 			if (!customer.projects.some((project) => project.id === source.id)) {

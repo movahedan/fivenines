@@ -5,10 +5,10 @@ import { join } from "node:path";
 import { WorkQueue } from "./queue";
 
 describe("WorkQueue - isolation", () => {
-	it("is not imported by Game", () => {
+	it("is imported by Game for live allocation", () => {
 		const source = readFileSync(join(import.meta.dir, "../game.ts"), "utf8");
 
-		expect(source.includes("demand-engine")).toBe(false);
+		expect(source.includes("demand-engine")).toBe(true);
 	});
 });
 

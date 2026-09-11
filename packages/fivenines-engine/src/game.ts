@@ -1,6 +1,7 @@
 import { ids } from "@packages/shared/ids";
 import { units } from "@packages/shared/units";
 
+import { allocateHour, type PlacedDemand } from "./allocation/place";
 import { SETUP_WITHDRAWAL_REPUTATION_DELTA } from "./catalog/contract-policy";
 import { DEBT_LIMIT_CENTS, STARTING_CASH_CENTS } from "./catalog/economy-policy";
 import {
@@ -10,7 +11,8 @@ import {
 	SHARED_CONNECTION_TASK_ID,
 } from "./catalog/operations-policy";
 import { Customer, type CustomerInitial } from "./customer";
-import { placeProjectDemand } from "./demand";
+import type { DemandEngine } from "./demand-engine/engine";
+import type { WorkQueue } from "./demand-engine/queue";
 import {
 	accruePeriodPayg,
 	closeBillingPeriodIfDue,
@@ -59,12 +61,6 @@ interface TickContext {
 	rng: RandomSource;
 }
 
-interface PlacedDemand {
-	readonly projects: readonly Project[];
-	readonly totalDemand: number;
-	readonly unroutableDemand: number;
-}
-
 export interface GameOptions {
 	random?: RandomSource;
 }
@@ -94,6 +90,8 @@ export class Game {
 	#metrics: GameTickMetrics = EMPTY_GAME_TICK_METRICS;
 	#events: EngineEvent[] = [];
 	#serversById: ReadonlyMap<string, Server> = new Map();
+	#workQueues = new Map<string, WorkQueue>();
+	#demandEngines = new Map<string, DemandEngine>();
 
 	constructor(initial: GameInitial, options?: GameOptions) {
 		const customerIds = initial.customers.map((customer) => customer.id);
@@ -309,43 +307,14 @@ export class Game {
 	}
 
 	#placeDemand(ctx: TickContext): PlacedDemand {
-		let totalDemand = 0;
-		let unroutableDemand = 0;
-
-		for (const customer of this.customers) {
-			for (const project of customer.projects) {
-				const demand = project.tick(ctx.hour, ctx.rng);
-
-				totalDemand += demand;
-
-				if (demand === 0) {
-					continue;
-				}
-
-				const route = project.route;
-				const routedServer =
-					route === undefined ? undefined : this.#serversById.get(route.serverId);
-
-				if (routedServer === undefined || !routedServer.poweredOn) {
-					unroutableDemand += demand;
-					continue;
-				}
-
-				unroutableDemand += placeProjectDemand(
-					routedServer,
-					demand,
-					project.region,
-					project.category,
-					project.id,
-				);
-			}
-		}
-
-		return {
+		return allocateHour({
+			hour: ctx.hour,
+			rng: ctx.rng,
 			projects: this.customers.flatMap((customer) => customer.projects),
-			totalDemand,
-			unroutableDemand,
-		};
+			serversById: this.#serversById,
+			queues: this.#workQueues,
+			engines: this.#demandEngines,
+		});
 	}
 
 	#tickServerPhysics(ctx: TickContext, simulatedHour: number): void {

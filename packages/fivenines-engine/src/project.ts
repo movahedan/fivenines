@@ -556,11 +556,19 @@ export class Project {
 			return 0;
 		}
 
-		const emittedRequests = this.#demandModel.demandFor(hourIndex, random);
+		return this.recordEmitted(this.#demandModel.demandFor(hourIndex, random));
+	}
+
+	recordEmitted(emittedRequests: number): number {
+		if (this.#status !== "served" && this.#status !== "offline") {
+			this.#metrics = EMPTY_PROJECT_TICK_METRICS;
+
+			return 0;
+		}
 
 		this.#metrics = measureProjectTick(emittedRequests);
 
-		return emittedRequests;
+		return this.#metrics.emittedRequests;
 	}
 
 	tickCalendar(hourIndex: number, relationship: ProjectRelationship): ProjectCalendarTick {

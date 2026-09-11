@@ -1,5 +1,6 @@
 import { units } from "@packages/shared/units";
 
+import { queuedMemoryMiB } from "./catalog/allocation-policy";
 import { SKU_ECONOMY } from "./catalog/economy-policy";
 import { SERVER_CATALOG, type ServerCatalogId } from "./catalog/kernel";
 import { type RegionId, regions } from "./catalog/regions";
@@ -10,6 +11,7 @@ import {
 	type ServerDemandSlice,
 	type ServerTickMetrics,
 } from "./server.metrics";
+import type { HostBudget } from "./work/share";
 
 export type { ServerTickMetrics } from "./server.metrics";
 
@@ -38,6 +40,11 @@ export class Server {
 	readonly networkBytesPerHour: number;
 	readonly memoryMiB: number;
 	readonly baseMemoryMiB: number;
+	readonly gpuCount: number;
+	readonly gpuWork: number;
+	readonly gpuMemoryMiB: number;
+	readonly diskCapacityMiB: number;
+	readonly diskOps: number;
 
 	#poweredOn = true;
 	#slices: DemandSlice[] = [];
@@ -60,6 +67,11 @@ export class Server {
 		);
 		this.memoryMiB = units.asNonNegativeInteger(spec.memoryMiB, "memoryMiB");
 		this.baseMemoryMiB = units.asNonNegativeInteger(spec.baseMemoryMiB, "baseMemoryMiB");
+		this.gpuCount = units.asNonNegativeInteger(spec.gpuCount, "gpuCount");
+		this.gpuWork = units.asNonNegativeInteger(spec.gpuWork, "gpuWork");
+		this.gpuMemoryMiB = units.asNonNegativeInteger(spec.gpuMemoryMiB, "gpuMemoryMiB");
+		this.diskCapacityMiB = units.asNonNegativeInteger(spec.diskCapacityMiB, "diskCapacityMiB");
+		this.diskOps = units.asNonNegativeInteger(spec.diskOps, "diskOps");
 	}
 
 	get metrics(): ServerTickMetrics {
@@ -76,6 +88,34 @@ export class Server {
 		}
 
 		return Math.max(0, this.computeUnitsPerHour - cpuLoadFromSlices(this.#slices));
+	}
+
+	hostBudget(retainedDiskMiB = 0): HostBudget {
+		if (!this.#poweredOn) {
+			return {
+				cpuWork: 0,
+				gpuWork: 0,
+				gpuCount: 0,
+				gpuMemoryMiB: 0,
+				residentMemoryMiB: 0,
+				queuedMemoryMiB: 0,
+				diskCapacityMiB: 0,
+				diskOps: 0,
+				networkMiB: 0,
+			};
+		}
+
+		return {
+			cpuWork: this.computeUnitsPerHour,
+			gpuWork: this.gpuWork,
+			gpuCount: this.gpuCount,
+			gpuMemoryMiB: this.gpuMemoryMiB,
+			residentMemoryMiB: this.memoryMiB,
+			queuedMemoryMiB: queuedMemoryMiB(this.memoryMiB),
+			diskCapacityMiB: Math.max(0, this.diskCapacityMiB - retainedDiskMiB),
+			diskOps: this.diskOps,
+			networkMiB: this.networkBytesPerHour,
+		};
 	}
 
 	get poweredOn(): boolean {
@@ -121,6 +161,8 @@ export class Server {
 			networkBytesPerHour: this.networkBytesPerHour,
 			memoryMiB: this.memoryMiB,
 			baseMemoryMiB: this.baseMemoryMiB,
+			gpuWork: this.gpuWork,
+			diskOps: this.diskOps,
 			region: this.region,
 		});
 

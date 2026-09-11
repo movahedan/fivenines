@@ -63,6 +63,7 @@ coveragePathIgnorePatterns = [
 	"**/packages/intershell/src/**/tag.ts",
 	"**/packages/intershell/src/**/*.shell.ts",
 	"**/packages/auth/src/client.ts",
+	"**/packages/fivenines-engine/src/demand-engine/rng.ts",
 	"**/packages/ui/test-rn-preload.ts",
 	"**/packages/ui/.storybook/**",
 ]

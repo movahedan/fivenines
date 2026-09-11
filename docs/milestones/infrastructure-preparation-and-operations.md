@@ -56,7 +56,7 @@ Deliver the approved desktop left Projects panel, right business panels and mobi
 | Hourly tick orchestration | Merged into #111 | [#114](https://github.com/movahedan/fivenines/pull/114) | [#113](https://github.com/movahedan/fivenines/issues/113); GitHub-merged into the M4 foundation |
 | Operational queue and readiness | Merged into #111 | [#115](https://github.com/movahedan/fivenines/pull/115) | [#72](https://github.com/movahedan/fivenines/issues/72); GitHub-merged into the M4 foundation |
 | Installation and configuration actions | Merged into #111 | [#116](https://github.com/movahedan/fivenines/pull/116) | [#73](https://github.com/movahedan/fivenines/issues/73); GitHub-merged into the M4 foundation |
-| Duplication and transfer lifecycle | In review | [#117](https://github.com/movahedan/fivenines/pull/117) | [#74](https://github.com/movahedan/fivenines/issues/74); stacked on #111 |
-| System workspace operations | Planned | — | Not run |
+| Duplication and transfer lifecycle | Merged into #111 | [#117](https://github.com/movahedan/fivenines/pull/117) | [#74](https://github.com/movahedan/fivenines/issues/74); GitHub-merged into the M4 foundation |
+| System workspace operations | In review | — | Hub landmarks, rack reuse, honest #66; `bun test apps/web/src/routes/hub.test.tsx` then `bun overall` |
 
 No new product decision is required to begin planning. Implementation trade-offs belong in the assigned PR plan; escalate only a concrete contradiction or material scope change.

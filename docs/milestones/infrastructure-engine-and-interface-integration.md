@@ -67,7 +67,7 @@ Before each engine PR, show the developer a compact comparison of current behavi
 
 | Slice | Status | Issue | PR/evidence |
 |---|---|---|---|
-| Live placement and identity integration follow-up | In progress (stacked on #135) | [#130](https://github.com/movahedan/fivenines/issues/130) | Audit: live `RouteTarget` placement already covers same-host / split-host / shared opex. F1 binds `startProject` to `setupServerId` when set; does not import topology/identity into Game. |
+| Live placement and identity integration follow-up | In progress (stacked on #135) | [#130](https://github.com/movahedan/fivenines/issues/130) | [#136](https://github.com/movahedan/fivenines/pull/136): audit kept live `RouteTarget` placement; bind `startProject` to `setupServerId` when set; Game still does not import topology/identity. |
 | Proposal evaluation and eligible-target queries | Planned | [#131](https://github.com/movahedan/fivenines/issues/131) | Not implemented |
 | Apply and automatic preparation | Planned | [#132](https://github.com/movahedan/fivenines/issues/132) | Not implemented |
 | Live editor integration and commercial regression | Planned | [#133](https://github.com/movahedan/fivenines/issues/133) | Not implemented |

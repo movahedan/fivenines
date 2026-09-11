@@ -63,3 +63,4 @@ await writeBarrelIndex(
 );
 await writeBarrelIndex(path.join(srcDir, "hooks"));
 await writeMoleculesIndex(path.join(srcDir, "molecules"));
+await writeMoleculesIndex(path.join(srcDir, "templates"));

@@ -22,6 +22,11 @@
 			"import": "./src/molecules/index.ts",
 			"default": "./src/molecules/index.ts"
 		},
+		"./molecules/game-status-bar": {
+			"types": "./src/molecules/game-status-bar/game-status-bar.tsx",
+			"import": "./src/molecules/game-status-bar/game-status-bar.tsx",
+			"default": "./src/molecules/game-status-bar/game-status-bar.tsx"
+		},
 		"./molecules/active-project-card": {
 			"types": "./src/molecules/active-project-card/active-project-card.tsx",
 			"import": "./src/molecules/active-project-card/active-project-card.tsx",
@@ -81,6 +86,16 @@
 			"types": "./src/hooks/index.ts",
 			"import": "./src/hooks/index.ts",
 			"default": "./src/hooks/index.ts"
+		},
+		"./templates": {
+			"types": "./src/templates/index.ts",
+			"import": "./src/templates/index.ts",
+			"default": "./src/templates/index.ts"
+		},
+		"./templates/game-template": {
+			"types": "./src/templates/game-template/game-template.tsx",
+			"import": "./src/templates/game-template/game-template.tsx",
+			"default": "./src/templates/game-template/game-template.tsx"
 		},
 		"./theme.ts": {
 			"types": "./src/theme.ts",

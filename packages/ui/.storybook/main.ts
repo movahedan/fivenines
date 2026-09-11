@@ -9,6 +9,7 @@ const config: StorybookConfig = {
 	stories: [
 		"../src/atoms/**/*.stories.@(js|jsx|mjs|ts|tsx)",
 		"../src/molecules/**/*.stories.@(js|jsx|mjs|ts|tsx)",
+		"../src/templates/**/*.stories.@(js|jsx|mjs|ts|tsx)",
 	],
 	addons: [],
 	framework: {

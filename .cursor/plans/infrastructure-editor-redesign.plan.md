@@ -31,7 +31,7 @@ The latest approved sequence is **M5 → M5.1 → M5.2 → M6 onward**. [M5.1](.
 
 ## Documentation execution record
 
-The product editor contract, delivery bridge, product cross-references and amendments to all ten milestone documents are included in this documentation change. Their merge status is tracked by the PR. P1 remains pending for closure of the explicitly listed semantic decisions and merged-state audit; do not interpret this as engine implementation.
+The product editor contract, delivery bridge, product cross-references and amendments to all ten milestone documents are included in PR #134 (open). The durable Figma/section/data map that P2 follows is `docs/product/game-shell.md` on the stacked `docs/m51-shell-map` branch. Explicit engine/balance decisions remain in `docs/product/open-questions.md`; they do not block visual P2. Do not interpret documentation as engine implementation.
 
 ## Current-code evidence and constraints
 

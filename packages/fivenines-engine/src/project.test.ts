@@ -121,7 +121,7 @@ describe("Project - construction", () => {
 	});
 });
 
-describe("Project - asServed", () => {
+describe("Project - asAccepted", () => {
 	it("copies existing commercial terms without inventing a catalog card", () => {
 		const offered = new Project(
 			shapedInitial({
@@ -133,11 +133,14 @@ describe("Project - asServed", () => {
 				},
 			}),
 		);
-		const served = offered.asServed("server-1");
+		const accepted = offered.asAccepted(0);
 
-		expect(served.status).toBe("served");
-		expect(served.route).toEqual({ kind: "server", serverId: "server-1" });
-		expect(served.commercial).toEqual({
+		expect(accepted.status).toBe("accepted");
+		expect(accepted.route).toBeUndefined();
+		expect(accepted.advancePostedCents).toBe(4_000);
+		expect(accepted.prepaidAdvance).toBe(true);
+		expect(accepted.ready).toBe(false);
+		expect(accepted.commercial).toEqual({
 			paygCentsPerThousandHandled: 3,
 			recurringCentsPerPeriod: 4_000,
 			targetPpm: 950_000,

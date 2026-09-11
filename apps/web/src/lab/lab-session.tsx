@@ -218,13 +218,15 @@ export function LabSession() {
 												) : null}
 											</>
 										) : null}
+										{project.status === "accepted" ? (
+											<>
+												<p>setup advance {project.advancePostedCents}</p>
+												<p>ready {project.ready ? "yes" : "no"}</p>
+												<p>Start blocked until ready. Park unavailable during setup.</p>
+											</>
+										) : null}
 										{project.status === "offered" ? (
-											<AcceptButton
-												projectId={project.id}
-												jailed={jailed}
-												serverId={serverId}
-												onDispatch={dispatch}
-											/>
+											<AcceptButton projectId={project.id} jailed={jailed} onDispatch={dispatch} />
 										) : null}
 										{project.status === "served" || project.status === "offline" ? (
 											<RouteButtons
@@ -348,18 +350,15 @@ function LeaseServerButton({ serverType, region, jailed, onDispatch }: LeaseServ
 interface AcceptButtonProps {
 	readonly projectId: string;
 	readonly jailed: boolean;
-	readonly serverId: string | undefined;
 	readonly onDispatch: (command: EngineCommand) => void;
 }
 
-function AcceptButton({ projectId, jailed, serverId, onDispatch }: AcceptButtonProps) {
+function AcceptButton({ projectId, jailed, onDispatch }: Omit<AcceptButtonProps, "serverId">) {
 	return (
 		<Button
-			disabled={jailed || serverId === undefined}
+			disabled={jailed}
 			onClick={() => {
-				if (serverId !== undefined) {
-					onDispatch({ type: "acceptProject", payload: { projectId, serverId } });
-				}
+				onDispatch({ type: "acceptProject", payload: { projectId } });
 			}}
 		>
 			{`Accept ${projectId}`}

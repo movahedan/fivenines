@@ -1,7 +1,12 @@
-import { commercialTermsForCategory, PAYG_ONLY_COMMERCIAL_STUB } from "./catalog/commercial-policy";
-import type { RegionId } from "./catalog/regions";
+import {
+	ACQUAINTANCE_OFFERS,
+	APPOINTMENT_COMMERCIAL,
+	APPOINTMENT_SITE_BASELINE,
+} from "./catalog/acquaintance-offer";
+import { PAYG_ONLY_COMMERCIAL_STUB } from "./catalog/commercial-policy";
+import { OFFER_TTL_HOURS } from "./catalog/contract-policy";
 import type { GameInitial } from "./game";
-import type { CampaignWindow, ProjectCategory, ProjectInitial, ProjectStatus } from "./project";
+import type { ProjectInitial, ProjectStatus } from "./project";
 
 export function constantProject(
 	id: string,
@@ -19,35 +24,6 @@ export function constantProject(
 		campaignProne: false,
 		commercial: PAYG_ONLY_COMMERCIAL_STUB,
 		...(serverId === undefined ? {} : { route: { kind: "server", serverId } }),
-	};
-}
-
-const OPENING_TARGET_PPM: Partial<Record<string, number>> = {
-	"acme-web": 995_000,
-	"initech-tps": 980_000,
-};
-
-function shapedProject(
-	id: string,
-	estimatedRequestsPerHour: number,
-	category: ProjectCategory,
-	region: RegionId,
-	campaignProne: boolean,
-	campaign?: CampaignWindow,
-): ProjectInitial {
-	return {
-		id,
-		estimatedRequestsPerHour,
-		status: "offered",
-		demand: "shaped",
-		category,
-		region,
-		campaignProne,
-		commercial: {
-			...commercialTermsForCategory(category),
-			...(OPENING_TARGET_PPM[id] === undefined ? {} : { targetPpm: OPENING_TARGET_PPM[id] }),
-		},
-		...(campaign === undefined ? {} : { campaign }),
 	};
 }
 
@@ -85,44 +61,33 @@ export const twoBronzeInitial: GameInitial = {
 	],
 };
 
+const maya = ACQUAINTANCE_OFFERS[0];
+
+/** First acquaintance appointment only. Opening Shift clock and cash are unchanged. */
 export const openingInitial: GameInitial = {
-	customers: [
-		{
-			id: "acme",
-			projects: [
-				shapedProject("acme-web", 2_000, "shopping", "utc+0", true, {
-					startHour: 24,
-					durationHours: 48,
-				}),
-				shapedProject("acme-api", 500, "saas", "utc+1", false),
-				shapedProject("acme-jobs", 300, "portfolio", "utc-5", false),
-			],
-		},
-		{
-			id: "northwind",
-			projects: [
-				shapedProject("northwind-shop", 600, "shopping", "utc+1", true),
-				shapedProject("northwind-search", 450, "saas", "utc+0", false),
-				shapedProject("northwind-reports", 350, "portfolio", "utc+9", false),
-			],
-		},
-		{
-			id: "globex",
-			projects: [
-				shapedProject("globex-portal", 700, "saas", "utc+0", true, {
-					startHour: 0,
-					durationHours: 12,
-				}),
-				shapedProject("globex-billing", 250, "shopping", "utc+0", false),
-			],
-		},
-		{
-			id: "initech",
-			projects: [
-				shapedProject("initech-tps", 200, "portfolio", "utc+0", false),
-				shapedProject("initech-cover", 150, "saas", "utc+9", false),
-			],
-		},
-	],
+	customers:
+		maya === undefined
+			? []
+			: [
+					{
+						id: maya.customerId,
+						trust: maya.trust,
+						hatred: maya.hatred,
+						projects: [
+							{
+								id: maya.projectId,
+								estimatedRequestsPerHour: APPOINTMENT_SITE_BASELINE,
+								status: "offered",
+								demand: "shaped",
+								category: "saas",
+								region: maya.region,
+								campaignProne: false,
+								commercial: APPOINTMENT_COMMERCIAL,
+								offerTtlHours: OFFER_TTL_HOURS,
+								setupAllowanceHours: maya.setupAllowanceHours,
+							},
+						],
+					},
+				],
 	assets: [],
 };

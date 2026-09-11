@@ -81,6 +81,10 @@ function collectServed(customers: Game["customers"]): readonly ProjectRow[] {
 	return collectByStatus(customers, "served");
 }
 
+function collectAccepted(customers: Game["customers"]): readonly ProjectRow[] {
+	return collectByStatus(customers, "accepted");
+}
+
 function collectParked(customers: Game["customers"]): readonly ProjectRow[] {
 	return collectByStatus(customers, "offline");
 }
@@ -90,6 +94,7 @@ export function HubSession() {
 	const { game, lastError, running, speed, toggleRunning, setSpeed, dispatch, reset } =
 		useHubGame();
 	const [buyRegion, setBuyRegion] = useState<RegionId>(DEFAULT_REGION);
+	const [reviewProjectId, setReviewProjectId] = useState<string | null>(null);
 	const [routePicks, setRoutePicks] = useState<ReadonlyMap<string, string>>(new Map());
 	const [entries, setEntries] = useState<readonly EventLogEntry[]>([]);
 	const regionSelectId = useId();
@@ -147,6 +152,7 @@ export function HubSession() {
 	};
 
 	const offers = collectOffers(game.customers);
+	const accepted = collectAccepted(game.customers);
 	const served = collectServed(game.customers);
 	const parked = collectParked(game.customers);
 	const shiftOutcome = evaluateOpeningShift(game);
@@ -184,6 +190,8 @@ export function HubSession() {
 			run(serverId);
 		}
 	};
+
+	const reviewOffer = offers.find((row) => row.project.id === reviewProjectId);
 
 	const routedServerLabel = (project: Project): string => {
 		const serverId = project.route?.serverId;
@@ -255,27 +263,20 @@ export function HubSession() {
 								key={project.id}
 								name={project.id}
 								onAccept={() => {
-									withPickedServer(project, (serverId) => {
-										runCommand(
-											{ type: "acceptProject", payload: { projectId: project.id, serverId } },
-											`Accepted ${project.id} on ${serverId}`,
-										);
-									});
+									setReviewProjectId(project.id);
 								}}
 								onDecline={() => {
 									runCommand(
 										{ type: "declineProject", payload: { projectId: project.id } },
 										`Declined ${project.id}`,
 									);
-								}}
-								onSelectServer={(serverId) => {
-									selectServer(project.id, serverId);
+									if (reviewProjectId === project.id) {
+										setReviewProjectId(null);
+									}
 								}}
 								paygLabel={`${String(project.commercial.paygCentsPerThousandHandled)}¢/k`}
 								regionClassName={REGION_CLASS[project.region]}
 								regionLabel={project.region}
-								selectedServerId={pickedServerId(project)}
-								serverOptions={serverOptions}
 								slaLabel={formatters.ppm(project.commercial.targetPpm)}
 							/>
 						))}
@@ -286,7 +287,7 @@ export function HubSession() {
 					className="flex min-h-0 min-w-0 flex-1 flex-col bg-background"
 				>
 					<PanelHeader
-						count={served.length}
+						count={served.length + accepted.length}
 						label="Active"
 						tone="primary"
 						trailing={
@@ -295,15 +296,112 @@ export function HubSession() {
 							</span>
 						}
 					/>
+					{reviewOffer !== undefined ? (
+						<section
+							aria-label="Contract Review"
+							className="m-2 flex flex-col gap-3 border border-border bg-panel p-4"
+						>
+							<div className="flex items-start justify-between gap-2">
+								<div>
+									<p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+										Contract Review
+									</p>
+									<h2 className="font-mono text-lg font-semibold text-foreground">
+										{reviewOffer.project.id}
+									</h2>
+									<p className="font-mono text-sm text-muted-foreground">
+										{reviewOffer.customerId}
+									</p>
+								</div>
+								<div className="flex gap-2">
+									<Button
+										size="sm"
+										variant="ghost"
+										onClick={() => {
+											setReviewProjectId(reviewOffer.project.id);
+										}}
+									>
+										Back
+									</Button>
+									<Button
+										size="sm"
+										variant="ghost"
+										onClick={() => {
+											setReviewProjectId(null);
+										}}
+									>
+										Close
+									</Button>
+								</div>
+							</div>
+							<p className="font-mono text-sm">
+								<strong>Advance due at acceptance:</strong>{" "}
+								{formatters.cents(reviewOffer.project.commercial.recurringCentsPerPeriod)}
+							</p>
+							<p className="font-mono text-sm">
+								<strong>SLA:</strong> {formatters.ppm(reviewOffer.project.commercial.targetPpm)} ·
+								setup allowance {String(reviewOffer.project.setupAllowanceHours)}h then customer
+								patience, full refund if withdrawn
+							</p>
+							<p className="font-mono text-xs text-muted-foreground">
+								Close never charges. Back keeps this offer selected.
+							</p>
+							<Button
+								disabled={jailed}
+								onClick={() => {
+									runCommand(
+										{ type: "acceptProject", payload: { projectId: reviewOffer.project.id } },
+										`Accepted ${reviewOffer.project.id}`,
+									);
+									setReviewProjectId(null);
+								}}
+							>
+								Accept contract
+							</Button>
+						</section>
+					) : null}
 					{/* auto-rows-min is load-bearing: with default auto rows the tracks divide
 					    the panel height instead of fitting the cards, and RN-web Views do not
 					    clip, so taller cards paint straight over the row below. */}
 					<div className="grid min-h-0 flex-1 auto-rows-min grid-cols-2 gap-2 overflow-y-auto p-2">
-						{served.length === 0 && parked.length === 0 ? (
+						{served.length === 0 && parked.length === 0 && accepted.length === 0 ? (
 							<p className="col-span-2 font-mono text-sm text-muted-foreground">
 								No served projects
 							</p>
 						) : null}
+						{accepted.map(({ customerId, project }) => (
+							<div
+								className="flex flex-col gap-2 border border-border bg-panel p-3"
+								key={project.id}
+							>
+								<p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+									{customerId} · setup
+								</p>
+								<p className="font-mono text-sm font-semibold">{project.id}</p>
+								<p className="font-mono text-xs text-muted-foreground">
+									Advance {formatters.cents(project.advancePostedCents)} received. Ready: no.
+									Install work is not in this slice. Start stays blocked. Park is unavailable during
+									setup.
+								</p>
+								<div className="flex gap-2">
+									<Button disabled size="sm">
+										Start
+									</Button>
+									<Button
+										size="sm"
+										variant="destructive"
+										onClick={() => {
+											runCommand(
+												{ type: "cancelSetup", payload: { projectId: project.id } },
+												`Cancelled setup ${project.id}`,
+											);
+										}}
+									>
+										Cancel setup
+									</Button>
+								</div>
+							</div>
+						))}
 						{served.map(({ customerId, project }) => (
 							<ActiveRowCard
 								customerId={customerId}

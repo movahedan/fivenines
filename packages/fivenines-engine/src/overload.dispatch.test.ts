@@ -3,7 +3,7 @@ import { describe, expect, it } from "bun:test";
 import { SKU_ECONOMY } from "./catalog/economy-policy";
 import { constantProject } from "./fixtures";
 import type { EngineCommand, GameInitial, Server } from "./index";
-import { Game, oneBronzeInitial } from "./index";
+import { Game, oneBronzeInitial, twoBronzeInitial } from "./index";
 
 function offeredInitial(serverCount: 0 | 1): GameInitial {
 	return {
@@ -23,15 +23,15 @@ function offeredInitial(serverCount: 0 | 1): GameInitial {
 	};
 }
 
-function acceptBothProjects(game: Game, firstServerId: string, secondServerId: string): Game {
+function acceptBothProjects(game: Game): Game {
 	return game
 		.dispatch({
 			type: "acceptProject",
-			payload: { projectId: "project-1", serverId: firstServerId },
+			payload: { projectId: "project-1" },
 		})
 		.dispatch({
 			type: "acceptProject",
-			payload: { projectId: "project-2", serverId: secondServerId },
+			payload: { projectId: "project-2" },
 		});
 }
 
@@ -45,22 +45,8 @@ function serverOf(game: Game, serverId: string): Server | undefined {
 
 describe("Game - dispatch", () => {
 	it("drops requests on one Bronze and clears drops with lower p95 when both projects are accepted onto their own Bronze", () => {
-		const overloaded = acceptBothProjects(
-			new Game(offeredInitial(1)),
-			"server-1",
-			"server-1",
-		).tick();
-
-		const healthy = acceptBothProjects(
-			buyBronze(
-				new Game({
-					...offeredInitial(1),
-					cashCents: SKU_ECONOMY.bronze.purchaseCents,
-				}),
-			),
-			"server-1",
-			"server-2",
-		).tick();
+		const overloaded = new Game(oneBronzeInitial).tick();
+		const healthy = new Game(twoBronzeInitial).tick();
 
 		expect(overloaded.metrics.droppedRequests).toBeGreaterThan(0);
 		expect(healthy.metrics.droppedRequests).toBe(0);
@@ -74,16 +60,7 @@ describe("Game - dispatch", () => {
 	});
 
 	it("leaves metrics empty until tick after accept and buy", () => {
-		const game = acceptBothProjects(
-			buyBronze(
-				new Game({
-					...offeredInitial(1),
-					cashCents: SKU_ECONOMY.bronze.purchaseCents,
-				}),
-			),
-			"server-1",
-			"server-2",
-		);
+		const game = acceptBothProjects(new Game(offeredInitial(1)));
 
 		expect(game.metrics).toEqual({
 			handledRequests: 0,
@@ -95,7 +72,10 @@ describe("Game - dispatch", () => {
 
 		game.tick();
 
-		expect(game.metrics.handledRequests + game.metrics.droppedRequests).toBe(1400);
+		expect(game.metrics.handledRequests + game.metrics.droppedRequests).toBe(0);
+		expect(game.customers[0]?.projects.every((project) => project.status === "accepted")).toBe(
+			true,
+		);
 	});
 
 	it("throws when accepting an unknown project", () => {
@@ -104,21 +84,34 @@ describe("Game - dispatch", () => {
 		expect(() =>
 			game.dispatch({
 				type: "acceptProject",
-				payload: { projectId: "missing-project", serverId: "server-1" },
+				payload: { projectId: "missing-project" },
 			}),
 		).toThrow("unknown project id: missing-project");
 	});
 
-	it("throws when accepting onto a server the fleet does not own", () => {
-		const game = new Game(offeredInitial(1));
+	it("throws when starting onto a server the fleet does not own", () => {
+		const game = new Game({
+			customers: [
+				{
+					id: "customer-1",
+					projects: [
+						{
+							...constantProject("project-1", 700, "accepted"),
+							ready: true,
+						},
+					],
+				},
+			],
+			assets: [{ kind: "server", id: "server-1", catalogId: "bronze", region: "utc+0" }],
+		});
 
 		expect(() =>
 			game.dispatch({
-				type: "acceptProject",
+				type: "startProject",
 				payload: { projectId: "project-1", serverId: "server-9" },
 			}),
 		).toThrow("unknown server id: server-9");
-		expect(game.customers[0]?.projects[0]?.status).toBe("offered");
+		expect(game.customers[0]?.projects[0]?.status).toBe("accepted");
 	});
 
 	it("throws when accepting a project that is not offered", () => {
@@ -127,7 +120,7 @@ describe("Game - dispatch", () => {
 		expect(() =>
 			game.dispatch({
 				type: "acceptProject",
-				payload: { projectId: "project-1", serverId: "server-1" },
+				payload: { projectId: "project-1" },
 			}),
 		).toThrow("project is not offered: project-1");
 	});
@@ -251,15 +244,17 @@ describe("Game - routing round trip", () => {
 	it("moves a served project to another box, parks it, and brings it back", () => {
 		const game = buyBronze(
 			new Game({
-				...offeredInitial(1),
+				customers: [
+					{
+						id: "customer-1",
+						projects: [constantProject("project-1", 700, "served", "server-1")],
+					},
+				],
+				assets: [{ kind: "server", id: "server-1", catalogId: "bronze", region: "utc+0" }],
 				cashCents: SKU_ECONOMY.bronze.purchaseCents,
 			}),
 		);
 
-		game.dispatch({
-			type: "acceptProject",
-			payload: { projectId: "project-1", serverId: "server-1" },
-		});
 		game.tick();
 
 		expect(serverOf(game, "server-1")?.metrics.assignedRequests).toBe(700);

@@ -49,7 +49,7 @@ Deliver the approved desktop left Projects panel, right business panels and mobi
 | Slice | Status | PR | Verification evidence |
 |---|---|---|---|
 | Milestone 4 stack base | In review | [#111](https://github.com/movahedan/fivenines/pull/111) | Docs/plan on #104 head; `bun overall` |
-| Acquaintance acceptance and advance | Planned | — | Not run |
+| Acquaintance acceptance and advance | In review | [#112](https://github.com/movahedan/fivenines/pull/112) | `bun overall` on `feature/m4-acquaintance-acceptance-and-advance` stacked on [#111](https://github.com/movahedan/fivenines/pull/111) |
 | Operational queue and readiness | Planned | — | Not run |
 | Installation and configuration actions | Planned | — | Not run |
 | Duplication and transfer lifecycle | Planned | — | Not run |

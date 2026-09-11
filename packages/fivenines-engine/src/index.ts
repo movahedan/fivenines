@@ -1,3 +1,8 @@
+export {
+	ACQUAINTANCE_OFFERS,
+	APPOINTMENT_COMMERCIAL,
+	APPOINTMENT_SITE_BASELINE,
+} from "./catalog/acquaintance-offer";
 export { CAPACITY_POLICY } from "./catalog/capacity-policy";
 export type { CommercialCategory, CommercialTerms } from "./catalog/commercial-policy";
 export {
@@ -65,3 +70,8 @@ export type { ServerInitial, ServerTenure } from "./server";
 export { Server } from "./server";
 export type { ServerTickMetrics } from "./server.metrics";
 export type { RandomSource } from "./traffic/random-source";
+export {
+	FixedRandomSource,
+	MathRandomSource,
+	SequenceRandomSource,
+} from "./traffic/random-source";

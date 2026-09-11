@@ -1,6 +1,6 @@
 # Demand, work retention and learning foundations
 
-Milestone 3 of 10. Status: in progress on [#104](https://github.com/movahedan/fivenines/pull/104), stacked on [#101](https://github.com/movahedan/fivenines/pull/101) (`docs/m2-base`). Follow the [standing delivery workflow](README.md). Execution plans: [`.cursor/plans/m3-demand-and-learning-foundations.plan.md`](../../.cursor/plans/m3-demand-and-learning-foundations.plan.md).
+Milestone 3 of 10. Status: in review on [#104](https://github.com/movahedan/fivenines/pull/104), stacked on [#101](https://github.com/movahedan/fivenines/pull/101) (`docs/m2-base`). Follow the [standing delivery workflow](README.md). Execution plan: [`.cursor/plans/m3-demand-and-learning-foundations.plan.md`](../../.cursor/plans/m3-demand-and-learning-foundations.plan.md). Slice PRs [#105](https://github.com/movahedan/fivenines/pull/105) [#106](https://github.com/movahedan/fivenines/pull/106) [#107](https://github.com/movahedan/fivenines/pull/107) [#108](https://github.com/movahedan/fivenines/pull/108) are merged into #104. Milestone 4 stacks on this same head.
 
 ## Outcome and boundaries
 
@@ -16,7 +16,7 @@ Product sources: [gameplay](../product/gameplay.md), [demand and projects](../pr
 
 ## Proposed PR sequence
 
-These are outcome-sized slices, not fixed file lists. Inspect current code and merged predecessors before planning each PR. Keep the app runnable, integrate the corresponding production UI, and split a slice when its actual review surface warrants it.
+These are outcome-sized slices. They landed on one PR ([#104](https://github.com/movahedan/fivenines/pull/104)).
 
 | Slice | Depends on | Deliverable |
 |---|---|---|
@@ -43,12 +43,12 @@ Connect Learning catalog, inline enrollment details and distinct learning progre
 
 | Slice | Status | PR | Verification evidence |
 |---|---|---|---|
-| Milestone 3 stack base | In review | [#104](https://github.com/movahedan/fivenines/pull/104) | Docs/plans only; `bun run overall` locally |
-| Typed demand generation | In review | [#105](https://github.com/movahedan/fivenines/pull/105) | engine tests + `bun run overall` |
-| Batch retention and queue state | In review | [#106](https://github.com/movahedan/fivenines/pull/106) | engine tests + `bun run overall` |
-| Enrollment and tuition lifecycle | In review | [#107](https://github.com/movahedan/fivenines/pull/107) | engine + hub command-tone tests + `bun run overall` |
-| Learning and demand integration | In review | this slice on #107 | Hub Learning + Lab Demand inspect + `bun run overall` |
+| Milestone 3 stack base | Merged into #104 | [#104](https://github.com/movahedan/fivenines/pull/104) | Docs/plans, then all slices |
+| Typed demand generation | Merged into #104 | [#105](https://github.com/movahedan/fivenines/pull/105) | DemandEngine + catalog integers; `Game` unwired. `n=10000` arrival sample. `bun run overall` |
+| Batch retention and queue state | Merged into #104 | [#106](https://github.com/movahedan/fivenines/pull/106) | WorkQueue cohorts/occupancy/overflow. `Game` unwired. |
+| Enrollment and tuition lifecycle | Merged into #104 | [#107](https://github.com/movahedan/fivenines/pull/107) | LearningBoard + `postCashDelta`; Hub command tones. |
+| Learning and demand integration | Merged into #104 | [#108](https://github.com/movahedan/fivenines/pull/108) | Hub Learning + Lab Demand inspect. #66 still incomplete. |
 
-M2 [#66](https://github.com/movahedan/fivenines/issues/66) Hub/Lab shared-asset identity remains incomplete on #101. M3 does not pretend Projects/Inventory already share topology identities. Opening Shift still uses RPS `ProjectDemand`; typed DemandEngine is a later slice on this stack.
+M2 [#66](https://github.com/movahedan/fivenines/issues/66) Hub/Lab shared-asset identity remains incomplete on #101. M3 does not pretend Projects/Inventory already share topology identities. Opening Shift still uses RPS `ProjectDemand`; typed DemandEngine exists and is inspectable in Lab, but `Game.tick` does not place or execute those batches.
 
 No new product decision is required to begin planning. Implementation trade-offs belong in the assigned PR plan; escalate only a concrete contradiction or material scope change.

@@ -1,6 +1,6 @@
 # Infrastructure preparation and operations
 
-Milestone 4 of 10. Status: planned; no implementation PR is claimed delivered. Follow the [standing delivery workflow](README.md).
+Milestone 4 of 10. Status: planned; no implementation PR is claimed delivered. Stacks on [#104](https://github.com/movahedan/fivenines/pull/104) (`feature/m3-demand-and-learning-foundations`) after Milestone 3. Follow the [standing delivery workflow](README.md).
 
 ## Outcome and boundaries
 

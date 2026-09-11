@@ -1,116 +1,98 @@
 ---
 name: M3 demand and learning
-overview: "Docs-only stack root on #101: close leftover M2 slice-PR language, record #66 as incomplete on that head, and publish current-code plans for M3 PRs #67–#70."
+overview: "Single Milestone 3 plan on #104: DemandEngine, WorkQueue, LearningBoard, Hub Learning + Lab inspect. Game.tick still Opening Shift RPS. #66 remains incomplete."
 todos:
-  - id: phase-1-records
-    content: "Open M3 on #101; keep #66 incomplete; write #67–#70 plans against current engine"
+  - id: demand
+    content: "DemandEngine + catalog integers; Game does not import; Opening Shift RPS unchanged"
     status: completed
-  - id: phase-1-verify
-    content: "Phase 1 gate: bun run overall"
-    status: pending
-  - id: phase-1-docs
-    content: "This PR is the documentation-sync"
+  - id: queues
+    content: "WorkQueue cohorts, occupancy, overflow reject-new; Game does not import"
     status: completed
-  - id: phase-1-pr
-    content: "git-pr-workflow: stack feature/m3-demand-and-learning-foundations on docs/m2-base (#101)"
-    status: pending
+  - id: enrollment
+    content: "LearningBoard slots, tuition via postCashDelta, enroll/pause/resume/cancel"
+    status: completed
+  - id: integration
+    content: "Hub Learning catalog + LEARN HUD; Lab DemandEngine inspect; honest #66"
+    status: completed
+  - id: verify
+    content: "bun run overall on the folded #104 branch"
+    status: completed
+  - id: docs-pr
+    content: "Single plan on #104; stacked slices merged; PR titled Milestone 3"
+    status: completed
 isProject: false
 ---
 
-# M3 — stack base
+# Milestone 3 — Demand, work retention and learning foundations
 
-Milestone: [demand-and-learning-foundations.md](../../docs/milestones/demand-and-learning-foundations.md) · GitHub [milestone 3](https://github.com/movahedan/fivenines/milestone/3) · Tracking [issue #41](https://github.com/movahedan/fivenines/issues/41)
+Milestone: [demand and learning foundations](../../docs/milestones/demand-and-learning-foundations.md) · GitHub [milestone 3](https://github.com/movahedan/fivenines/milestone/3) · Tracking [#41](https://github.com/movahedan/fivenines/issues/41) · Issues [#67](https://github.com/movahedan/fivenines/issues/67) [#68](https://github.com/movahedan/fivenines/issues/68) [#69](https://github.com/movahedan/fivenines/issues/69) [#70](https://github.com/movahedan/fivenines/issues/70)
 
-**Stack:** `main` ← [#98](https://github.com/movahedan/fivenines/pull/98) ← [#101](https://github.com/movahedan/fivenines/pull/101) `docs/m2-base` ← **this PR** `feature/m3-demand-and-learning-foundations` ← [#67](https://github.com/movahedan/fivenines/issues/67) ← [#68](https://github.com/movahedan/fivenines/issues/68) ← [#69](https://github.com/movahedan/fivenines/issues/69) ← [#70](https://github.com/movahedan/fivenines/issues/70).
+**PR:** [#104](https://github.com/movahedan/fivenines/pull/104) on `feature/m3-demand-and-learning-foundations`, stacked on [#101](https://github.com/movahedan/fivenines/pull/101) (`docs/m2-base`) and [#98](https://github.com/movahedan/fivenines/pull/98). Slice PRs merged into #104: [#105](https://github.com/movahedan/fivenines/pull/105) [#106](https://github.com/movahedan/fivenines/pull/106) [#107](https://github.com/movahedan/fivenines/pull/107) [#108](https://github.com/movahedan/fivenines/pull/108).
 
-Inspected HEAD (2026-09-11): `docs/m2-base` `49297d4`. Live `Game` still has one `RouteTarget` per served project, Bronze SKUs, owned/leased tenure, Opening Shift boot. `src/identity/` and `src/topology/` exist and `Game` does not import them. `src/baseline/` is the JSON checker only. `src/work/` is unwired. Hub/Lab still launch on Opening Shift RPS demand (`ConstantDemand` / `ProjectDemand`). Issue [#66](https://github.com/movahedan/fivenines/issues/66) (Projects/Inventory shared-asset identity UI) remains open on #101 — this stack does not fake it.
+Live `Game` still has one `RouteTarget` per served project, Bronze SKUs, owned/leased tenure, Opening Shift boot. `src/identity/` and `src/topology/` exist and `Game` does not import them. `src/baseline/` is the JSON checker only. `src/work/` is unwired. Issue [#66](https://github.com/movahedan/fivenines/issues/66) remains open on #101.
 
 ## Target architecture
 
 ```mermaid
-flowchart LR
-  Main[main] --> M1["#98 M1"]
-  M1 --> M2["#101 M2"]
-  M2 --> Base[M3 base this PR]
-  Base --> I67["#67 DemandEngine"]
-  I67 --> I68["#68 queues"]
-  I68 --> I69["#69 enrollment"]
-  I69 --> I70["#70 integration UI"]
+flowchart TB
+  Catalog["src/catalog demand-*.ts"] --> Engine["src/demand-engine"]
+  Engine --> Queue["WorkQueue"]
+  Queue -.->|"not executed"| ServerTick["Server.tick"]
+  LearnCat["research + course catalog"] --> Board["LearningBoard"]
+  Board --> Game["Game.dispatch / tick after opex"]
+  Game --> Hub["Hub LEARN + catalog"]
+  Engine --> Lab["Lab inspect"]
+  GameRps["ProjectDemand RPS"] --> Place["placeProjectDemand"]
 ```
 
 **Dependency / policy rules:**
-- This PR is documentation and plans only.
-- Do not change `Game.tick`, `dispatch`, Hub/Lab, Nest, auth, or SDKs here.
 - Generation never places or executes. No substitute resource solver (M5).
-- Live tunables stay in `src/catalog/*.ts`. Do not load `baseline.json` into `Game`. Translate numbers into integers when cutting them into catalog modules.
+- Live tunables stay in `src/catalog/*.ts`. Do not load `baseline.json` into `Game`. Translate numbers into integers when cutting them into catalog modules (`Math.round(value * 1_000_000)` micro-units; tuition ×100 cents).
 - Research permissions stay distinct from installation.
-- Shared cash posting for tuition; no learning wallet.
+- Shared cash posting (`postCashDelta`) for tuition; no learning wallet.
+- Do not re-export DemandEngine / WorkQueue from `src/index.ts`. Lab imports `@packages/fivenines-engine/demand-engine` → `engine.ts` only.
+- Hub/Lab still launch. Tenure preserved. No Nest/auth/SDK/persistence expansion.
+- Numerical arrival checks state sample size and tolerances.
 
----
+## Shipped surfaces
 
-## Phase 1 — M3 stack base (docs-only)
+### Typed demand (#67 / #105)
 
-**Goal:** Give Milestone 3 a reviewable stack root on current M2 code and stop treating M2 stacked slice PRs as merge targets.
+- Catalog: `demand-types.ts`, `demand-rhythms.ts`, `demand-variation.ts`, `demand-projects.ts`
+- Mixes are permille summing to 1000. Rhythm bands 6h, daily-mean normalized. Combined campaign × spike capped at 6.
+- `DemandEngine`: seeded mulberry32 from project id, Gamma–Poisson, multinomial / largest remainder. Finite jobs `activateFinite` only. Expansion ids throw unless `allowExpansion`.
+- Sample check: `n=10000`, mean within 5% of 300, `k=25`.
+- Opening Shift still `ConstantDemand` / `ProjectDemand`. `Game` does not import this tree.
 
-**Hard constraints (phase 1 only):**
-- Must record #101 as the M2 merge target; #102/#103 are closed into it; #66 is incomplete.
-- Must publish current-code plans for #67–#70.
-- Must not add engine modules.
+### Batch retention (#68 / #106)
 
-### Code/config surfaces (builder-workflow)
+- `queue-policy.ts` + `demand-engine/queue.ts`
+- Cohorts by type + arrival hour. Interactive/continuous carry 0; queued 2; jobs retained.
+- Occupancy `queueKiB`. Overflow rejects new work. `toExecutionInput()` for M5.
+- `Game` does not import this tree.
 
-- None. Docs-only phase.
+### Enrollment (#69 / #107)
 
-### Scouts (parallel inventory — code/config only)
+- `learning-policy.ts`, `research-catalog.ts`, `course-catalog.ts`
+- Two shared slots, 672h month, tuition via `postCashDelta`
+- Commands `enrollLearning` / `pauseLearning` / `resumeLearning` / `cancelLearning`. Enroll blocked while jailed. Tick after opex, before jail.
+- Effects stored; not applied to missing consumers.
 
-| Scout | Task | Patterns / paths | Row budget |
-|-------|------|------------------|------------|
-| 1 | Confirm M2 HEAD vs GitHub | `gh pr view 101,98` | ≤10 |
+### Learning + demand UI (#70 / #108)
 
-### Verification (phase 1 gate)
+- `learningCatalog` / `Game.learningCatalog`
+- Hub **LEARN n/2** and Learning strip (authored durations/prices). Honest #66 and missing-consumer copy.
+- Lab Demand inspect samples Appointment Site. Roots not placed.
+
+## Verification
 
 ```bash
 bun run overall
 ```
 
-### Documentation before PR (documentation-sync)
-
-**When:** This PR *is* the documentation-sync.
-
-- `docs/milestones/entities-and-catalogs.md`
-- `docs/milestones/demand-and-learning-foundations.md`
-- `packages/fivenines-engine/AGENTS.md` (Related: M3 stack)
-- `.cursor/plans/m3-demand-and-learning-foundations.plan.md`
-- `.cursor/plans/m3-typed-demand-generation.plan.md`
-- `.cursor/plans/m3-batch-retention-and-queue-state.plan.md`
-- `.cursor/plans/m3-enrollment-and-tuition-lifecycle.plan.md`
-- `.cursor/plans/m3-learning-and-demand-integration.plan.md`
-
----
-
 ## What stays out of scope
 
-- Implementing #67–#70 in this PR.
-- Finishing #66 Hub identity UI (honest incomplete).
-- Nest, auth, SDK, persistence.
-- Wiring `src/work/` into `Game.tick`.
-
-## Suggested PR sequence
-
-| PR | Content | Merge gate |
-|----|---------|------------|
-| Base | This phase | `bun run overall` |
-| #67 | Typed demand generation | engine tests + `bun run overall` |
-| #68 | Batch retention and queue state | engine tests + `bun run overall` |
-| #69 | Enrollment and tuition lifecycle | engine tests + `bun run overall` |
-| #70 | Learning and demand integration | engine + web tests + `bun run overall` |
-
-At milestone close, merge slice branches into this base, fold slice plans into this file, and keep the PR title **Milestone 3: Demand, work retention and learning foundations**.
-
-## Risk summary
-
-| Risk | Mitigation |
-|------|------------|
-| Planning against stale `main` | Head is #101 on #98; `git fetch` before each slice |
-| Dual demand models | Opening Shift keeps RPS `ProjectDemand`; DemandEngine is independent until a consumer needs typed batches |
-| #66 incomplete | State it; do not invent shared-asset Hub identity |
+- Finishing #66 Hub identity UI
+- Wiring DemandEngine into `placeProjectDemand` / `Server.tick`
+- M5 allocator / `src/work/` in `Game.tick`
+- Nest, auth, SDK, persistence

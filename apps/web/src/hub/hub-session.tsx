@@ -589,9 +589,14 @@ export function HubSession() {
 										size="sm"
 										onClick={() => {
 											withPickedServer(project, (serverId) => {
+												const startServerId = project.setupServerId ?? serverId;
+
 												runCommand(
-													{ type: "startProject", payload: { projectId: project.id, serverId } },
-													`Started ${project.id} on ${serverId}`,
+													{
+														type: "startProject",
+														payload: { projectId: project.id, serverId: startServerId },
+													},
+													`Started ${project.id} on ${startServerId}`,
 												);
 											});
 										}}

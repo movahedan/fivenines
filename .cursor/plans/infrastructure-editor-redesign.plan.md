@@ -86,6 +86,8 @@ These are explicit scheduled work, not deferred suggestions and not a new engine
 
 ### F1 — Complete live placement and identity integration
 
+**Execution record:** Current-code audit on `feature/m52-live-placement` (stacked on #135) found live same-host / split-host / shared-host accounting already on one `RouteTarget` per project. `TopologyGraph` / `IdentityRegistry` stay unwired. F1 shrank to `startProject` rejecting a box other than `setupServerId` when placement is set, plus named live-placement regressions. Split-host application vs database remains M8.
+
 **Classification:** primarily an existing M2/M4/M5 acceptance follow-up, subject to merged-state audit. **Surfaces:** engine `topology/graph.ts`, `identity/registry.ts`, `project.ts`, `server.ts`, `game.ts`, `game.utils.ts`, `allocation/place.ts`, projections and related tests.
 
 1. Compare merged M2/M4/M5 acceptance and exact live consumers; identify the remaining single-host/fixed-install assumptions.

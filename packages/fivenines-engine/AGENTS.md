@@ -146,7 +146,7 @@ Learning enroll/pause/resume/cancel remain on the same union (see Learning below
 |---------|------------|
 | `acceptProject` | `offered` → `accepted`, no route; posts advance once (`recurringCentsPerPeriod` via `postCashDelta`) |
 | `declineProject` | `offered` → `declined` |
-| `startProject` | `accepted` + `ready` → `served` on `serverId`; sets `billingOriginHour` |
+| `startProject` | `accepted` + `ready` → `served` on `serverId`; sets `billingOriginHour`. Throws `start server mismatch` when `setupServerId` is set and differs; unset setup still starts on any existing box |
 | `cancelSetup` | `accepted` → `withdrawn`; refunds `advancePostedCents` via `postCashDelta` |
 | `moveProject` | `served` → `served` on another box |
 | `unassignProject` | `served` → `offline`, clearing the route (park). Throws `cannot park during setup` on `accepted` |
@@ -159,7 +159,7 @@ Learning enroll/pause/resume/cancel remain on the same union (see Learning below
 | `powerOn` / `powerOff` | immediate; off drops volatile ops progress and live slices, keeps completed installs |
 | `duplicateProject` | copies **this** served project only onto a compatible destination (CPU, RAM, net, disk capacity/IOPS); copy is `accepted` with `pendingTransfer` remaining network/disk; source stays served. Each tick allocates that work on source and dest; when both remaining counters hit 0, pending clears and the copy becomes ready in the same outer hour |
 
-Unknown project id or wrong source status throws. `startProject` throws when `ready` is false or `pendingTransfer` is set. Completing ops work never calls `startProject` and still will not mark ready while a transfer remains. Cash-changing commands are `acceptProject` (credit advance), `cancelSetup` (debit refund), `buyServer` (debit purchase), and `sellServer` (credit salvage). `leaseServer` and `releaseServer` do not change cash. Any command carrying a `serverId` throws `unknown server id` when the box is absent.
+Unknown project id or wrong source status throws. `startProject` throws when `ready` is false, `pendingTransfer` is set, or `setupServerId` is set and `payload.serverId` differs. Completing ops work never calls `startProject` and still will not mark ready while a transfer remains. Cash-changing commands are `acceptProject` (credit advance), `cancelSetup` (debit refund), `buyServer` (debit purchase), and `sellServer` (credit salvage). `leaseServer` and `releaseServer` do not change cash. Any command carrying a `serverId` throws `unknown server id` when the box is absent.
 
 `acceptProject`, `startProject`, `buyServer`, `leaseServer`, `enqueueOperationalTask`, `placeSetup`, `installService`, and `configureConnection` throw while `jailed`; `cancelSetup` / `cancelOperationalTask` / `powerOn` / `powerOff` / `moveProject` / `unassignProject` / `assignProject` / `sellServer` / `releaseServer` / `declineProject` are allowed while jailed.
 
@@ -219,7 +219,7 @@ Hourly arrival: `m = baseline × rhythm × campaign × spike`, then Gamma–Pois
 
 ## Topology graph
 
-`src/topology/graph.ts` holds project services, deployment instances, shared assets, dependency edges, and placement. Mutations are atomic and rebuild instance-by-asset indexes. Live `Game` still routes one `RouteTarget` and must not import this tree.
+`src/topology/graph.ts` holds project services, deployment instances, shared assets, dependency edges, and placement. Mutations are atomic and rebuild instance-by-asset indexes. Live `Game` still routes one `RouteTarget` and must not import this tree. M5.2 F1 (#130) audited this split and kept it: same-host / split-host project placement already runs on `RouteTarget`; instance health and shared service config stay in the scaffold until later slices.
 
 ## Related
 

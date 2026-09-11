@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: queue-ready
     content: "#72 one operational queue, retained progress, ready vs active"
-    status: pending
+    status: in_progress
   - id: install-config
     content: "#73 two installs + one shared config, power on/off"
     status: pending

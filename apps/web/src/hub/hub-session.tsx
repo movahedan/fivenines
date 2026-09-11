@@ -11,6 +11,7 @@ import type {
 } from "@packages/fivenines-engine";
 import {
 	DEFAULT_REGION,
+	FIRST_PROJECT_SETUP_TASKS,
 	REGION_IDS,
 	regions,
 	SERVER_CATALOG_IDS,
@@ -234,6 +235,11 @@ export function HubSession() {
 						value: `${String(game.learning.slotsUsed)}/2`,
 						tone: "info",
 					},
+					{
+						label: "OPS",
+						value: `${String(game.operations.slotsUsed)}/1`,
+						tone: "warning",
+					},
 				]}
 				onSpeedChange={setSpeed}
 				onToggleRunning={toggleRunning}
@@ -379,12 +385,85 @@ export function HubSession() {
 								</p>
 								<p className="font-mono text-sm font-semibold">{project.id}</p>
 								<p className="font-mono text-xs text-muted-foreground">
-									Advance {formatters.cents(project.advancePostedCents)} received. Ready: no.
-									Install work is not in this slice. Start stays blocked. Park is unavailable during
-									setup.
+									Advance {formatters.cents(project.advancePostedCents)} received. Ready:{" "}
+									{project.ready ? "yes" : "no"}. Queue work does not start the contract. Park is
+									unavailable during setup. Installs are not applied to instances yet.
 								</p>
+								<div className="flex flex-wrap gap-2">
+									{FIRST_PROJECT_SETUP_TASKS.map((task) => {
+										const done = game.operations.tasks.some(
+											(entry) =>
+												entry.projectId === project.id &&
+												entry.taskId === task.id &&
+												entry.status === "completed",
+										);
+										const active = game.operations.tasks.find(
+											(entry) =>
+												entry.projectId === project.id &&
+												entry.taskId === task.id &&
+												entry.status === "active",
+										);
+
+										if (done) {
+											return (
+												<p className="font-mono text-xs text-muted-foreground" key={task.id}>
+													{task.id} done
+												</p>
+											);
+										}
+
+										if (active !== undefined) {
+											return (
+												<Button
+													key={task.id}
+													size="sm"
+													variant="outline"
+													onClick={() => {
+														runCommand(
+															{ type: "cancelOperationalTask", payload: { taskId: active.id } },
+															`Cancelled ops ${task.id}`,
+														);
+													}}
+												>
+													Cancel {task.id}
+												</Button>
+											);
+										}
+
+										return (
+											<Button
+												key={task.id}
+												disabled={jailed || game.operations.slotsUsed >= 1}
+												size="sm"
+												variant="secondary"
+												onClick={() => {
+													runCommand(
+														{
+															type: "enqueueOperationalTask",
+															payload: { projectId: project.id, taskId: task.id },
+														},
+														`Queued ${task.id}`,
+													);
+												}}
+											>
+												Queue {task.id}
+											</Button>
+										);
+									})}
+								</div>
 								<div className="flex gap-2">
-									<Button disabled size="sm">
+									<Button
+										disabled={!project.ready || game.assets.length === 0 || jailed}
+										size="sm"
+										onClick={() => {
+											withPickedServer(project, (serverId) => {
+												runCommand(
+													{ type: "startProject", payload: { projectId: project.id, serverId } },
+													`Started ${project.id} on ${serverId}`,
+												);
+											});
+										}}
+									>
 										Start
 									</Button>
 									<Button

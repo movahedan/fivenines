@@ -1,7 +1,7 @@
 import { APPOINTMENT_SITE_BASELINE } from "../catalog/acquaintance-offer";
 import { ALLOCATION_POLICY } from "../catalog/allocation-policy";
 import { CAPACITY_POLICY } from "../catalog/capacity-policy";
-import { DEMAND_COST_MICRO, demandTypeById } from "../catalog/demand-types";
+import { DEMAND_COST_MICRO, type DemandTypeId, demandTypeById } from "../catalog/demand-types";
 import type { DemandBatch } from "../demand-engine/engine";
 import { DemandEngine } from "../demand-engine/engine";
 import type { QueueCohort } from "../demand-engine/queue";
@@ -9,6 +9,14 @@ import { WorkQueue } from "../demand-engine/queue";
 import type { Project } from "../project";
 import type { Server } from "../server";
 import type { RandomSource } from "../traffic/random-source";
+import { compileDemandGraph } from "../work/compile";
+import {
+	categoryPathHour,
+	demandTypePathHour,
+	EMPTY_PATH_HOUR,
+	mergePathHours,
+	type PathHourSummary,
+} from "../work/execute";
 import { assertConserved, settleHostTick, type WorkItem, type WorkSettlement } from "../work/share";
 import type { WorkDimension } from "../work/units";
 
@@ -16,6 +24,17 @@ export interface PlacedDemand {
 	readonly projects: readonly Project[];
 	readonly totalDemand: number;
 	readonly unroutableDemand: number;
+	readonly paths: PathHourSummary;
+}
+
+interface ItemMeta {
+	readonly projectId: string;
+	readonly requests: number;
+	readonly cost: number;
+	readonly nodeId: string | undefined;
+	readonly optional: boolean;
+	readonly demandTypeId: DemandTypeId | undefined;
+	readonly arrivalHour: number;
 }
 
 export interface AllocateHourInput {
@@ -91,6 +110,7 @@ export function demandEngineFor(
 export function allocateHour(input: AllocateHourInput): PlacedDemand {
 	let totalDemand = 0;
 	let unroutableDemand = 0;
+	let paths = EMPTY_PATH_HOUR;
 	const byServer = new Map<string, ProjectPlacement[]>();
 
 	for (const project of input.projects) {
@@ -112,6 +132,7 @@ export function allocateHour(input: AllocateHourInput): PlacedDemand {
 
 		if (server === undefined || !server.poweredOn) {
 			unroutableDemand += emitted;
+			paths = mergePathHours(paths, categoryPathHour(0, emitted));
 			continue;
 		}
 
@@ -133,13 +154,16 @@ export function allocateHour(input: AllocateHourInput): PlacedDemand {
 			continue;
 		}
 
-		unroutableDemand += settleServerHour(input.hour, server, group, input.queues);
+		const settled = settleServerHour(input.hour, server, group, input.queues);
+		unroutableDemand += settled.unroutable;
+		paths = mergePathHours(paths, settled.paths);
 	}
 
 	return {
 		projects: input.projects,
 		totalDemand,
 		unroutableDemand,
+		paths,
 	};
 }
 
@@ -148,12 +172,9 @@ function settleServerHour(
 	server: Server,
 	group: readonly ProjectPlacement[],
 	queues: Map<string, WorkQueue>,
-): number {
+): { unroutable: number; paths: PathHourSummary } {
 	const items: WorkItem[] = [];
-	const requestCostByItem = new Map<
-		string,
-		{ projectId: string; requests: number; cost: number }
-	>();
+	const requestCostByItem = new Map<string, ItemMeta>();
 	let retainedDiskMiB = 0;
 
 	for (const row of group) {
@@ -194,23 +215,35 @@ function settleServerHour(
 				row.project.id,
 				items,
 				settlements,
+				requestCostByItem,
 			);
 		}
 	}
 
 	let unroutable = 0;
+	let paths = EMPTY_PATH_HOUR;
 
 	for (const row of group) {
 		const assigned = Math.min(row.emitted, assignedByProject.get(row.project.id) ?? 0);
 		unroutable += row.emitted - assigned;
+
+		if (row.batches.length === 0) {
+			paths = mergePathHours(paths, categoryPathHour(assigned, row.emitted));
+			continue;
+		}
+
+		paths = mergePathHours(
+			paths,
+			pathsForQueue(row.project.id, items, settlements, requestCostByItem),
+		);
 	}
 
-	return unroutable;
+	return { unroutable, paths };
 }
 
 function itemsForCategory(
 	row: ProjectPlacement,
-	requestCostByItem: Map<string, { projectId: string; requests: number; cost: number }>,
+	requestCostByItem: Map<string, ItemMeta>,
 ): WorkItem[] {
 	const cost = CAPACITY_POLICY.categories[row.project.category];
 	const items: WorkItem[] = [];
@@ -259,76 +292,51 @@ function itemsForCategory(
 function itemsForDemandType(
 	projectId: string,
 	cohort: QueueCohort,
-	requestCostByItem: Map<string, { projectId: string; requests: number; cost: number }>,
+	requestCostByItem: Map<string, ItemMeta>,
 ): WorkItem[] {
 	const demandType = demandTypeById(cohort.demandTypeId);
+	const demandTypeId = cohort.demandTypeId as DemandTypeId;
 	const count = cohort.remainingCount;
 	const prefix = `${cohort.demandTypeId}:${String(cohort.arrivalHour)}`;
 	const items: WorkItem[] = [];
-	const cpuPerRequest = microPerRequest(
-		demandType.applicationCpuWorkMicro + demandType.databaseCpuWorkMicro,
-	);
+	const compiled = compileDemandGraph(demandTypeId);
 
-	pushItem(
-		items,
-		requestCostByItem,
-		projectId,
-		`${prefix}:cpu`,
-		"cpuWork",
-		count,
-		cpuPerRequest,
-		cohort.arrivalHour,
-		demandType.waitPolicy,
-		demandType.gpuWorkMicro > 0 ? microPerRequest(demandType.gpuWorkMicro) * count : 0,
-		demandType.gpuMemoryMiB,
-	);
-	pushItem(
-		items,
-		requestCostByItem,
-		projectId,
-		`${prefix}:net`,
-		"networkMiB",
-		count,
-		microPerRequest(demandType.networkMicroMiB),
-		cohort.arrivalHour,
-		demandType.waitPolicy,
-	);
-	pushItem(
-		items,
-		requestCostByItem,
-		projectId,
-		`${prefix}:disk`,
-		"diskOps",
-		count,
-		demandType.storageOperations,
-		cohort.arrivalHour,
-		demandType.waitPolicy,
-	);
-	pushItem(
-		items,
-		requestCostByItem,
-		projectId,
-		`${prefix}:ram`,
-		"residentMemoryMiB",
-		count,
-		microPerRequest(demandType.workingMemoryMicroMiB),
-		cohort.arrivalHour,
-		demandType.waitPolicy,
-	);
+	for (const node of compiled.nodeWork) {
+		if (node.amountPerRequest <= 0) {
+			continue;
+		}
 
-	if (demandType.gpuWorkMicro > 0 || demandType.gpuMemoryMiB > 0) {
 		pushItem(
 			items,
 			requestCostByItem,
 			projectId,
-			`${prefix}:gpu`,
-			"gpuWork",
+			`${prefix}:${node.nodeId}:${node.dimension}`,
+			node.dimension,
 			count,
-			Math.max(1, microPerRequest(demandType.gpuWorkMicro)),
+			node.amountPerRequest,
 			cohort.arrivalHour,
 			demandType.waitPolicy,
-			microPerRequest(demandType.gpuWorkMicro) * count,
-			demandType.gpuMemoryMiB,
+			node.gpuWorkPerRequest * count,
+			node.gpuMemoryMiB,
+			node.nodeId,
+			node.optional,
+			demandTypeId,
+		);
+	}
+
+	const occupancy = microPerRequest(demandType.workingMemoryMicroMiB);
+
+	if (occupancy > 0) {
+		pushItem(
+			items,
+			requestCostByItem,
+			projectId,
+			`${prefix}:ram`,
+			"residentMemoryMiB",
+			count,
+			occupancy,
+			cohort.arrivalHour,
+			demandType.waitPolicy,
 		);
 	}
 
@@ -341,7 +349,7 @@ function microPerRequest(micro: number): number {
 
 function pushItem(
 	items: WorkItem[],
-	requestCostByItem: Map<string, { projectId: string; requests: number; cost: number }>,
+	requestCostByItem: Map<string, ItemMeta>,
 	projectId: string,
 	suffix: string,
 	dimension: WorkDimension,
@@ -351,6 +359,9 @@ function pushItem(
 	waitPolicy: WorkItem["waitPolicy"] = "interactive",
 	gpuWork = 0,
 	gpuMemoryMiB = 0,
+	nodeId?: string,
+	optional = false,
+	demandTypeId?: DemandTypeId,
 ): void {
 	if (costPerRequest <= 0 || requests <= 0) {
 		return;
@@ -367,13 +378,21 @@ function pushItem(
 		gpuMemoryMiB,
 		waitPolicy,
 	});
-	requestCostByItem.set(id, { projectId, requests, cost: costPerRequest });
+	requestCostByItem.set(id, {
+		projectId,
+		requests,
+		cost: costPerRequest,
+		nodeId,
+		optional,
+		demandTypeId,
+		arrivalHour: arrivalTick,
+	});
 }
 
 function assignedByProjectFromSettlements(
 	items: readonly WorkItem[],
 	settlements: readonly WorkSettlement[],
-	requestCostByItem: ReadonlyMap<string, { projectId: string; requests: number; cost: number }>,
+	requestCostByItem: ReadonlyMap<string, ItemMeta>,
 ): Map<string, number> {
 	const handledByItem = new Map(settlements.map((row) => [row.itemId, row] as const));
 	const assigned = new Map<string, number>();
@@ -383,6 +402,7 @@ function assignedByProjectFromSettlements(
 
 		if (
 			meta === undefined ||
+			meta.optional ||
 			item.dimension === "residentMemoryMiB" ||
 			item.dimension === "queuedMemoryMiB" ||
 			item.dimension === "diskCapacityMiB"
@@ -408,24 +428,34 @@ function applyQueueProgress(
 	projectId: string,
 	items: readonly WorkItem[],
 	settlements: readonly WorkSettlement[],
+	requestCostByItem: ReadonlyMap<string, ItemMeta>,
 ): void {
 	const handledByItem = new Map(settlements.map((row) => [row.itemId, row.handled] as const));
 
 	for (const cohort of [...queue.cohorts()]) {
-		const cpuItem = items.find(
-			(item) =>
+		const required = items.filter((item) => {
+			const meta = requestCostByItem.get(item.id);
+
+			return (
 				item.projectId === projectId &&
-				item.id.includes(`:${cohort.demandTypeId}:${String(cohort.arrivalHour)}:cpu`),
-		);
-		const handled = cpuItem === undefined ? 0 : (handledByItem.get(cpuItem.id) ?? 0);
-		const demandType = demandTypeById(cohort.demandTypeId);
-		const cpuPerRequest = microPerRequest(
-			demandType.applicationCpuWorkMicro + demandType.databaseCpuWorkMicro,
-		);
+				meta?.demandTypeId === cohort.demandTypeId &&
+				meta.arrivalHour === cohort.arrivalHour &&
+				meta.optional === false &&
+				(item.dimension === "cpuWork" || item.dimension === "gpuWork")
+			);
+		});
 		const completed =
-			cpuPerRequest <= 0
+			required.length === 0
 				? cohort.remainingCount
-				: Math.min(cohort.remainingCount, Math.floor(handled / Math.max(cpuPerRequest, 1)));
+				: Math.min(
+						cohort.remainingCount,
+						...required.map((item) => {
+							const meta = requestCostByItem.get(item.id);
+							const cost = Math.max(meta?.cost ?? 1, 1);
+
+							return Math.floor((handledByItem.get(item.id) ?? 0) / cost);
+						}),
+					);
 
 		if (completed > 0) {
 			queue.advance(hour, cohort.demandTypeId, cohort.arrivalHour, completed);
@@ -433,4 +463,62 @@ function applyQueueProgress(
 	}
 
 	queue.expire(hour);
+}
+
+function pathsForQueue(
+	projectId: string,
+	items: readonly WorkItem[],
+	settlements: readonly WorkSettlement[],
+	requestCostByItem: ReadonlyMap<string, ItemMeta>,
+): PathHourSummary {
+	let paths = EMPTY_PATH_HOUR;
+	const handled = new Map(settlements.map((row) => [row.itemId, row] as const));
+	const groups = new Map<
+		string,
+		{
+			demandTypeId: DemandTypeId;
+			waitPolicy: WorkItem["waitPolicy"];
+			requests: number;
+			byNode: Map<string, WorkSettlement[]>;
+		}
+	>();
+
+	for (const item of items) {
+		const meta = requestCostByItem.get(item.id);
+
+		if (
+			meta === undefined ||
+			meta.projectId !== projectId ||
+			meta.demandTypeId === undefined ||
+			meta.nodeId === undefined
+		) {
+			continue;
+		}
+
+		const key = `${meta.demandTypeId}:${String(meta.arrivalHour)}`;
+		const group = groups.get(key) ?? {
+			demandTypeId: meta.demandTypeId,
+			waitPolicy: item.waitPolicy,
+			requests: meta.requests,
+			byNode: new Map(),
+		};
+		const nodeRows = group.byNode.get(meta.nodeId) ?? [];
+		const settlement = handled.get(item.id);
+
+		if (settlement !== undefined) {
+			nodeRows.push(settlement);
+			group.byNode.set(meta.nodeId, nodeRows);
+		}
+
+		groups.set(key, group);
+	}
+
+	for (const group of groups.values()) {
+		paths = mergePathHours(
+			paths,
+			demandTypePathHour(group.demandTypeId, group.waitPolicy, group.requests, group.byNode),
+		);
+	}
+
+	return paths;
 }

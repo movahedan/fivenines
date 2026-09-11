@@ -1,9 +1,11 @@
 import { describe, expect, it } from "bun:test";
 
+import { PAYG_ONLY_COMMERCIAL_STUB } from "../catalog/commercial-policy";
 import { BRONZE } from "../catalog/kernel";
 import { oneBronzeInitial, twoBronzeInitial } from "../fixtures";
 import { Game } from "../game";
 import { Server } from "../server";
+import { FixedRandomSource } from "../traffic/random-source";
 import { settleHostTick } from "../work/share";
 
 describe("Game - resource allocator", () => {
@@ -65,5 +67,47 @@ describe("Game - resource allocator", () => {
 		expect(BRONZE.diskOps).toBeGreaterThan(0);
 		expect(settlements[0]?.infeasible).toBe(80);
 		expect(settlements[0]?.handled).toBe(0);
+	});
+
+	it("records compiled path outcomes on the same Game.tick as allocation", () => {
+		const game = new Game(oneBronzeInitial).tick();
+
+		expect(game.pathHour.success + game.pathHour.fail + game.pathHour.pending).toBe(1400);
+		expect(game.pathHour.pending).toBe(0);
+		expect(game.pathHour.success).toBe(game.metrics.handledRequests);
+		expect(game.pathHour.fail).toBe(game.metrics.droppedRequests);
+	});
+
+	it("executes acquaintance page-read and record-write graphs without a second inner tick", () => {
+		const game = new Game(
+			{
+				customers: [
+					{
+						id: "customer-1",
+						projects: [
+							{
+								id: "shaped-1",
+								estimatedRequestsPerHour: 120,
+								status: "served",
+								demand: "shaped",
+								category: "saas",
+								region: "utc+0",
+								campaignProne: false,
+								commercial: PAYG_ONLY_COMMERCIAL_STUB,
+								route: { kind: "server", serverId: "server-1" },
+							},
+						],
+					},
+				],
+				assets: [{ kind: "server", id: "server-1", catalogId: "bronze", region: "utc+0" }],
+			},
+			{ random: new FixedRandomSource(0.5) },
+		).tick();
+
+		expect(game.pathHour.success + game.pathHour.fail + game.pathHour.pending).toBe(
+			game.metrics.handledRequests + game.metrics.droppedRequests,
+		);
+		expect(game.pathHour.estimatedLatency).toBeGreaterThan(0);
+		expect(game.hourIndex).toBe(1);
 	});
 });

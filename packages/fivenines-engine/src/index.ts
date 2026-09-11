@@ -58,6 +58,7 @@ export type {
 	EngineEvent,
 	GameAsset,
 	GameInitial,
+	PathHourSummary,
 } from "./game";
 export { Game } from "./game";
 export type { GameFinanceSnapshot } from "./game.finance";

@@ -45,14 +45,15 @@ import type { Project } from "./project";
 import type { Server } from "./server";
 import { spawnAcquaintanceIfDue } from "./setup-clock";
 import { MathRandomSource, type RandomSource } from "./traffic/random-source";
+import { EMPTY_PATH_HOUR, type PathHourSummary } from "./work/execute";
 
 export type { EngineEvent } from "./game.events";
 export type { GameFinanceSnapshot } from "./game.finance";
-export type { GameTickMetrics } from "./game.metrics";
 export type { AssetInitial, EngineCommand, GameAsset } from "./game.utils";
 export type { LearningSnapshot, LearningSubject } from "./learning/board";
 export type { LearningCatalogRow, LearningRowStatus } from "./learning/catalog-view";
 export type { OperationalSnapshot, OperationalTask } from "./operations/queue";
+export type { PathHourSummary } from "./work/execute";
 
 interface TickContext {
 	hour: number;
@@ -92,6 +93,7 @@ export class Game {
 	#serversById: ReadonlyMap<string, Server> = new Map();
 	#workQueues = new Map<string, WorkQueue>();
 	#demandEngines = new Map<string, DemandEngine>();
+	#pathHour: PathHourSummary = EMPTY_PATH_HOUR;
 
 	constructor(initial: GameInitial, options?: GameOptions) {
 		const customerIds = initial.customers.map((customer) => customer.id);
@@ -183,6 +185,10 @@ export class Game {
 
 	get operations(): OperationalSnapshot {
 		return this.#operations.snapshot();
+	}
+
+	get pathHour(): PathHourSummary {
+		return this.#pathHour;
 	}
 
 	get reputation(): number {
@@ -307,7 +313,7 @@ export class Game {
 	}
 
 	#placeDemand(ctx: TickContext): PlacedDemand {
-		return allocateHour({
+		const placed = allocateHour({
 			hour: ctx.hour,
 			rng: ctx.rng,
 			projects: this.customers.flatMap((customer) => customer.projects),
@@ -315,6 +321,9 @@ export class Game {
 			queues: this.#workQueues,
 			engines: this.#demandEngines,
 		});
+		this.#pathHour = placed.paths;
+
+		return placed;
 	}
 
 	#tickServerPhysics(ctx: TickContext, simulatedHour: number): void {

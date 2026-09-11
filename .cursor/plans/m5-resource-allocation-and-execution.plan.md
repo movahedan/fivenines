@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: paths
     content: "#77 compiled required paths, branch joins, type-specific outcomes"
-    status: pending
+    status: completed
   - id: transfers
     content: "#78 allocate network/disk to transfers; atomic handover when dest ready"
     status: pending

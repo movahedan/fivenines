@@ -185,7 +185,7 @@ Implementation: `applyCommand` in `src/game.utils.ts`.
 
 `src/work/` is the live allocator math. `allocateHour` constructs `HostBudget` from `Server` and calls `settleHostTick`. Throughput dimensions (`cpuWork`, `gpuWork`, `diskOps`, `networkMiB`) are per tick; occupancy (`residentMemoryMiB`, `queuedMemoryMiB`, `diskCapacityMiB`) is retained. GPU work on a host with `gpuCount === 0` is infeasible, not CPU. Contended capacity uses demand-proportional shares (including backlog) with largest-remainder integers and FIFO within a project share.
 
-Root graphs (`evaluateRootOutcomes`, `estimateRootLatency`) count each customer root once. Required-child failure blocks the root; optional children (shop receipt email) do not. Parallel required branches join by max wait+processing; estimates are not a millisecond clock. `Game` must not import the path/outcome helpers until the dependency-graph slice.
+Root graphs (`evaluateRootOutcomes`, `estimateRootLatency`) count each customer root once. Required-child failure blocks the root; optional children (shop receipt email) do not. Parallel required branches join by max wait+processing; estimates are not a millisecond clock. `compileDemandGraph` builds those graphs from demand types. `#placeDemand` / `allocateHour` settles node work on the same outer hour (no retries, no subticks) and stores `Game.pathHour`. Interactive leftovers fail in the arrival hour; queued leftovers stay pending. Topology stays out of `Game`.
 
 Ownership, tick order, and same-hour event order stay in product docs and the [milestone](../../docs/milestones/engine-architecture-and-mathematics.md). Do not encode those guidelines as engine modules.
 
@@ -201,7 +201,7 @@ Hourly arrival: `m = baseline × rhythm × campaign × spike`, then Gamma–Pois
 
 ## Work queues
 
-`src/demand-engine/queue.ts` keeps arrival cohorts (`demand type` + arrival hour). Waiting age and job `completedCount` survive aggregation. Interactive/continuous expire after the arrival tick; queued work may remain for two further ticks; jobs do not expire here. Occupancy is `queueKiB` × count. Durable job working memory is tracked separately. A full queue rejects new batches and does not evict accepted work. `Game` constructs a `WorkQueue` per project+server (10% RAM KiB reserve). Path outcomes remain unwired.
+`src/demand-engine/queue.ts` keeps arrival cohorts (`demand type` + arrival hour). Waiting age and job `completedCount` survive aggregation. Interactive/continuous expire after the arrival tick; queued work may remain for two further ticks; jobs do not expire here. Occupancy is `queueKiB` × count. Durable job working memory is tracked separately. A full queue rejects new batches and does not evict accepted work. `Game` constructs a `WorkQueue` per project+server (10% RAM KiB reserve). Compiled path outcomes run after `settleHostTick` on that queue.
 
 ## Learning
 
@@ -228,6 +228,6 @@ Hourly arrival: `m = baseline × rhythm × campaign × spike`, then Gamma–Pois
 - M2 (in review on #101): [entities and catalogs](../../.cursor/plans/m2-entities-and-catalogs.plan.md)
 - M3 (in review on #104): [demand, work retention and learning](../../.cursor/plans/m3-demand-and-learning-foundations.plan.md)
 - M4 (stacks on #104): [infrastructure preparation and operations](../../.cursor/plans/m4-infrastructure-preparation-and-operations.plan.md) — #71–#75 folded into [#111](https://github.com/movahedan/fivenines/pull/111).
-- M5 (stacks on #111): [resource allocation and system execution](../../.cursor/plans/m5-resource-allocation-and-execution.plan.md) — base [#119](https://github.com/movahedan/fivenines/pull/119). `#placeDemand` now allocates via `src/work` + demand-engine; path outcomes, completed transfers, and playtest are later slices.
+- M5 (stacks on #111): [resource allocation and system execution](../../.cursor/plans/m5-resource-allocation-and-execution.plan.md) — base [#119](https://github.com/movahedan/fivenines/pull/119), allocator [#120](https://github.com/movahedan/fivenines/pull/120), paths [#121](https://github.com/movahedan/fivenines/pull/121). Completed transfers and playtest are later slices.
 - Authored tuning: [Balance baseline](../../docs/product/balance/index.md)
 - Current behavior remains defined by this guide, source, and tests. Retired engine/hosting plans were deleted after product consolidation; the product reference does not imply that its future behavior is already implemented.

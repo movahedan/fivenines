@@ -197,6 +197,12 @@ describe("HubPage - ops landmarks", () => {
 		expect(screen.getByLabelText("CPU 0 percent")).toBeTruthy();
 		expect(screen.getByLabelText("NET 0 percent")).toBeTruthy();
 		expect(screen.getByLabelText("RAM 0 percent")).toBeTruthy();
+		expect(screen.getByLabelText("DISK 0 percent")).toBeTruthy();
+		expect(screen.getByLabelText("GPU unavailable")).toBeTruthy();
+		expect(screen.getAllByText("none").length).toBeGreaterThan(0);
+		expect(screen.getAllByText("65536 MiB").length).toBeGreaterThan(0);
+		expect(screen.getByText("120 RPS")).toBeTruthy();
+		expect(screen.getByText(/Paths 0 ok · 0 miss/)).toBeTruthy();
 	});
 
 	it("moves an accepted offer into the active panel", async () => {

@@ -45,9 +45,9 @@ Connect Learning catalog, inline enrollment details and distinct learning progre
 |---|---|---|---|
 | Milestone 3 stack base | In review | [#104](https://github.com/movahedan/fivenines/pull/104) | Docs/plans only; `bun run overall` locally |
 | Typed demand generation | In review | [#105](https://github.com/movahedan/fivenines/pull/105) | engine tests + `bun run overall` |
-| Batch retention and queue state | In review | this slice on #105 | engine tests + `bun run overall` |
-| Enrollment and tuition lifecycle | Planned | [#69](https://github.com/movahedan/fivenines/issues/69) | Not run |
-| Learning and demand integration | Planned | [#70](https://github.com/movahedan/fivenines/issues/70) | Not run |
+| Batch retention and queue state | In review | [#106](https://github.com/movahedan/fivenines/pull/106) | engine tests + `bun run overall` |
+| Enrollment and tuition lifecycle | In review | [#107](https://github.com/movahedan/fivenines/pull/107) | engine + hub command-tone tests + `bun run overall` |
+| Learning and demand integration | In review | this slice on #107 | Hub Learning + Lab Demand inspect + `bun run overall` |
 
 M2 [#66](https://github.com/movahedan/fivenines/issues/66) Hub/Lab shared-asset identity remains incomplete on #101. M3 does not pretend Projects/Inventory already share topology identities. Opening Shift still uses RPS `ProjectDemand`; typed DemandEngine is a later slice on this stack.
 

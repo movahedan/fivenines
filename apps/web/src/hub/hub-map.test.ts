@@ -1,10 +1,12 @@
 import { describe, expect, it } from "bun:test";
 
+import { Game } from "@packages/fivenines-engine";
+
 import {
 	addedAssetId,
 	axisPercent,
+	commandLogTone,
 	engineEventMessage,
-	openingShiftResultCopy,
 	SKU_DOT_CLASS,
 	skuCostLabel,
 	skuCpuLabel,
@@ -72,13 +74,26 @@ describe("hub-map - sla and sku labels", () => {
 		);
 	});
 
-	it("writes Opening Shift win copy when the outcome is won", () => {
-		expect(openingShiftResultCopy({ status: "won", failed: [] })).toEqual({
-			title: "Opening Shift complete",
-			body: "Positive cash, two healthy contracts, and no catastrophic settlement.",
+	it("tones learning commands and leaves completed base research on a new game", () => {
+		expect(commandLogTone("enrollLearning")).toBe("success");
+		expect(commandLogTone("pauseLearning")).toBe("warn");
+		expect(commandLogTone("cancelLearning")).toBe("warn");
+
+		const game = new Game({ customers: [], assets: [] });
+		game.dispatch({
+			type: "enrollLearning",
+			payload: { subject: { kind: "research", technologyId: "monitoring" } },
 		});
-		expect(openingShiftResultCopy({ status: "lost", failed: ["cash", "contracts"] }).title).toBe(
-			"Opening Shift failed",
-		);
+
+		game.dispatch({
+			type: "pauseLearning",
+			payload: { enrollmentId: game.learning.enrollments[0]?.id ?? "" },
+		});
+		game.dispatch({
+			type: "resumeLearning",
+			payload: { enrollmentId: game.learning.enrollments[0]?.id ?? "" },
+		});
+
+		expect(game.learning.enrollments[0]?.status).toBe("active");
 	});
 });

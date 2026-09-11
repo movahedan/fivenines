@@ -9,6 +9,10 @@
 		".": {
 			"types": "./src/index.ts",
 			"default": "./src/index.ts"
+		},
+		"./demand-engine": {
+			"types": "./src/demand-engine/engine.ts",
+			"default": "./src/demand-engine/engine.ts"
 		}
 	},
 	"scripts": {

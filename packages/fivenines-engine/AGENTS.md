@@ -180,6 +180,12 @@ Hourly arrival: `m = baseline × rhythm × campaign × spike`, then Gamma–Pois
 
 `src/demand-engine/queue.ts` keeps arrival cohorts (`demand type` + arrival hour). Waiting age and job `completedCount` survive aggregation. Interactive/continuous expire after the arrival tick; queued work may remain for two further ticks; jobs do not expire here. Occupancy is `queueKiB` × count. Durable job working memory is tracked separately. A full queue rejects new batches and does not evict accepted work. `toExecutionInput()` is for M5; `Game` must not import this tree. There is no resource solver.
 
+## Learning
+
+`src/learning/board.ts` is two shared slots, monthly tuition on `Game.cashCents` via `postCashDelta` (same helper as buy/sell). Base techs start completed. Research does not stack; courses are sequential through five levels. `enrollLearning` / `pauseLearning` / `resumeLearning` / `cancelLearning` are `dispatch` commands. Enroll is blocked while jailed. Progress ticks after opex. Completion at a renewal boundary does not charge again. Effects are stored (completed ids / course levels) and not applied to missing install/incident/CPU consumers. Research is not installation.
+
+`learningCatalog` / `Game.learningCatalog` projects locked, available, insufficient-funds, active, paused, and completed rows. Completed course levels are a different projection from the active next-level enrollment. DemandEngine is still not imported by `Game`; Lab may import `@packages/fivenines-engine/demand-engine` (engine entry only — do not barrel `queue.ts` into Hub/Lab coverage).
+
 ## Identity registry
 
 `src/identity/registry.ts` indexes `customer` | `project` | `asset` | `service` | `instance` by globally unique id and owner. `registerAll` is atomic. `assertHourIndex` accepts non-negative integers. `Game` must not import this tree yet.

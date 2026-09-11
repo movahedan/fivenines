@@ -1,6 +1,6 @@
 # Final architecture and mathematical model
 
-Milestone 1 of 10. Status: planned; no implementation PR is claimed delivered. Follow the [standing delivery workflow](README.md).
+Milestone 1 of 10. Status: in review on [#98](https://github.com/movahedan/fivenines/pull/98) (stacked [#99](https://github.com/movahedan/fivenines/pull/99) and [#100](https://github.com/movahedan/fivenines/pull/100) merged into it). Not yet on `main`. Follow the [standing delivery workflow](README.md).
 
 ## Outcome and boundaries
 
@@ -65,7 +65,7 @@ Product rules stay in [product docs](../product/index.md). Do not ship TypeScrip
 | Slice | Status | PR | Verification evidence |
 |---|---|---|---|
 | Responsibilities and state transitions | In review | [#98](https://github.com/movahedan/fivenines/pull/98) | Catalog checker: `packages/fivenines-engine/src/baseline/` against [baseline.json](../product/balance/baseline.json). `bun overall` on the PR1 branch. Live `Game.tick` unchanged. |
-| Resource and work reference model | In review | [#99](https://github.com/movahedan/fivenines/pull/99) | Independent fixtures in `packages/fivenines-engine/src/work/` (`allocateProportional`, `settleHostTick`, `conserveWork`). CPU/GPU-infeasible/memory/network/disk cases, backlog shares, FIFO, largest-remainder conservation. Not wired to `Server.tick`. Stacked on #98. |
-| Graph and outcome reference model | In progress (local) | — | `evaluateRootOutcomes`, `estimateRootLatency` in `src/work/`. Converging DAG counts each root once; optional email is not a second root; join uses max, not sum. Not wired to `Game`. |
+| Resource and work reference model | Merged into #98 | [#99](https://github.com/movahedan/fivenines/pull/99) | Independent fixtures in `packages/fivenines-engine/src/work/` (`allocateProportional`, `settleHostTick`, `conserveWork`). CPU/GPU-infeasible/memory/network/disk cases, backlog shares, FIFO, largest-remainder conservation. Not wired to `Server.tick`. |
+| Graph and outcome reference model | Merged into #98 | [#100](https://github.com/movahedan/fivenines/pull/100) | `evaluateRootOutcomes`, `estimateRootLatency` in `src/work/`. Converging DAG counts each root once; optional email is not a second root; join uses max, not sum. Not wired to `Game`. Merged through #99 into #98. |
 
 No new product decision is required to begin planning. Implementation trade-offs belong in the assigned PR plan; escalate only a concrete contradiction or material scope change.

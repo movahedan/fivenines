@@ -166,16 +166,20 @@ Root graphs (`evaluateRootOutcomes`, `estimateRootLatency`) count each customer 
 
 Ownership, tick order, and same-hour event order stay in product docs and the [milestone](../../docs/milestones/engine-architecture-and-mathematics.md). Do not encode those guidelines as engine modules.
 
+Live tunables stay in `src/catalog/` TypeScript (`kernel.ts` Bronze–Diamond plus `thin-ram`, economy/traffic/SLA policies). [baseline.json](../../docs/product/balance/baseline.json) is checked by `src/baseline/` only. Do not add a catalog compiler or a second JSON that Game loads. Cutover later replaces the live modules (or a versioned runtime snapshot) in place.
+
+## Identity registry
+
+`src/identity/registry.ts` indexes `customer` | `project` | `asset` | `service` | `instance` by globally unique id and owner. `registerAll` is atomic. `assertHourIndex` accepts non-negative integers. `Game` must not import this tree yet.
+
+## Topology graph
+
+`src/topology/graph.ts` holds project services, deployment instances, shared assets, dependency edges, and placement. Mutations are atomic and rebuild instance-by-asset indexes. Live `Game` still routes one `RouteTarget` and must not import this tree.
+
 ## Related
 
 - Intended behavior: [Product reference](../../docs/product/index.md)
-- Assigned M1 plan: [engine architecture and mathematics](../../.cursor/plans/m1-engine-architecture-and-mathematics.plan.md)
-- Next implementation: [Project systems transition](../../.cursor/plans/project-systems-transition.plan.md) (ordering superseded by milestones)
-- Authored tuning: [Balance baseline](../../docs/product/balance/index.md)
-- Current behavior remains defined by this guide, source, and tests. Retired engine/hosting plans were deleted after product consolidation; the product reference does not imply that its future behavior is already implemented.
-
-- Intended behavior: [Product reference](../../docs/product/index.md)
-- Assigned M1 plan: [engine architecture and mathematics](../../.cursor/plans/m1-engine-architecture-and-mathematics.plan.md)
-- Next implementation: [Project systems transition](../../.cursor/plans/project-systems-transition.plan.md) (ordering superseded by milestones)
+- M1 (in review on #98): [engine architecture and mathematics](../../.cursor/plans/m1-engine-architecture-and-mathematics.plan.md)
+- M2: [entities and catalogs](../../.cursor/plans/m2-entities-and-catalogs.plan.md)
 - Authored tuning: [Balance baseline](../../docs/product/balance/index.md)
 - Current behavior remains defined by this guide, source, and tests. Retired engine/hosting plans were deleted after product consolidation; the product reference does not imply that its future behavior is already implemented.

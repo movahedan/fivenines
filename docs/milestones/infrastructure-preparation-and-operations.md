@@ -1,6 +1,6 @@
 # Infrastructure preparation and operations
 
-Milestone 4 of 10. Status: planned; no implementation PR is claimed delivered. Stacks on [#104](https://github.com/movahedan/fivenines/pull/104) (`feature/m3-demand-and-learning-foundations`) after Milestone 3. Follow the [standing delivery workflow](README.md).
+Milestone 4 of 10. Status: in progress on the M4 stack branch from [#104](https://github.com/movahedan/fivenines/pull/104) (`feature/m3-demand-and-learning-foundations`). Execution plan: [`.cursor/plans/m4-infrastructure-preparation-and-operations.plan.md`](../../.cursor/plans/m4-infrastructure-preparation-and-operations.plan.md). Follow the [standing delivery workflow](README.md). No slice is claimed delivered until its PR exists.
 
 ## Outcome and boundaries
 
@@ -48,6 +48,7 @@ Deliver the approved desktop left Projects panel, right business panels and mobi
 
 | Slice | Status | PR | Verification evidence |
 |---|---|---|---|
+| Milestone 4 stack base | In progress | — | Plan + milestone on #104 head; slice PRs stack here |
 | Acquaintance acceptance and advance | Planned | — | Not run |
 | Operational queue and readiness | Planned | — | Not run |
 | Installation and configuration actions | Planned | — | Not run |

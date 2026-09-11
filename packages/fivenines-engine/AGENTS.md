@@ -200,5 +200,6 @@ Hourly arrival: `m = baseline × rhythm × campaign × spike`, then Gamma–Pois
 - M1 (in review on #98): [engine architecture and mathematics](../../.cursor/plans/m1-engine-architecture-and-mathematics.plan.md)
 - M2 (in review on #101): [entities and catalogs](../../.cursor/plans/m2-entities-and-catalogs.plan.md)
 - M3 (in review on #104): [demand, work retention and learning](../../.cursor/plans/m3-demand-and-learning-foundations.plan.md)
+- M4 (stacks on #104): [infrastructure preparation and operations](../../.cursor/plans/m4-infrastructure-preparation-and-operations.plan.md) — not implemented on this pointer commit; live `acceptProject` still requires `serverId` and routes immediately.
 - Authored tuning: [Balance baseline](../../docs/product/balance/index.md)
 - Current behavior remains defined by this guide, source, and tests. Retired engine/hosting plans were deleted after product consolidation; the product reference does not imply that its future behavior is already implemented.

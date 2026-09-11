@@ -42,6 +42,19 @@ export type { AssetInitial, EngineCommand, GameAsset } from "./game.utils";
 export type { LearningSnapshot, LearningSubject } from "./learning/board";
 export type { LearningCatalogRow, LearningRowStatus } from "./learning/catalog-view";
 
+interface TickContext {
+	hour: number;
+	cash: number;
+	events: EngineEvent[];
+	rng: RandomSource;
+}
+
+interface PlacedDemand {
+	readonly projects: readonly Project[];
+	readonly totalDemand: number;
+	readonly unroutableDemand: number;
+}
+
 export interface GameOptions {
 	random?: RandomSource;
 }
@@ -208,52 +221,61 @@ export class Game {
 	}
 
 	tick(): Game {
-		const eventHourIndex = this.#hourIndex;
-		const cashBeforeCents = this.#cashCents;
-		const events: EngineEvent[] = [];
-		const physicsProjects = this.#simulateHour(events, eventHourIndex);
+		const ctx: TickContext = {
+			hour: this.#hourIndex,
+			cash: this.#cashCents,
+			events: [],
+			rng: this.#random,
+		};
+		const simulatedHour = ctx.hour;
+		const cashBefore = ctx.cash;
 
-		this.#hourIndex += 1;
-		this.#advanceCalendar(events, eventHourIndex, physicsProjects);
-
-		if (cashBeforeCents > 0 && this.#cashCents <= 0) {
-			events.push({
-				type: "cashLow",
-				hourIndex: eventHourIndex,
-				cashCents: this.#cashCents,
-			});
-		}
-
-		this.#events = events;
-
-		return this;
-	}
-
-	#simulateHour(events: EngineEvent[], eventHourIndex: number): readonly Project[] {
-		const windowPpmByProjectId = new Map(
+		const previousWindowPpmByProjectId = new Map(
 			this.customers.flatMap((customer) =>
 				customer.projects.map(
 					(project) => [project.id, project.metrics.windowAvailabilityPpm] as const,
 				),
 			),
 		);
-		const utilizationByServerId = new Map(
-			[...this.#serversById.values()].map(
-				(server) => [server.id, server.metrics.utilization] as const,
-			),
-		);
 
+		this.#resetDemand();
+		const placed = this.#placeDemand(ctx);
+		this.#tickServerPhysics(ctx, simulatedHour);
+		this.#attributeSla(ctx, placed.projects, simulatedHour, previousWindowPpmByProjectId);
+		this.#chargeOpex(ctx, placed);
+		this.#tickLearning(ctx, simulatedHour);
+		this.#tickOperations(ctx);
+		this.#accruePayg(placed.projects);
+		this.#applyJail(ctx);
+
+		ctx.hour += 1;
+		this.#hourIndex = ctx.hour;
+
+		this.#settleDailyPayg(ctx, simulatedHour);
+		this.#tickContractCalendars(ctx);
+		this.#spawnAcquaintanceOffers(ctx);
+		this.#closeWeeks(ctx, placed.projects, simulatedHour);
+		this.#emitCashLow(ctx, cashBefore, simulatedHour);
+
+		this.#cashCents = ctx.cash;
+		this.#events = ctx.events;
+
+		return this;
+	}
+
+	#resetDemand(): void {
 		for (const server of this.#serversById.values()) {
 			server.resetDemand();
 		}
+	}
 
+	#placeDemand(ctx: TickContext): PlacedDemand {
 		let totalDemand = 0;
 		let unroutableDemand = 0;
-		const servers = [...this.#serversById.values()];
 
 		for (const customer of this.customers) {
 			for (const project of customer.projects) {
-				const demand = project.tick(this.#hourIndex, this.#random);
+				const demand = project.tick(ctx.hour, ctx.rng);
 
 				totalDemand += demand;
 
@@ -280,26 +302,47 @@ export class Game {
 			}
 		}
 
+		return {
+			projects: this.customers.flatMap((customer) => customer.projects),
+			totalDemand,
+			unroutableDemand,
+		};
+	}
+
+	#tickServerPhysics(ctx: TickContext, simulatedHour: number): void {
+		const utilizationByServerId = new Map(
+			[...this.#serversById.values()].map(
+				(server) => [server.id, server.metrics.utilization] as const,
+			),
+		);
+
 		for (const server of this.#serversById.values()) {
 			server.tick();
 
 			const previousUtilization = utilizationByServerId.get(server.id) ?? 0;
 
 			if (previousUtilization < 100 && server.metrics.utilization >= 100) {
-				events.push({
+				ctx.events.push({
 					type: "serverSaturated",
-					hourIndex: eventHourIndex,
+					hourIndex: simulatedHour,
 					serverId: server.id,
 				});
 			}
 		}
+	}
 
-		const projects = this.customers.flatMap((customer) => customer.projects);
+	#attributeSla(
+		ctx: TickContext,
+		projects: readonly Project[],
+		simulatedHour: number,
+		previousWindowPpmByProjectId: ReadonlyMap<string, number | null>,
+	): void {
+		const servers = [...this.#serversById.values()];
 
 		applyProjectSla(projects, servers);
 
 		for (const project of projects) {
-			const previousPpm = windowPpmByProjectId.get(project.id) ?? null;
+			const previousPpm = previousWindowPpmByProjectId.get(project.id) ?? null;
 			const nextPpm = project.metrics.windowAvailabilityPpm;
 			const targetPpm = project.commercial.targetPpm;
 			const previousMeetingOrNull = previousPpm === null || previousPpm >= targetPpm;
@@ -308,77 +351,113 @@ export class Game {
 			const nextMeeting = nextPpm !== null && nextPpm >= targetPpm;
 
 			if (previousMeetingOrNull && nextBreached && nextPpm !== null) {
-				events.push({
+				ctx.events.push({
 					type: "slaBreached",
-					hourIndex: eventHourIndex,
+					hourIndex: simulatedHour,
 					projectId: project.id,
 					windowPpm: nextPpm,
 				});
 			}
 
 			if (previousBreached && nextMeeting && nextPpm !== null) {
-				events.push({
+				ctx.events.push({
 					type: "slaRecovered",
-					hourIndex: eventHourIndex,
+					hourIndex: simulatedHour,
 					projectId: project.id,
 					windowPpm: nextPpm,
 				});
 			}
 		}
+	}
+
+	#chargeOpex(ctx: TickContext, placed: PlacedDemand): void {
+		const servers = [...this.#serversById.values()];
 
 		this.#metrics = measureGameTick(
 			servers.map((server) => server.metrics),
-			totalDemand,
-			unroutableDemand,
+			placed.totalDemand,
+			placed.unroutableDemand,
 		);
-
 		this.#opex = measureGameOpex(servers);
-		this.#cashCents -= this.#opex.opexCents;
-		this.#cashCents += this.#learning.tick(eventHourIndex, this.#cashCents);
-		this.#accountsReceivableCents += accruePeriodPayg(projects);
-
-		if (this.#cashCents <= -DEBT_LIMIT_CENTS) {
-			this.#jailed = true;
-		}
-
-		return projects;
+		ctx.cash = postCashDelta(ctx.cash, -this.#opex.opexCents);
 	}
 
-	#advanceCalendar(
-		events: EngineEvent[],
-		eventHourIndex: number,
-		physicsProjects: readonly Project[],
-	): void {
-		const settledPaygCents = settlePaygReceivableIfDue(
-			this.#hourIndex,
-			this.#accountsReceivableCents,
-		);
-		this.#cashCents += settledPaygCents;
+	#tickLearning(ctx: TickContext, simulatedHour: number): void {
+		ctx.cash = postCashDelta(ctx.cash, this.#learning.tick(simulatedHour, ctx.cash));
+	}
+
+	#tickOperations(_ctx: TickContext): void {}
+
+	#accruePayg(projects: readonly Project[]): void {
+		this.#accountsReceivableCents += accruePeriodPayg(projects);
+	}
+
+	#applyJail(ctx: TickContext): void {
+		if (ctx.cash <= -DEBT_LIMIT_CENTS) {
+			this.#jailed = true;
+		}
+	}
+
+	#settleDailyPayg(ctx: TickContext, simulatedHour: number): void {
+		const settledPaygCents = settlePaygReceivableIfDue(ctx.hour, this.#accountsReceivableCents);
+
+		ctx.cash = postCashDelta(ctx.cash, settledPaygCents);
 
 		if (settledPaygCents > 0) {
 			this.#accountsReceivableCents = 0;
-			events.push({
+			ctx.events.push({
 				type: "paygSettled",
-				hourIndex: eventHourIndex,
+				hourIndex: simulatedHour,
 				cents: settledPaygCents,
 			});
 		}
+	}
 
-		this.#tickProjectCalendars();
+	#tickContractCalendars(ctx: TickContext): void {
+		const reputationForPatience = this.#reputation;
+		let nextReputation = this.#reputation;
 
-		const market = spawnAcquaintanceIfDue(
-			this.#customers,
-			this.#hourIndex,
-			this.#lastOfferResolveHour,
-		);
+		this.#customers = this.#customers.map((customer) => {
+			const projects = customer.projects.map((project) => {
+				const ticked = project.tickCalendar(ctx.hour, {
+					trust: customer.trust,
+					reputation: reputationForPatience,
+					hatred: customer.hatred,
+				});
+
+				ctx.cash = postCashDelta(ctx.cash, -ticked.refundCents);
+
+				if (ticked.withdrawn) {
+					nextReputation += SETUP_WITHDRAWAL_REPUTATION_DELTA;
+					this.#lastOfferResolveHour = ctx.hour;
+				}
+
+				if (ticked.expired) {
+					this.#lastOfferResolveHour = ctx.hour;
+				}
+
+				return ticked.project;
+			});
+
+			return customer.withProjects(projects);
+		});
+
+		this.#reputation = Math.min(100, Math.max(0, nextReputation));
+	}
+
+	#spawnAcquaintanceOffers(ctx: TickContext): void {
+		const market = spawnAcquaintanceIfDue(this.#customers, ctx.hour, this.#lastOfferResolveHour);
+
 		this.#customers = [...market.customers];
 		this.#lastOfferResolveHour = market.lastOfferResolveHour;
+	}
 
+	#closeWeeks(ctx: TickContext, physicsProjects: readonly Project[], simulatedHour: number): void {
 		const settlementCountById = new Map(
 			physicsProjects.map((project) => [project.id, project.settlements.length] as const),
 		);
 
-		this.#cashCents += closeBillingPeriodIfDue(physicsProjects, this.#hourIndex);
+		ctx.cash = postCashDelta(ctx.cash, closeBillingPeriodIfDue(physicsProjects, ctx.hour));
 
 		for (const project of physicsProjects) {
 			const previousCount = settlementCountById.get(project.id) ?? 0;
@@ -389,9 +468,9 @@ export class Game {
 				project.settlements.length > previousCount &&
 				latest.creditCents > 0
 			) {
-				events.push({
+				ctx.events.push({
 					type: "weeklyCreditCharged",
-					hourIndex: eventHourIndex,
+					hourIndex: simulatedHour,
 					projectId: project.id,
 					creditCents: latest.creditCents,
 				});
@@ -399,36 +478,14 @@ export class Game {
 		}
 	}
 
-	#tickProjectCalendars(): void {
-		const reputationForPatience = this.#reputation;
-		let nextReputation = this.#reputation;
-
-		this.#customers = this.#customers.map((customer) => {
-			const projects = customer.projects.map((project) => {
-				const ticked = project.tickCalendar(this.#hourIndex, {
-					trust: customer.trust,
-					reputation: reputationForPatience,
-					hatred: customer.hatred,
-				});
-
-				this.#cashCents = postCashDelta(this.#cashCents, -ticked.refundCents);
-
-				if (ticked.withdrawn) {
-					nextReputation += SETUP_WITHDRAWAL_REPUTATION_DELTA;
-					this.#lastOfferResolveHour = this.#hourIndex;
-				}
-
-				if (ticked.expired) {
-					this.#lastOfferResolveHour = this.#hourIndex;
-				}
-
-				return ticked.project;
+	#emitCashLow(ctx: TickContext, cashBefore: number, simulatedHour: number): void {
+		if (cashBefore > 0 && ctx.cash <= 0) {
+			ctx.events.push({
+				type: "cashLow",
+				hourIndex: simulatedHour,
+				cashCents: ctx.cash,
 			});
-
-			return customer.withProjects(projects);
-		});
-
-		this.#reputation = Math.min(100, Math.max(0, nextReputation));
+		}
 	}
 
 	#syncDerivedState(): void {

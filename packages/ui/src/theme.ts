@@ -28,6 +28,7 @@ const OPS = {
 	warning: "#fbbf24",
 	info: "#60a5fa",
 	sla: "#4ade80",
+	overlayScrim: "rgba(5, 9, 18, 0.6)",
 	glowPrimary: "0 0 16px rgb(0 255 136 / 0.45)",
 	glowDanger: "0 0 16px rgb(248 113 113 / 0.45)",
 	glowWarning: "0 0 16px rgb(251 191 36 / 0.45)",

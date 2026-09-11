@@ -10,7 +10,6 @@ const preview: Preview = {
 		controls: {
 			matchers: {
 				color: /(background|color)$/i,
-				date: /Date$/i,
 			},
 		},
 		backgrounds: {
@@ -43,11 +42,28 @@ const preview: Preview = {
 		},
 	},
 	decorators: [
-		(Story) => (
-			<div className="bg-background font-sans text-foreground" style={{ padding: "1rem" }}>
-				<Story />
-			</div>
-		),
+		(Story, context) => {
+			const fullscreen = context.parameters.layout === "fullscreen";
+
+			return (
+				<div
+					className="bg-background font-sans text-foreground"
+					style={
+						fullscreen
+							? {
+									height: "100vh",
+									overflow: "hidden",
+									padding: 0,
+									display: "flex",
+									flexDirection: "column",
+								}
+							: { padding: "1rem" }
+					}
+				>
+					<Story />
+				</div>
+			);
+		},
 	],
 };
 

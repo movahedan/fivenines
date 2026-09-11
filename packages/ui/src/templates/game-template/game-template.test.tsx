@@ -54,8 +54,7 @@ function Harness({
 		inventoryPanel: <Slot label="inventory" />,
 		isMobile,
 		learningPanel: <Slot label="learning" />,
-		learningProgress: <Slot label="learn slot" />,
-		objectDrawer: <Slot label="drawer" />,
+		objectDrawer: undefined,
 		onActivityOpenChange: setActivityOpen,
 		onAccountOpenChange: setAccountOpen,
 		onDestinationChange: setDestination,
@@ -64,7 +63,6 @@ function Harness({
 		onProjectsWidthChange: setProjectsWidth,
 		onRightDestinationChange: setRightDestination,
 		onRightWidthChange: setRightWidth,
-		operationsProgress: <Slot label="ops slot" />,
 		projectsOpen,
 		projectsPanel: <Slot label="projects list" />,
 		projectsWidth,
@@ -82,10 +80,11 @@ describe("GameTemplate", () => {
 
 		expect(screen.getByText("projects list")).toBeInTheDocument();
 		expect(screen.getByText("center")).toBeInTheDocument();
-		expect(screen.getByLabelText("Inventory")).toBeInTheDocument();
-		expect(screen.getByLabelText("Learning")).toBeInTheDocument();
-		expect(screen.getByLabelText("Finances")).toBeInTheDocument();
-		expect(screen.getByText("drawer")).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "Open Inventory" })).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "Open Learning" })).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "Open Finances" })).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "Collapse Projects" })).toBeInTheDocument();
+		expect(screen.getByText("No active tasks")).toBeInTheDocument();
 	});
 
 	it("opens a slotted activity overlay when the default trigger is pressed", () => {
@@ -107,12 +106,59 @@ describe("GameTemplate", () => {
 		expect(onNewProject).toHaveBeenCalledTimes(1);
 	});
 
+	it("shows a dimmed overlay and bottom sheet when object details are open", () => {
+		const onObjectDrawerClose = mock();
+
+		render(
+			<GameTemplate
+				accountControl={<Slot label="op" />}
+				accountOpen={false}
+				accountOverlay={<Slot label="account body" />}
+				activityOpen={false}
+				activityOverlay={<Slot label="activity body" />}
+				centerContent={<Slot label="center" />}
+				centerKind="project"
+				clockControls={<Slot label="clock" />}
+				destination="projects"
+				financesPanel={<Slot label="finances" />}
+				inventoryPanel={<Slot label="inventory" />}
+				isMobile={false}
+				learningPanel={<Slot label="learning" />}
+				objectDrawer={<Slot label="server details" />}
+				objectDrawerTitle="Object details"
+				onAccountOpenChange={mock()}
+				onActivityOpenChange={mock()}
+				onDestinationChange={mock()}
+				onNewProject={mock()}
+				onObjectDrawerClose={onObjectDrawerClose}
+				onProjectsOpenChange={mock()}
+				onProjectsWidthChange={mock()}
+				onRightDestinationChange={mock()}
+				onRightWidthChange={mock()}
+				projectsOpen
+				projectsPanel={<Slot label="projects list" />}
+				projectsWidth={220}
+				rightDestination={null}
+				rightWidth={260}
+				statusMetrics={<Slot label="cash" />}
+			/>,
+		);
+
+		expect(screen.getByRole("dialog", { name: "Object details" })).toBeInTheDocument();
+		expect(screen.getByText("server details")).toBeInTheDocument();
+
+		fireEvent.click(screen.getByRole("button", { name: "Dismiss Object details" }));
+
+		expect(onObjectDrawerClose).toHaveBeenCalledTimes(1);
+	});
+
 	it("shows the inventory destination when a mobile tab is pressed", () => {
 		render(<Harness isMobile />);
 
 		fireEvent.click(screen.getByRole("button", { name: "Inventory" }));
 
 		expect(screen.getByText("inventory")).toBeInTheDocument();
+		expect(screen.queryByText("No active tasks")).not.toBeInTheDocument();
 	});
 });
 

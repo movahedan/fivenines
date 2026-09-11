@@ -62,6 +62,11 @@
 			"import": "./src/molecules/metric-stat/metric-stat.tsx",
 			"default": "./src/molecules/metric-stat/metric-stat.tsx"
 		},
+		"./molecules/game-clock-controls": {
+			"types": "./src/molecules/game-clock-controls/game-clock-controls.tsx",
+			"import": "./src/molecules/game-clock-controls/game-clock-controls.tsx",
+			"default": "./src/molecules/game-clock-controls/game-clock-controls.tsx"
+		},
 		"./molecules/hud": {
 			"types": "./src/molecules/hud/hud.tsx",
 			"import": "./src/molecules/hud/hud.tsx",

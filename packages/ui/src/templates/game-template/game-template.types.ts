@@ -33,8 +33,8 @@ export interface GameTemplateProps {
 	readonly accountControl: ReactNode;
 	readonly accountOverlay: ReactNode;
 	readonly statusMetrics: ReactNode;
-	readonly operationsProgress: ReactNode;
-	readonly learningProgress: ReactNode;
+	readonly operationsProgress?: ReactNode;
+	readonly learningProgress?: ReactNode;
 	readonly clockControls: ReactNode;
 	readonly activityTrigger?: ReactNode;
 	readonly activityOverlay: ReactNode;
@@ -45,6 +45,8 @@ export interface GameTemplateProps {
 	readonly learningPanel: ReactNode;
 	readonly financesPanel: ReactNode;
 	readonly objectDrawer?: ReactNode;
+	readonly objectDrawerTitle?: string;
+	readonly onObjectDrawerClose?: () => void;
 	readonly mobileProgressStrip?: ReactNode;
 	readonly className?: string;
 }

@@ -26,6 +26,25 @@ describe("GameStatusBar", () => {
 		expect(screen.getByText("activity")).toBeInTheDocument();
 	});
 
+	it("shows a single idle caption when no pipelines are slotted", () => {
+		render(<GameStatusBar metrics={<Text>cash</Text>} />);
+
+		expect(screen.getByText("No active tasks")).toBeInTheDocument();
+	});
+
+	it("omits the idle caption when an operations pipeline is slotted", () => {
+		render(<GameStatusBar metrics={<Text>cash</Text>} operationsProgress={<Text>ops</Text>} />);
+
+		expect(screen.getByText("ops")).toBeInTheDocument();
+		expect(screen.queryByText("No active tasks")).not.toBeInTheDocument();
+	});
+
+	it("omits the idle caption when task group is hidden", () => {
+		render(<GameStatusBar density="mobile" metrics={<Text>cash</Text>} showTaskGroup={false} />);
+
+		expect(screen.queryByText("No active tasks")).not.toBeInTheDocument();
+	});
+
 	it("sticks to the bottom of the parent when placement is absolute", () => {
 		render(<GameStatusBar placement="absolute" metrics={<Text>cash</Text>} />);
 

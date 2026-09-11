@@ -8,6 +8,7 @@
 @source "./atoms";
 @source "./shadcn";
 @source "./molecules";
+@source "./templates";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -50,6 +51,7 @@
 	--warning: #fbbf24;
 	--info: #60a5fa;
 	--sla: #4ade80;
+	--overlay-scrim: rgba(5, 9, 18, 0.6);
 }
 
 .dark {
@@ -91,6 +93,7 @@
 	--warning: #fbbf24;
 	--info: #60a5fa;
 	--sla: #4ade80;
+	--overlay-scrim: rgba(5, 9, 18, 0.6);
 }
 
 @theme inline {
@@ -137,6 +140,7 @@
 	--color-warning: var(--warning);
 	--color-info: var(--info);
 	--color-sla: var(--sla);
+	--color-overlay-scrim: var(--overlay-scrim);
 	--shadow-glow-primary: 0 0 16px rgb(0 255 136 / 0.45);
 	--shadow-glow-danger: 0 0 16px rgb(248 113 113 / 0.45);
 	--shadow-glow-warning: 0 0 16px rgb(251 191 36 / 0.45);

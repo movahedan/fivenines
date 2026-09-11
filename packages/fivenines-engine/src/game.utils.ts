@@ -33,7 +33,12 @@ export type EngineCommand =
 	| { type: "resumeLearning"; payload: { enrollmentId: string } }
 	| { type: "cancelLearning"; payload: { enrollmentId: string } }
 	| { type: "enqueueOperationalTask"; payload: { projectId: string; taskId: string } }
-	| { type: "cancelOperationalTask"; payload: { taskId: string } };
+	| { type: "cancelOperationalTask"; payload: { taskId: string } }
+	| { type: "placeSetup"; payload: { projectId: string; serverId: string } }
+	| { type: "installService"; payload: { projectId: string; serviceId: string } }
+	| { type: "configureConnection"; payload: { projectId: string } }
+	| { type: "powerOn"; payload: { serverId: string } }
+	| { type: "powerOff"; payload: { serverId: string } };
 
 export interface GameGraph {
 	readonly customers: readonly Customer[];

@@ -39,6 +39,7 @@ export class Server {
 	readonly memoryMiB: number;
 	readonly baseMemoryMiB: number;
 
+	#poweredOn = true;
 	#slices: DemandSlice[] = [];
 	#metrics: ServerTickMetrics = EMPTY_SERVER_TICK_METRICS;
 
@@ -70,7 +71,24 @@ export class Server {
 	}
 
 	get remainingHeadroom(): number {
+		if (!this.#poweredOn) {
+			return 0;
+		}
+
 		return Math.max(0, this.computeUnitsPerHour - cpuLoadFromSlices(this.#slices));
+	}
+
+	get poweredOn(): boolean {
+		return this.#poweredOn;
+	}
+
+	powerOn(): void {
+		this.#poweredOn = true;
+	}
+
+	powerOff(): void {
+		this.#poweredOn = false;
+		this.#slices = [];
 	}
 
 	resetDemand(): void {
@@ -78,6 +96,10 @@ export class Server {
 	}
 
 	assignSlice(slice: Omit<DemandSlice, "remote">): void {
+		if (!this.#poweredOn) {
+			return;
+		}
+
 		const requests = units.asNonNegativeInteger(slice.requests, "assignedRequests");
 
 		if (requests === 0) {

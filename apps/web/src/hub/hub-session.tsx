@@ -30,6 +30,7 @@ import { Hud } from "@/molecules/hud/hud";
 import { PanelHeader } from "@/molecules/panel-header/panel-header";
 import { ProjectOfferCard } from "@/molecules/project-offer-card/project-offer-card";
 import { ServerCard } from "@/molecules/server-card/server-card";
+import { ServerSelect } from "@/molecules/server-select/server-select";
 import {
 	addedAssetId,
 	assetTenureKind,
@@ -88,6 +89,44 @@ function collectAccepted(customers: Game["customers"]): readonly ProjectRow[] {
 
 function collectParked(customers: Game["customers"]): readonly ProjectRow[] {
 	return collectByStatus(customers, "offline");
+}
+
+function setupAction(projectId: string, taskId: string): EngineCommand {
+	if (taskId === "configure-shared-connection") {
+		return { type: "configureConnection", payload: { projectId } };
+	}
+
+	if (taskId === "install-application-runtime") {
+		return {
+			type: "installService",
+			payload: { projectId, serviceId: "application-runtime" },
+		};
+	}
+
+	if (taskId === "install-relational-database") {
+		return {
+			type: "installService",
+			payload: { projectId, serviceId: "relational-database" },
+		};
+	}
+
+	throw new Error(`unknown setup task: ${taskId}`);
+}
+
+function setupActionLabel(taskId: string): string {
+	if (taskId === "configure-shared-connection") {
+		return "Configure connection";
+	}
+
+	if (taskId === "install-application-runtime") {
+		return "Install Application Runtime";
+	}
+
+	if (taskId === "install-relational-database") {
+		return "Install Relational Database";
+	}
+
+	return taskId;
 }
 
 export function HubSession() {
@@ -177,7 +216,7 @@ export function HubSession() {
 			return picked;
 		}
 
-		return project.route?.serverId ?? game.assets.at(0)?.id;
+		return project.route?.serverId ?? project.setupServerId ?? game.assets.at(0)?.id;
 	};
 
 	const selectServer = (projectId: string, serverId: string): void => {
@@ -386,10 +425,70 @@ export function HubSession() {
 								<p className="font-mono text-sm font-semibold">{project.id}</p>
 								<p className="font-mono text-xs text-muted-foreground">
 									Advance {formatters.cents(project.advancePostedCents)} received. Ready:{" "}
-									{project.ready ? "yes" : "no"}. Queue work does not start the contract. Park is
-									unavailable during setup. Installs are not applied to instances yet.
+									{project.ready ? "yes" : "no"}. Assign a box, then install and configure. Start
+									stays explicit. Park stays blocked until activated.
 								</p>
+								<ServerSelect
+									emptyLabel="Buy a server to assign during setup"
+									label="Setup server"
+									onSelect={(serverId) => {
+										selectServer(project.id, serverId);
+									}}
+									options={serverOptions}
+									selectedId={pickedServerId(project)}
+								/>
 								<div className="flex flex-wrap gap-2">
+									<Button
+										disabled={jailed || game.assets.length === 0}
+										size="sm"
+										variant="secondary"
+										onClick={() => {
+											withPickedServer(project, (serverId) => {
+												runCommand(
+													{
+														type: "placeSetup",
+														payload: { projectId: project.id, serverId },
+													},
+													`Assigned ${serverId} to ${project.id}`,
+												);
+											});
+										}}
+									>
+										Assign box
+									</Button>
+									{project.setupServerId !== undefined ? (
+										<>
+											<Button
+												disabled={jailed}
+												size="sm"
+												variant="outline"
+												onClick={() => {
+													runCommand(
+														{ type: "powerOn", payload: { serverId: project.setupServerId ?? "" } },
+														`Powered on ${project.setupServerId}`,
+													);
+												}}
+											>
+												Power on
+											</Button>
+											<Button
+												disabled={jailed}
+												size="sm"
+												variant="outline"
+												onClick={() => {
+													runCommand(
+														{
+															type: "powerOff",
+															payload: { serverId: project.setupServerId ?? "" },
+														},
+														`Powered off ${project.setupServerId}`,
+													);
+												}}
+											>
+												Power off
+											</Button>
+										</>
+									) : null}
 									{FIRST_PROJECT_SETUP_TASKS.map((task) => {
 										const done = game.operations.tasks.some(
 											(entry) =>
@@ -407,7 +506,7 @@ export function HubSession() {
 										if (done) {
 											return (
 												<p className="font-mono text-xs text-muted-foreground" key={task.id}>
-													{task.id} done
+													{setupActionLabel(task.id)} done
 												</p>
 											);
 										}
@@ -421,11 +520,11 @@ export function HubSession() {
 													onClick={() => {
 														runCommand(
 															{ type: "cancelOperationalTask", payload: { taskId: active.id } },
-															`Cancelled ops ${task.id}`,
+															`Cancelled ${setupActionLabel(task.id)}`,
 														);
 													}}
 												>
-													Cancel {task.id}
+													Cancel {setupActionLabel(task.id)}
 												</Button>
 											);
 										}
@@ -433,20 +532,18 @@ export function HubSession() {
 										return (
 											<Button
 												key={task.id}
-												disabled={jailed || game.operations.slotsUsed >= 1}
+												disabled={
+													jailed ||
+													game.operations.slotsUsed >= 1 ||
+													project.setupServerId === undefined
+												}
 												size="sm"
 												variant="secondary"
 												onClick={() => {
-													runCommand(
-														{
-															type: "enqueueOperationalTask",
-															payload: { projectId: project.id, taskId: task.id },
-														},
-														`Queued ${task.id}`,
-													);
+													runCommand(setupAction(project.id, task.id), setupActionLabel(task.id));
 												}}
 											>
-												Queue {task.id}
+												{setupActionLabel(task.id)}
 											</Button>
 										);
 									})}

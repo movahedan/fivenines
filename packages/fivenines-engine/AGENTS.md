@@ -131,7 +131,12 @@ type EngineCommand =
   | { type: "sellServer"; payload: { serverId: string } }
   | { type: "releaseServer"; payload: { serverId: string } }
   | { type: "enqueueOperationalTask"; payload: { projectId: string; taskId: string } }
-  | { type: "cancelOperationalTask"; payload: { taskId: string } };
+  | { type: "cancelOperationalTask"; payload: { taskId: string } }
+  | { type: "placeSetup"; payload: { projectId: string; serverId: string } }
+  | { type: "installService"; payload: { projectId: string; serviceId: string } }
+  | { type: "configureConnection"; payload: { projectId: string } }
+  | { type: "powerOn"; payload: { serverId: string } }
+  | { type: "powerOff"; payload: { serverId: string } };
 ```
 
 Learning enroll/pause/resume/cancel remain on the same union (see Learning below).
@@ -147,10 +152,14 @@ Learning enroll/pause/resume/cancel remain on the same union (see Learning below
 | `assignProject` | `offline` → `served` on `serverId` |
 | `enqueueOperationalTask` | accepted project; one ops slot; commands enqueue only |
 | `cancelOperationalTask` | active ops task → cancelled; progress retained |
+| `placeSetup` | accepted project stores `setupServerId` without a live route |
+| `installService` | enqueue Application Runtime or Relational Database install (requires placement) |
+| `configureConnection` | enqueue the one shared connection task |
+| `powerOn` / `powerOff` | immediate; off drops volatile ops progress and live slices, keeps completed installs |
 
 Unknown project id or wrong source status throws. `startProject` throws when `ready` is false. Completing ops work never calls `startProject`. Cash-changing commands are `acceptProject` (credit advance), `cancelSetup` (debit refund), `buyServer` (debit purchase), and `sellServer` (credit salvage). `leaseServer` and `releaseServer` do not change cash. Any command carrying a `serverId` throws `unknown server id` when the box is absent.
 
-`acceptProject`, `startProject`, `buyServer`, `leaseServer`, and `enqueueOperationalTask` throw while `jailed`; `cancelSetup` / `cancelOperationalTask` / `moveProject` / `unassignProject` / `assignProject` / `sellServer` / `releaseServer` / `declineProject` are allowed while jailed.
+`acceptProject`, `startProject`, `buyServer`, `leaseServer`, `enqueueOperationalTask`, `placeSetup`, `installService`, and `configureConnection` throw while `jailed`; `cancelSetup` / `cancelOperationalTask` / `powerOn` / `powerOff` / `moveProject` / `unassignProject` / `assignProject` / `sellServer` / `releaseServer` / `declineProject` are allowed while jailed.
 
 After the increment, `Project.tickCalendar` expires offered cards with `offerTtlHours > 0` at TTL (48h); other offered fixtures use `0` and never expire. After the 24h allowance, patience is millihours (`setupPatienceMilliHours`; acquaintance trust 70 / reputation 0 / hatred 0 → 14.4h). Withdrawal on the first outer tick at or after that threshold (accept-at-0 → hour 39) refunds the advance (`postCashDelta`) and applies reputation −3 on Game (clamped 0–100). `src/setup-clock.ts` only spawns the next acquaintance when pending cap and interval allow.
 
@@ -200,7 +209,7 @@ Hourly arrival: `m = baseline × rhythm × campaign × spike`, then Gamma–Pois
 
 ## Operational queue
 
-`src/operations/queue.ts` is one player slot (`OPERATIONAL_SLOT_COUNT`), analogous to `LearningBoard`. `#tickOperations` on the playlist advances active work by 1000 millihours per outer hour. First-project checklist ids (`install-application-runtime` 2h, `install-relational-database` 2h, `configure-shared-connection` 1h) live in `src/catalog/operations-policy.ts`. Shared configuration requires both installs complete. Cancel keeps completed millihours; re-enqueue resumes them. Duration uses stored `deployment-automation` course levels (0.92/level via catalog cumulative micro). When all three ids are `completed` for that project, `Project.withReady()` runs; status stays `accepted`. Commands do not install onto instances.
+`src/operations/queue.ts` is one player slot (`OPERATIONAL_SLOT_COUNT`), analogous to `LearningBoard`. `#tickOperations` on the playlist advances active work by 1000 millihours per outer hour. First-project checklist ids (`install-application-runtime` 2h, `install-relational-database` 2h, `configure-shared-connection` 1h) live in `src/catalog/operations-policy.ts`. Shared configuration requires both installs complete. Cancel keeps completed millihours; re-enqueue resumes them. Duration uses stored `deployment-automation` course levels (0.92/level via catalog cumulative micro). When all three ids are `completed` for that project, `Project.withReady()` runs; status stays `accepted`. `installService` / `configureConnection` enqueue those ids. Completing them stamps `installedServiceIds` and `connectionConfigured` on the project. `Game` still does not import `src/topology/`. `placeSetup` assigns a box during setup without serving. `powerOn` is immediate. `powerOff` zeros active millihours (volatile) and live slices; completed installs stay.
 
 ## Identity registry
 
@@ -216,6 +225,6 @@ Hourly arrival: `m = baseline × rhythm × campaign × spike`, then Gamma–Pois
 - M1 (in review on #98): [engine architecture and mathematics](../../.cursor/plans/m1-engine-architecture-and-mathematics.plan.md)
 - M2 (in review on #101): [entities and catalogs](../../.cursor/plans/m2-entities-and-catalogs.plan.md)
 - M3 (in review on #104): [demand, work retention and learning](../../.cursor/plans/m3-demand-and-learning-foundations.plan.md)
-- M4 (stacks on #104): [infrastructure preparation and operations](../../.cursor/plans/m4-infrastructure-preparation-and-operations.plan.md) — #71/#112 and #113/#114 are folded into #111. [#72](https://github.com/movahedan/fivenines/issues/72) fills `#tickOperations` (ready from checklist; not served).
+- M4 (stacks on #104): [infrastructure preparation and operations](../../.cursor/plans/m4-infrastructure-preparation-and-operations.plan.md) — #71/#112, #113/#114, and #72/#115 are folded into #111. [#73](https://github.com/movahedan/fivenines/issues/73) is install/config/power.
 - Authored tuning: [Balance baseline](../../docs/product/balance/index.md)
 - Current behavior remains defined by this guide, source, and tests. Retired engine/hosting plans were deleted after product consolidation; the product reference does not imply that its future behavior is already implemented.

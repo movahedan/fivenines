@@ -19,7 +19,7 @@ todos:
     status: completed
   - id: projections
     content: "#80 authoritative workload outcomes in Hub; disk/GPU beyond four bars"
-    status: pending
+    status: completed
 isProject: false
 ---
 

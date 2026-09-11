@@ -49,7 +49,7 @@ Connect compact host activity and embedded project Status/Performance/Finances t
 | Milestone 5 stack base | In review | [#119](https://github.com/movahedan/fivenines/pull/119) | Docs/plan on #111 head; `bun overall` |
 | Resource allocator | In review | [#120](https://github.com/movahedan/fivenines/pull/120) | [#76](https://github.com/movahedan/fivenines/issues/76); stacked on #119; `bun overall` |
 | Dependency graph execution | In review | [#121](https://github.com/movahedan/fivenines/pull/121) | [#77](https://github.com/movahedan/fivenines/issues/77); stacked on #120; `bun overall` |
-| Transfers and migration completion | In review | — | [#78](https://github.com/movahedan/fivenines/issues/78); stacked on #121; `bun overall` pending this PR |
+| Transfers and migration completion | In review | [#122](https://github.com/movahedan/fivenines/pull/122) | [#78](https://github.com/movahedan/fivenines/issues/78); stacked on #121; `bun overall` |
 | First-project settlement and playtest | Planned | — | [#79](https://github.com/movahedan/fivenines/issues/79); not started |
 | Integrated runtime projections | Planned | — | [#80](https://github.com/movahedan/fivenines/issues/80); not started |
 

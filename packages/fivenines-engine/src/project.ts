@@ -8,7 +8,7 @@ import {
 	SETTLEMENT_HISTORY_K,
 	slaCreditPpm,
 } from "./catalog/commercial-policy";
-import { FIRST_SETUP_ALLOWANCE_HOURS } from "./catalog/contract-policy";
+import { FIRST_SETUP_ALLOWANCE_HOURS, setupPatienceMilliHours } from "./catalog/contract-policy";
 import { type RegionId, regions } from "./catalog/regions";
 import { SLA_WINDOW_HOURS, slaAvailabilityPpm } from "./catalog/sla-policy";
 import { TRAFFIC_POLICY } from "./catalog/traffic-policy";
@@ -41,6 +41,19 @@ export type DemandKind = "constant" | "shaped";
  * balancing, which needs a balancer asset that does not exist yet.
  */
 export type RouteTarget = { kind: "server"; serverId: string };
+
+export interface ProjectRelationship {
+	readonly trust: number;
+	readonly reputation: number;
+	readonly hatred: number;
+}
+
+export interface ProjectCalendarTick {
+	readonly project: Project;
+	readonly refundCents: number;
+	readonly expired: boolean;
+	readonly withdrawn: boolean;
+}
 
 export interface BillingSettlement {
 	periodIndex: number;
@@ -466,6 +479,70 @@ export class Project {
 		this.#metrics = measureProjectTick(emittedRequests);
 
 		return emittedRequests;
+	}
+
+	tickCalendar(hourIndex: number, relationship: ProjectRelationship): ProjectCalendarTick {
+		if (
+			this.#status === "offered" &&
+			this.offerTtlHours > 0 &&
+			hourIndex - this.offeredHour >= this.offerTtlHours
+		) {
+			return {
+				project: this.asExpired(),
+				refundCents: 0,
+				expired: true,
+				withdrawn: false,
+			};
+		}
+
+		if (this.#status !== "accepted" || this.ready || this.acceptedHour === undefined) {
+			return {
+				project: this,
+				refundCents: 0,
+				expired: false,
+				withdrawn: false,
+			};
+		}
+
+		const elapsed = hourIndex - this.acceptedHour;
+
+		if (elapsed < this.setupAllowanceHours) {
+			return {
+				project: this,
+				refundCents: 0,
+				expired: false,
+				withdrawn: false,
+			};
+		}
+
+		if (this.patienceMilliHours === undefined) {
+			return {
+				project: this.withPatienceMilliHours(
+					setupPatienceMilliHours(relationship.trust, relationship.reputation, relationship.hatred),
+				),
+				refundCents: 0,
+				expired: false,
+				withdrawn: false,
+			};
+		}
+
+		const remaining = Math.max(0, this.patienceMilliHours - 1_000);
+
+		if (remaining > 0) {
+			return {
+				project: this.withPatienceMilliHours(remaining),
+				refundCents: 0,
+				expired: false,
+				withdrawn: false,
+			};
+		}
+
+		return {
+			project: this.asWithdrawn(),
+			refundCents: this.advancePostedCents,
+			expired: false,
+			withdrawn: true,
+		};
 	}
 
 	#transition(

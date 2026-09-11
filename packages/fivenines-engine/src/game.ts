@@ -1,6 +1,7 @@
 import { ids } from "@packages/shared/ids";
 import { units } from "@packages/shared/units";
 
+import { SETUP_WITHDRAWAL_REPUTATION_DELTA } from "./catalog/contract-policy";
 import { DEBT_LIMIT_CENTS, STARTING_CASH_CENTS } from "./catalog/economy-policy";
 import { Customer, type CustomerInitial } from "./customer";
 import { placeProjectDemand } from "./demand";
@@ -29,8 +30,9 @@ import {
 } from "./game.utils";
 import { LearningBoard, type LearningSnapshot } from "./learning/board";
 import { type LearningCatalogRow, learningCatalog } from "./learning/catalog-view";
+import type { Project } from "./project";
 import type { Server } from "./server";
-import { tickSetupContracts } from "./setup-clock";
+import { spawnAcquaintanceIfDue } from "./setup-clock";
 import { MathRandomSource, type RandomSource } from "./traffic/random-source";
 
 export type { EngineEvent } from "./game.events";
@@ -208,6 +210,26 @@ export class Game {
 	tick(): Game {
 		const eventHourIndex = this.#hourIndex;
 		const cashBeforeCents = this.#cashCents;
+		const events: EngineEvent[] = [];
+		const physicsProjects = this.#simulateHour(events, eventHourIndex);
+
+		this.#hourIndex += 1;
+		this.#advanceCalendar(events, eventHourIndex, physicsProjects);
+
+		if (cashBeforeCents > 0 && this.#cashCents <= 0) {
+			events.push({
+				type: "cashLow",
+				hourIndex: eventHourIndex,
+				cashCents: this.#cashCents,
+			});
+		}
+
+		this.#events = events;
+
+		return this;
+	}
+
+	#simulateHour(events: EngineEvent[], eventHourIndex: number): readonly Project[] {
 		const windowPpmByProjectId = new Map(
 			this.customers.flatMap((customer) =>
 				customer.projects.map(
@@ -220,7 +242,6 @@ export class Game {
 				(server) => [server.id, server.metrics.utilization] as const,
 			),
 		);
-		const events: EngineEvent[] = [];
 
 		for (const server of this.#serversById.values()) {
 			server.resetDemand();
@@ -320,7 +341,14 @@ export class Game {
 			this.#jailed = true;
 		}
 
-		this.#hourIndex += 1;
+		return projects;
+	}
+
+	#advanceCalendar(
+		events: EngineEvent[],
+		eventHourIndex: number,
+		physicsProjects: readonly Project[],
+	): void {
 		const settledPaygCents = settlePaygReceivableIfDue(
 			this.#hourIndex,
 			this.#accountsReceivableCents,
@@ -336,25 +364,23 @@ export class Game {
 			});
 		}
 
-		const setup = tickSetupContracts(
+		this.#tickProjectCalendars();
+
+		const market = spawnAcquaintanceIfDue(
 			this.#customers,
-			this.#cashCents,
-			this.#reputation,
 			this.#hourIndex,
 			this.#lastOfferResolveHour,
 		);
-		this.#customers = [...setup.customers];
-		this.#cashCents = setup.cashCents;
-		this.#reputation = Math.min(100, Math.max(0, setup.reputation));
-		this.#lastOfferResolveHour = setup.lastOfferResolveHour;
+		this.#customers = [...market.customers];
+		this.#lastOfferResolveHour = market.lastOfferResolveHour;
 
 		const settlementCountById = new Map(
-			projects.map((project) => [project.id, project.settlements.length] as const),
+			physicsProjects.map((project) => [project.id, project.settlements.length] as const),
 		);
 
-		this.#cashCents += closeBillingPeriodIfDue(projects, this.#hourIndex);
+		this.#cashCents += closeBillingPeriodIfDue(physicsProjects, this.#hourIndex);
 
-		for (const project of projects) {
+		for (const project of physicsProjects) {
 			const previousCount = settlementCountById.get(project.id) ?? 0;
 			const latest = project.settlements[project.settlements.length - 1];
 
@@ -371,18 +397,38 @@ export class Game {
 				});
 			}
 		}
+	}
 
-		if (cashBeforeCents > 0 && this.#cashCents <= 0) {
-			events.push({
-				type: "cashLow",
-				hourIndex: eventHourIndex,
-				cashCents: this.#cashCents,
+	#tickProjectCalendars(): void {
+		const reputationForPatience = this.#reputation;
+		let nextReputation = this.#reputation;
+
+		this.#customers = this.#customers.map((customer) => {
+			const projects = customer.projects.map((project) => {
+				const ticked = project.tickCalendar(this.#hourIndex, {
+					trust: customer.trust,
+					reputation: reputationForPatience,
+					hatred: customer.hatred,
+				});
+
+				this.#cashCents = postCashDelta(this.#cashCents, -ticked.refundCents);
+
+				if (ticked.withdrawn) {
+					nextReputation += SETUP_WITHDRAWAL_REPUTATION_DELTA;
+					this.#lastOfferResolveHour = this.#hourIndex;
+				}
+
+				if (ticked.expired) {
+					this.#lastOfferResolveHour = this.#hourIndex;
+				}
+
+				return ticked.project;
 			});
-		}
 
-		this.#events = events;
+			return customer.withProjects(projects);
+		});
 
-		return this;
+		this.#reputation = Math.min(100, Math.max(0, nextReputation));
 	}
 
 	#syncDerivedState(): void {

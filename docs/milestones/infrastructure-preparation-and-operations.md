@@ -53,7 +53,7 @@ Deliver the approved desktop left Projects panel, right business panels and mobi
 |---|---|---|---|
 | Milestone 4 stack base | In review | [#111](https://github.com/movahedan/fivenines/pull/111) | Docs/plan on #104 head; `bun overall` |
 | Acquaintance acceptance and advance | Merged into #111 | [#112](https://github.com/movahedan/fivenines/pull/112) | `bun overall`; GitHub merge into the M4 foundation |
-| Hourly tick orchestration | Planned | — | [#113](https://github.com/movahedan/fivenines/issues/113); next slice before #72 |
+| Hourly tick orchestration | In review | — | [#113](https://github.com/movahedan/fivenines/issues/113); stacked on #111 |
 | Operational queue and readiness | Planned | — | Depends on #113 |
 | Installation and configuration actions | Planned | — | Not run |
 | Duplication and transfer lifecycle | Planned | — | Not run |

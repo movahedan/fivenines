@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: tick-playlist
     content: "#113 Game.tick named playlist; entity hours; no plugin registry; before #72"
-    status: pending
+    status: completed
   - id: queue-ready
     content: "#72 one operational queue, retained progress, ready vs active"
     status: pending

@@ -220,6 +220,12 @@ export class Game {
 
 			return this;
 		}
+
+		if (command.type === "duplicateProject") {
+			this.#dispatchDuplicate(command);
+
+			return this;
+		}
 		const next = applyCommand(
 			{
 				customers: this.#customers,
@@ -697,6 +703,67 @@ export class Game {
 		}
 	}
 
+	#dispatchDuplicate(command: EngineCommand): void {
+		if (command.type !== "duplicateProject") {
+			return;
+		}
+
+		if (this.#jailed) {
+			throw new Error("cannot duplicateProject while jailed");
+		}
+
+		const source = findProject(this.#customers, command.payload.projectId);
+
+		if (source.status !== "served" || source.route === undefined) {
+			throw new Error(`project is not served: ${source.id}`);
+		}
+
+		if (source.route.serverId === command.payload.destinationServerId) {
+			throw new Error(`destination is the source server: ${command.payload.destinationServerId}`);
+		}
+
+		const sourceServer = this.#serversById.get(source.route.serverId);
+		const destination = this.#serversById.get(command.payload.destinationServerId);
+
+		if (destination === undefined) {
+			throw new Error(`unknown server id: ${command.payload.destinationServerId}`);
+		}
+
+		if (sourceServer === undefined) {
+			throw new Error(`unknown server id: ${source.route.serverId}`);
+		}
+
+		if (
+			!destination.poweredOn ||
+			destination.computeUnitsPerHour < sourceServer.computeUnitsPerHour ||
+			destination.memoryMiB < sourceServer.memoryMiB ||
+			destination.networkBytesPerHour < sourceServer.networkBytesPerHour
+		) {
+			throw new Error(`destination is incompatible: ${destination.id}`);
+		}
+
+		const knownIds = new Set(
+			this.#customers.flatMap((customer) => customer.projects.map((project) => project.id)),
+		);
+		let sequence = 1;
+		let copyId = `${source.id}-copy`;
+
+		while (knownIds.has(copyId)) {
+			sequence += 1;
+			copyId = `${source.id}-copy-${String(sequence)}`;
+		}
+
+		const copy = source.asDuplicate(copyId, destination.id, this.#hourIndex);
+
+		this.#customers = this.#customers.map((customer) => {
+			if (!customer.projects.some((project) => project.id === source.id)) {
+				return customer;
+			}
+
+			return customer.withProjects([...customer.projects, copy]);
+		});
+	}
+
 	#applyCompletedOperationalWork(completedProjectIds: readonly string[]): void {
 		const required = firstProjectSetupTaskIds();
 
@@ -722,7 +789,11 @@ export class Game {
 				next = next.withConnectionConfigured();
 			}
 
-			if (required.every((taskId) => completed.includes(taskId)) && !next.ready) {
+			if (
+				required.every((taskId) => completed.includes(taskId)) &&
+				!next.ready &&
+				next.pendingTransfer === undefined
+			) {
 				next = next.withReady();
 			}
 

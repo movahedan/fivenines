@@ -579,36 +579,55 @@ export function HubSession() {
 							</div>
 						))}
 						{served.map(({ customerId, project }) => (
-							<ActiveRowCard
-								customerId={customerId}
-								key={project.id}
-								onRoute={() => {
-									withPickedServer(project, (serverId) => {
-										if (serverId === project.route?.serverId) {
-											return;
-										}
+							<div className="flex flex-col gap-2" key={project.id}>
+								<ActiveRowCard
+									customerId={customerId}
+									onRoute={() => {
+										withPickedServer(project, (serverId) => {
+											if (serverId === project.route?.serverId) {
+												return;
+											}
 
+											runCommand(
+												{ type: "moveProject", payload: { projectId: project.id, serverId } },
+												`Moved ${project.id} to ${serverId}`,
+											);
+										});
+									}}
+									onSelectServer={(serverId) => {
+										selectServer(project.id, serverId);
+									}}
+									onUnassign={() => {
 										runCommand(
-											{ type: "moveProject", payload: { projectId: project.id, serverId } },
-											`Moved ${project.id} to ${serverId}`,
+											{ type: "unassignProject", payload: { projectId: project.id } },
+											`Parked ${project.id}`,
 										);
-									});
-								}}
-								onSelectServer={(serverId) => {
-									selectServer(project.id, serverId);
-								}}
-								onUnassign={() => {
-									runCommand(
-										{ type: "unassignProject", payload: { projectId: project.id } },
-										`Parked ${project.id}`,
-									);
-								}}
-								project={project}
-								routeLabel="MOVE"
-								selectedServerId={pickedServerId(project)}
-								serverLabel={routedServerLabel(project)}
-								serverOptions={serverOptions}
-							/>
+									}}
+									project={project}
+									routeLabel="MOVE"
+									selectedServerId={pickedServerId(project)}
+									serverLabel={routedServerLabel(project)}
+									serverOptions={serverOptions}
+								/>
+								<Button
+									disabled={jailed || game.assets.length < 2}
+									size="sm"
+									variant="secondary"
+									onClick={() => {
+										withPickedServer(project, (serverId) => {
+											runCommand(
+												{
+													type: "duplicateProject",
+													payload: { projectId: project.id, destinationServerId: serverId },
+												},
+												`Duplicating ${project.id} to ${serverId}`,
+											);
+										});
+									}}
+								>
+									Duplicate this project
+								</Button>
+							</div>
 						))}
 						{parked.map(({ customerId, project }) => (
 							<ActiveRowCard

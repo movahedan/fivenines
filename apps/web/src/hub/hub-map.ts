@@ -185,6 +185,7 @@ const COMMAND_LOG_TONE: Record<EngineCommand["type"], EventLogTone> = {
 	configureConnection: "success",
 	powerOn: "success",
 	powerOff: "warn",
+	duplicateProject: "info",
 };
 
 export function commandLogTone(commandType: EngineCommand["type"]): EventLogTone {

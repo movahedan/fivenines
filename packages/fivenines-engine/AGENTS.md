@@ -168,6 +168,24 @@ Ownership, tick order, and same-hour event order stay in product docs and the [m
 
 Live tunables stay in `src/catalog/` TypeScript (`kernel.ts` Bronze–Diamond plus `thin-ram`, economy/traffic/SLA policies). [baseline.json](../../docs/product/balance/baseline.json) is checked by `src/baseline/` only. Do not add a catalog compiler or a second JSON that Game loads. Cutover later replaces the live modules (or a versioned runtime snapshot) in place.
 
+## Demand engine
+
+`src/demand-engine/` generates typed root batches for a project. It does not place work, run `Server.tick`, or replace Opening Shift RPS (`ConstantDemand` / `ProjectDemand`). `Game` must not import this tree yet.
+
+Live numbers live in `src/catalog/demand-types.ts`, `demand-rhythms.ts`, `demand-variation.ts`, and `demand-projects.ts` (micro-units: `Math.round(value * 1_000_000)`). `baseline.json` is not loaded. Mixes are permille summing to 1000. Combined campaign × spike is capped at 6. Version-one templates are the default; expansion ids throw unless `allowExpansion` is set.
+
+Hourly arrival: `m = baseline × rhythm × campaign × spike`, then Gamma–Poisson (`k` from early/standard/volatile) and a multinomial split. `constant: true` skips the mixture and uses largest remainder. Finite jobs emit one frozen root from `activateFinite` and never hourly Poisson. Each project uses `SeededRandomSource` from its id. Arrival sample checks state `n` and tolerances in the assertion. Do not re-export this tree from `src/index.ts` until a consumer needs it (barrel imports would load it into Hub/Lab coverage).
+
+## Work queues
+
+`src/demand-engine/queue.ts` keeps arrival cohorts (`demand type` + arrival hour). Waiting age and job `completedCount` survive aggregation. Interactive/continuous expire after the arrival tick; queued work may remain for two further ticks; jobs do not expire here. Occupancy is `queueKiB` × count. Durable job working memory is tracked separately. A full queue rejects new batches and does not evict accepted work. `toExecutionInput()` is for M5; `Game` must not import this tree. There is no resource solver.
+
+## Learning
+
+`src/learning/board.ts` is two shared slots, monthly tuition on `Game.cashCents` via `postCashDelta` (same helper as buy/sell). Base techs start completed. Research does not stack; courses are sequential through five levels. `enrollLearning` / `pauseLearning` / `resumeLearning` / `cancelLearning` are `dispatch` commands. Enroll is blocked while jailed. Progress ticks after opex. Completion at a renewal boundary does not charge again. Effects are stored (completed ids / course levels) and not applied to missing install/incident/CPU consumers. Research is not installation.
+
+`learningCatalog` / `Game.learningCatalog` projects locked, available, insufficient-funds, active, paused, and completed rows. Completed course levels are a different projection from the active next-level enrollment. DemandEngine is still not imported by `Game`; Lab may import `@packages/fivenines-engine/demand-engine` (engine entry only — do not barrel `queue.ts` into Hub/Lab coverage).
+
 ## Identity registry
 
 `src/identity/registry.ts` indexes `customer` | `project` | `asset` | `service` | `instance` by globally unique id and owner. `registerAll` is atomic. `assertHourIndex` accepts non-negative integers. `Game` must not import this tree yet.
@@ -180,6 +198,7 @@ Live tunables stay in `src/catalog/` TypeScript (`kernel.ts` Bronze–Diamond pl
 
 - Intended behavior: [Product reference](../../docs/product/index.md)
 - M1 (in review on #98): [engine architecture and mathematics](../../.cursor/plans/m1-engine-architecture-and-mathematics.plan.md)
-- M2: [entities and catalogs](../../.cursor/plans/m2-entities-and-catalogs.plan.md)
+- M2 (in review on #101): [entities and catalogs](../../.cursor/plans/m2-entities-and-catalogs.plan.md)
+- M3 (in review on #104): [demand, work retention and learning](../../.cursor/plans/m3-demand-and-learning-foundations.plan.md)
 - Authored tuning: [Balance baseline](../../docs/product/balance/index.md)
 - Current behavior remains defined by this guide, source, and tests. Retired engine/hosting plans were deleted after product consolidation; the product reference does not imply that its future behavior is already implemented.

@@ -26,7 +26,10 @@ import {
 	createAsset,
 	type EngineCommand,
 	type GameAsset,
+	postCashDelta,
 } from "./game.utils";
+import { LearningBoard, type LearningSnapshot } from "./learning/board";
+import { type LearningCatalogRow, learningCatalog } from "./learning/catalog-view";
 import type { Server } from "./server";
 import { MathRandomSource, type RandomSource } from "./traffic/random-source";
 
@@ -34,6 +37,8 @@ export type { EngineEvent } from "./game.events";
 export type { GameFinanceSnapshot } from "./game.finance";
 export type { GameTickMetrics } from "./game.metrics";
 export type { AssetInitial, EngineCommand, GameAsset } from "./game.utils";
+export type { LearningSnapshot, LearningSubject } from "./learning/board";
+export type { LearningCatalogRow, LearningRowStatus } from "./learning/catalog-view";
 
 export interface GameOptions {
 	random?: RandomSource;
@@ -56,6 +61,7 @@ export class Game {
 	#accountsReceivableCents: number;
 	#jailed: boolean;
 	#opex: GameOpexTotals = EMPTY_GAME_OPEX;
+	#learning = new LearningBoard();
 
 	#metrics: GameTickMetrics = EMPTY_GAME_TICK_METRICS;
 	#events: EngineEvent[] = [];
@@ -141,7 +147,25 @@ export class Game {
 		return Math.floor(this.#hourIndex / 24);
 	}
 
+	get learning(): LearningSnapshot {
+		return this.#learning.snapshot();
+	}
+
+	get learningCatalog(): readonly LearningCatalogRow[] {
+		return learningCatalog(this.#learning.snapshot(), this.#cashCents);
+	}
+
 	dispatch(command: EngineCommand): Game {
+		if (
+			command.type === "enrollLearning" ||
+			command.type === "pauseLearning" ||
+			command.type === "resumeLearning" ||
+			command.type === "cancelLearning"
+		) {
+			this.#dispatchLearning(command);
+
+			return this;
+		}
 		const next = applyCommand(
 			{
 				customers: this.#customers,
@@ -273,6 +297,7 @@ export class Game {
 
 		this.#opex = measureGameOpex(servers);
 		this.#cashCents -= this.#opex.opexCents;
+		this.#cashCents += this.#learning.tick(eventHourIndex, this.#cashCents);
 		this.#accountsReceivableCents += accruePeriodPayg(projects);
 
 		if (this.#cashCents <= -DEBT_LIMIT_CENTS) {
@@ -336,5 +361,40 @@ export class Game {
 		}
 
 		this.#serversById = serversById;
+	}
+
+	#dispatchLearning(command: EngineCommand): void {
+		if (command.type === "enrollLearning") {
+			if (this.#jailed) {
+				throw new Error("cannot enrollLearning while jailed");
+			}
+
+			const tuitionCents = this.#learning.enroll(
+				command.payload.subject,
+				this.#hourIndex,
+				this.#cashCents,
+			);
+			this.#cashCents = postCashDelta(this.#cashCents, -tuitionCents);
+			return;
+		}
+
+		if (command.type === "pauseLearning") {
+			this.#learning.pause(command.payload.enrollmentId, "voluntary");
+			return;
+		}
+
+		if (command.type === "resumeLearning") {
+			const tuitionCents = this.#learning.resume(
+				command.payload.enrollmentId,
+				this.#hourIndex,
+				this.#cashCents,
+			);
+			this.#cashCents = postCashDelta(this.#cashCents, -tuitionCents);
+			return;
+		}
+
+		if (command.type === "cancelLearning") {
+			this.#learning.cancel(command.payload.enrollmentId);
+		}
 	}
 }

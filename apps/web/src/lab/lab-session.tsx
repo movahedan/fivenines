@@ -17,6 +17,7 @@ import {
 } from "@packages/fivenines-engine";
 
 import { Button } from "@/atoms/button";
+import { inspectAppointmentDemand } from "./demand-inspect";
 import { useLabGame } from "./use-lab-game";
 
 const METRIC_KEYS = [
@@ -59,6 +60,7 @@ export function LabSession() {
 	const serverId = game.assets.some((asset) => asset.id === pickedServerId)
 		? pickedServerId
 		: game.assets.at(0)?.id;
+	const demandInspect = inspectAppointmentDemand(game.hourIndex);
 
 	return (
 		<main className="flex flex-col gap-6">
@@ -104,6 +106,13 @@ export function LabSession() {
 						</tr>
 					</tbody>
 				</table>
+			</section>
+			<section>
+				<h2>Demand inspect</h2>
+				<p>
+					Typed DemandEngine roots are not placed. Appointment-site hour {game.hourIndex}:{" "}
+					{demandInspect.totalCount} units ({demandInspect.types.join(", ")})
+				</p>
 			</section>
 			<section>
 				<h2>Commands</h2>

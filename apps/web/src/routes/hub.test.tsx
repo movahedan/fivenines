@@ -116,6 +116,8 @@ describe("HubPage - session gate", () => {
 		expect(screen.getByRole("region", { name: "Event log" }).className).toContain(
 			"overflow-hidden",
 		);
+		expect(screen.getByRole("region", { name: "Learning" })).toBeTruthy();
+		expect(screen.getByText("LEARN")).toBeTruthy();
 	});
 });
 

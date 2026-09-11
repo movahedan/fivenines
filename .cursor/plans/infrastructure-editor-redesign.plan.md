@@ -72,7 +72,7 @@ Add a delivery map to `docs/milestones/README.md` and scoped updates to M6–M10
 
 These are explicit scheduled work, not deferred suggestions and not a new engine roadmap. Amend the existing milestone/PR plans in P1, preserving historical merged evidence. Distinguish an existing acceptance gap from behavior newly requested in this interview. Revalidate source and merged revisions before selecting exact edits; do not reimplement a foundation already integrated elsewhere.
 
-**Timing:** P1 first; then F1 → F2 → F3. Visual-only P2/P3 complete in M5.1 before F work because they consume display props/fixtures and do not edit engine rules. P4 may connect unchanged existing APIs earlier, but the new placement/setup path waits for F3. M6's generalized setup slice waits for F3; M6 implementation waits for M5.2. M6 begins after M5.2 completes; M7–M10 keep their established dependency order. This scheduling permission is not permission to spawn agents under the active delegation rules.
+**Timing:** complete and merge M5.1 first; then F1 → F2 → F3 in M5.2. Visual-only P2/P3 complete in M5.1 before F work because they consume display props/fixtures and do not edit engine rules. P4 may connect unchanged existing APIs earlier, but the new placement/setup path waits for F3. M6's generalized setup slice waits for F3; M6 implementation waits for M5.2. M6 begins after M5.2 completes; M7–M10 keep their established dependency order. This scheduling permission is not permission to spawn agents under the active delegation rules.
 
 ### Impact on each completed milestone
 
@@ -282,7 +282,7 @@ Visual checks: 360/390px mobile, intermediate width, 1280/1440px desktop; compar
 | Proposed PR | Outcome | Dependency |
 |---|---|---|
 | P1 | Product/section/milestone reconciliation | Current roadmap inspection |
-| F1–F3 | M1–M5 integration follow-ups, proposal queries and automatic setup | P1, then F1 → F2 → F3 |
+| F1–F3 | M1–M5 integration follow-ups, proposal queries and automatic setup | M5.1 merged, then F1 → F2 → F3 |
 | P2 | Complete responsive template and visual slots | P1; part of M5.1 before F1–F3 |
 | P3 | Editor and setup component stories | P1; compose with P2 |
 | P4 | Supported runtime integration | Existing APIs for unchanged flows; F3 for new setup flow |

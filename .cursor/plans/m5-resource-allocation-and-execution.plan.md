@@ -16,10 +16,10 @@ todos:
     status: completed
   - id: playtest
     content: "#79 acquaintance settlement playtest; healthy vs overloaded"
-    status: pending
+    status: completed
   - id: projections
     content: "#80 authoritative workload outcomes in Hub; disk/GPU beyond four bars"
-    status: pending
+    status: completed
 isProject: false
 ---
 

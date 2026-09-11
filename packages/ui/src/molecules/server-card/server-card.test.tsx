@@ -184,4 +184,42 @@ describe("ServerCard", () => {
 
 		expect(screen.getByTestId("sku-marker-custom")).toBeInTheDocument();
 	});
+
+	it("shows disk and GPU comparison stats on the market card", () => {
+		render(
+			<ServerCard
+				costLabel="$180"
+				cpuLabel="1000 cores"
+				diskLabel="65536 MiB"
+				gpuLabel="none"
+				label="Bronze"
+				opexLabel="$1.15/h idle"
+				ramLabel="4096 MiB"
+				variant="market"
+			/>,
+		);
+
+		expect(screen.getByText("DISK")).toBeInTheDocument();
+		expect(screen.getByText("65536 MiB")).toBeInTheDocument();
+		expect(screen.getByText("GPU")).toBeInTheDocument();
+		expect(screen.getByText("none")).toBeInTheDocument();
+	});
+
+	it("shows a disk bar and GPU unavailable copy on the fleet card", () => {
+		render(
+			<ServerCard
+				cpuLabel="1000 cores"
+				diskLabel="65536 MiB"
+				diskPercent={12}
+				gpuUnavailableLabel="unavailable"
+				label="Bronze"
+				opexLabel="$1.15/h idle"
+				variant="fleet"
+			/>,
+		);
+
+		expect(screen.getByLabelText("DISK 12 percent")).toBeInTheDocument();
+		expect(screen.getByLabelText("GPU unavailable")).toBeInTheDocument();
+		expect(screen.queryByLabelText(/GPU \d+ percent/)).toBeNull();
+	});
 });

@@ -34,6 +34,10 @@ export interface ActiveProjectCardProps {
 	readonly sparklineWarmingLabel?: string;
 	readonly serverLabel: string;
 	readonly paygLabel: string;
+	readonly serviceStateLabel?: string;
+	readonly hourWorkLabel?: string;
+	readonly lastCreditLabel?: string;
+	readonly telemetryLabel?: string;
 	readonly className?: string;
 	readonly serverOptions?: readonly ServerOption[];
 	readonly selectedServerId?: string;
@@ -63,6 +67,10 @@ export function ActiveProjectCard({
 	sparklineWarmingLabel,
 	serverLabel,
 	paygLabel,
+	serviceStateLabel,
+	hourWorkLabel,
+	lastCreditLabel,
+	telemetryLabel,
 	className,
 	serverOptions,
 	selectedServerId,
@@ -108,10 +116,14 @@ export function ActiveProjectCard({
 				<Progress indicatorClassName={SLA_INDICATOR_CLASS[slaTone]} value={slaPercent} />
 			</View>
 			<View className="gap-0.5">
+				{serviceStateLabel ? <SlaMetricRow caption="Service" value={serviceStateLabel} /> : null}
 				<SlaMetricRow caption="Current hour" value={currentHourLabel} />
 				<SlaMetricRow caption="Rolling 168h" value={rollingLabel} />
 				<SlaMetricRow caption="Target" value={targetLabel} />
 				<SlaMetricRow caption="Recovery ETA" value={recoveryEtaLabel} />
+				{hourWorkLabel ? <SlaMetricRow caption="This hour work" value={hourWorkLabel} /> : null}
+				{lastCreditLabel ? <SlaMetricRow caption="Last credit" value={lastCreditLabel} /> : null}
+				{telemetryLabel ? <SlaMetricRow caption="Telemetry" value={telemetryLabel} /> : null}
 			</View>
 			<View className="h-6 flex-row items-end gap-px">
 				{hasSparkline ? (

@@ -26,6 +26,7 @@ describe("ProjectOfferCard", () => {
 		expect(screen.getByText("web-prod")).toBeInTheDocument();
 		expect(screen.getByText("UTC-8")).toBeInTheDocument();
 		expect(screen.getByText("4c")).toBeInTheDocument();
+		expect(screen.getByText("DEMAND")).toBeInTheDocument();
 		expect(screen.getByText("$12/hr")).toBeInTheDocument();
 		expect(screen.getByText("99.9%")).toBeInTheDocument();
 	});

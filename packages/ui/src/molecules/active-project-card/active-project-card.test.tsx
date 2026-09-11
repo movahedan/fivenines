@@ -60,6 +60,24 @@ describe("ActiveProjectCard", () => {
 		expect(screen.getByText("Recovery ETA")).toBeInTheDocument();
 	});
 
+	it("renders engine-backed service, work, credit, and unavailable telemetry rows", () => {
+		render(
+			<ActiveProjectCard
+				{...ACTIVE}
+				hourWorkLabel="120 handled / 120 emitted"
+				lastCreditLabel="$0.00"
+				serviceStateLabel="serving"
+				sparkline={[0.8]}
+				telemetryLabel="unavailable"
+			/>,
+		);
+
+		expect(screen.getByText("serving")).toBeInTheDocument();
+		expect(screen.getByText("120 handled / 120 emitted")).toBeInTheDocument();
+		expect(screen.getByText("Last credit")).toBeInTheDocument();
+		expect(screen.getByText("unavailable")).toBeInTheDocument();
+	});
+
 	it("renders no picker and no actions row without the routing props", () => {
 		render(<ActiveProjectCard {...ACTIVE} sparkline={[0.8]} />);
 

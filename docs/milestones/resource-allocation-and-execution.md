@@ -51,7 +51,7 @@ Connect compact host activity and embedded project Status/Performance/Finances t
 | Dependency graph execution | Merged into #119 | [#121](https://github.com/movahedan/fivenines/pull/121) | [#77](https://github.com/movahedan/fivenines/issues/77); merged 2026-09-11 |
 | Transfers and migration completion | Merged into #119 | [#122](https://github.com/movahedan/fivenines/pull/122) | [#78](https://github.com/movahedan/fivenines/issues/78); merged 2026-09-11 |
 | First-project settlement and playtest | In review | [#123](https://github.com/movahedan/fivenines/pull/123) | [#79](https://github.com/movahedan/fivenines/issues/79); stacked on #119 |
-| Integrated runtime projections | In review | — | [#80](https://github.com/movahedan/fivenines/issues/80); stacked on #123 |
+| Integrated runtime projections | In review | [#124](https://github.com/movahedan/fivenines/pull/124) | [#80](https://github.com/movahedan/fivenines/issues/80); stacked on #123 |
 
 ## Playtest findings (#79)
 

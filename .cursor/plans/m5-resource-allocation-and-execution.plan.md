@@ -4,7 +4,7 @@ overview: "Milestone 5 stacked on #111: base docs PR, then allocator (#76), path
 todos:
   - id: base
     content: "Base PR on #111: milestone stack branch + this plan"
-    status: in_progress
+    status: completed
   - id: allocator
     content: "#76 replace place-demand with heterogeneous proportional allocation"
     status: pending

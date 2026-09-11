@@ -90,6 +90,9 @@ export interface ProjectInitial {
 	patienceMilliHours?: number;
 	billingOriginHour?: number;
 	prepaidAdvance?: boolean;
+	setupServerId?: string;
+	installedServiceIds?: readonly string[];
+	connectionConfigured?: boolean;
 }
 
 function isProjectCategory(value: string): value is ProjectCategory {
@@ -157,6 +160,9 @@ export class Project {
 	readonly patienceMilliHours: number | undefined;
 	readonly billingOriginHour: number | undefined;
 	readonly prepaidAdvance: boolean;
+	readonly setupServerId: string | undefined;
+	readonly installedServiceIds: readonly string[];
+	readonly connectionConfigured: boolean;
 	readonly #status: ProjectStatus;
 	readonly #route: RouteTarget | undefined;
 	readonly #demandModel: DemandModel;
@@ -209,6 +215,9 @@ export class Project {
 			"billingOriginHour",
 		);
 		this.prepaidAdvance = initial.prepaidAdvance ?? false;
+		this.setupServerId = initial.setupServerId;
+		this.installedServiceIds = [...(initial.installedServiceIds ?? [])];
+		this.connectionConfigured = initial.connectionConfigured ?? false;
 		this.#demandModel =
 			initial.demand === "constant"
 				? new ConstantDemand(this.estimatedRequestsPerHour)
@@ -294,6 +303,36 @@ export class Project {
 		}
 
 		return this.#transition("accepted", undefined, { ready: true });
+	}
+
+	withSetupServerId(serverId: string): Project {
+		if (this.#status !== "accepted") {
+			throw new Error(`project is not accepted: ${this.id}`);
+		}
+
+		return this.#transition("accepted", undefined, { setupServerId: serverId });
+	}
+
+	withInstalledService(serviceId: string): Project {
+		if (this.#status !== "accepted") {
+			throw new Error(`project is not accepted: ${this.id}`);
+		}
+
+		if (this.installedServiceIds.includes(serviceId)) {
+			return this;
+		}
+
+		return this.#transition("accepted", undefined, {
+			installedServiceIds: [...this.installedServiceIds, serviceId],
+		});
+	}
+
+	withConnectionConfigured(): Project {
+		if (this.#status !== "accepted") {
+			throw new Error(`project is not accepted: ${this.id}`);
+		}
+
+		return this.#transition("accepted", undefined, { connectionConfigured: true });
 	}
 
 	withPatienceMilliHours(patienceMilliHours: number): Project {
@@ -568,6 +607,9 @@ export class Project {
 			patienceMilliHours: this.patienceMilliHours,
 			billingOriginHour: this.billingOriginHour,
 			prepaidAdvance: this.prepaidAdvance,
+			setupServerId: this.setupServerId,
+			installedServiceIds: this.installedServiceIds,
+			connectionConfigured: this.connectionConfigured,
 			...(this.campaign === undefined ? {} : { campaign: this.campaign }),
 			...(route === undefined ? {} : { route }),
 			...overrides,

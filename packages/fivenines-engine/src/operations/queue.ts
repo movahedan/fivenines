@@ -147,4 +147,14 @@ export class OperationalQueue {
 	#activeCount(): number {
 		return this.#tasks.filter((task) => task.status === "active").length;
 	}
+
+	dropVolatileProgress(projectId: string): void {
+		this.#tasks = this.#tasks.map((task) => {
+			if (task.projectId !== projectId || task.status !== "active") {
+				return task;
+			}
+
+			return { ...task, progressMilliHours: 0 };
+		});
+	}
 }

@@ -80,7 +80,7 @@ async function setupFirstOffer(): Promise<void> {
 
 	await waitFor(() => {
 		expect(screen.getByText("Active (1)")).toBeTruthy();
-		expect(screen.getByText(/Installs are not applied to instances yet/)).toBeTruthy();
+		expect(screen.getByText(/Assign a box, then install and configure/)).toBeTruthy();
 	});
 }
 

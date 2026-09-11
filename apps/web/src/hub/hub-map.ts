@@ -180,6 +180,11 @@ const COMMAND_LOG_TONE: Record<EngineCommand["type"], EventLogTone> = {
 	cancelLearning: "warn",
 	enqueueOperationalTask: "success",
 	cancelOperationalTask: "warn",
+	placeSetup: "info",
+	installService: "success",
+	configureConnection: "success",
+	powerOn: "success",
+	powerOff: "warn",
 };
 
 export function commandLogTone(commandType: EngineCommand["type"]): EventLogTone {

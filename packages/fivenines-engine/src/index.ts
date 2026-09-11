@@ -41,7 +41,9 @@ export {
 } from "./catalog/opening-shift-policy";
 export {
 	FIRST_PROJECT_SETUP_TASKS,
+	firstProjectSetupHours,
 	firstProjectSetupTaskIds,
+	INSTALLABLE_SERVICE_IDS,
 	OPERATIONAL_SLOT_COUNT,
 } from "./catalog/operations-policy";
 export type { RegionId } from "./catalog/regions";

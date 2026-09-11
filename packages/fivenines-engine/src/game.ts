@@ -3,7 +3,12 @@ import { units } from "@packages/shared/units";
 
 import { SETUP_WITHDRAWAL_REPUTATION_DELTA } from "./catalog/contract-policy";
 import { DEBT_LIMIT_CENTS, STARTING_CASH_CENTS } from "./catalog/economy-policy";
-import { firstProjectSetupTaskIds } from "./catalog/operations-policy";
+import {
+	firstProjectSetupTaskIds,
+	installTaskId,
+	parseInstallableServiceId,
+	SHARED_CONNECTION_TASK_ID,
+} from "./catalog/operations-policy";
 import { Customer, type CustomerInitial } from "./customer";
 import { placeProjectDemand } from "./demand";
 import {
@@ -203,6 +208,18 @@ export class Game {
 
 			return this;
 		}
+
+		if (
+			command.type === "placeSetup" ||
+			command.type === "installService" ||
+			command.type === "configureConnection" ||
+			command.type === "powerOn" ||
+			command.type === "powerOff"
+		) {
+			this.#dispatchSetupAndPower(command);
+
+			return this;
+		}
 		const next = applyCommand(
 			{
 				customers: this.#customers,
@@ -303,7 +320,7 @@ export class Game {
 				const routedServer =
 					route === undefined ? undefined : this.#serversById.get(route.serverId);
 
-				if (routedServer === undefined) {
+				if (routedServer === undefined || !routedServer.poweredOn) {
 					unroutableDemand += demand;
 					continue;
 				}
@@ -576,25 +593,141 @@ export class Game {
 		}
 	}
 
+	#dispatchSetupAndPower(command: EngineCommand): void {
+		if (command.type === "placeSetup") {
+			if (this.#jailed) {
+				throw new Error("cannot placeSetup while jailed");
+			}
+
+			const server = this.#serversById.get(command.payload.serverId);
+
+			if (server === undefined) {
+				throw new Error(`unknown server id: ${command.payload.serverId}`);
+			}
+
+			const project = findProject(this.#customers, command.payload.projectId);
+
+			if (project.status !== "accepted") {
+				throw new Error(`project is not accepted: ${project.id}`);
+			}
+
+			this.#customers = [
+				...replaceProject(this.#customers, command.payload.projectId, "accepted", (current) =>
+					current.withSetupServerId(command.payload.serverId),
+				),
+			];
+			return;
+		}
+
+		if (command.type === "installService") {
+			if (this.#jailed) {
+				throw new Error("cannot installService while jailed");
+			}
+
+			const project = findProject(this.#customers, command.payload.projectId);
+
+			if (project.status !== "accepted") {
+				throw new Error(`project is not accepted: ${project.id}`);
+			}
+
+			if (project.setupServerId === undefined) {
+				throw new Error(`setup placement missing: ${project.id}`);
+			}
+
+			const serviceId = parseInstallableServiceId(command.payload.serviceId);
+
+			this.#operations.enqueue(
+				command.payload.projectId,
+				installTaskId(serviceId),
+				this.#learning.snapshot().completedCourseLevels,
+			);
+			return;
+		}
+
+		if (command.type === "configureConnection") {
+			if (this.#jailed) {
+				throw new Error("cannot configureConnection while jailed");
+			}
+
+			const project = findProject(this.#customers, command.payload.projectId);
+
+			if (project.status !== "accepted") {
+				throw new Error(`project is not accepted: ${project.id}`);
+			}
+
+			this.#operations.enqueue(
+				command.payload.projectId,
+				SHARED_CONNECTION_TASK_ID,
+				this.#learning.snapshot().completedCourseLevels,
+			);
+			return;
+		}
+
+		if (command.type === "powerOn") {
+			const server = this.#serversById.get(command.payload.serverId);
+
+			if (server === undefined) {
+				throw new Error(`unknown server id: ${command.payload.serverId}`);
+			}
+
+			server.powerOn();
+			return;
+		}
+
+		if (command.type === "powerOff") {
+			const server = this.#serversById.get(command.payload.serverId);
+
+			if (server === undefined) {
+				throw new Error(`unknown server id: ${command.payload.serverId}`);
+			}
+
+			server.powerOff();
+
+			for (const customer of this.#customers) {
+				for (const project of customer.projects) {
+					const placed =
+						project.setupServerId === command.payload.serverId ||
+						project.route?.serverId === command.payload.serverId;
+
+					if (placed) {
+						this.#operations.dropVolatileProgress(project.id);
+					}
+				}
+			}
+		}
+	}
+
 	#applyCompletedOperationalWork(completedProjectIds: readonly string[]): void {
 		const required = firstProjectSetupTaskIds();
 
 		for (const projectId of new Set(completedProjectIds)) {
-			const completed = this.#operations.completedTaskIds(projectId);
-			const ready = required.every((taskId) => completed.includes(taskId));
+			const project = findProject(this.#customers, projectId);
 
-			if (!ready) {
+			if (project.status !== "accepted") {
 				continue;
 			}
 
-			const project = findProject(this.#customers, projectId);
+			const completed = this.#operations.completedTaskIds(projectId);
+			let next = project;
 
-			if (project.status === "accepted" && !project.ready) {
-				this.#customers = [
-					...replaceProject(this.#customers, projectId, "accepted", (current) =>
-						current.withReady(),
-					),
-				];
+			if (completed.includes("install-application-runtime")) {
+				next = next.withInstalledService("application-runtime");
+			}
+
+			if (completed.includes("install-relational-database")) {
+				next = next.withInstalledService("relational-database");
+			}
+
+			if (completed.includes(SHARED_CONNECTION_TASK_ID)) {
+				next = next.withConnectionConfigured();
+			}
+
+			if (required.every((taskId) => completed.includes(taskId)) && !next.ready) {
+				next = next.withReady();
+			}
+
+			if (next !== project) {
+				this.#customers = [...replaceProject(this.#customers, projectId, "accepted", () => next)];
 			}
 		}
 	}

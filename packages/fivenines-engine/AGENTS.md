@@ -136,7 +136,8 @@ type EngineCommand =
   | { type: "installService"; payload: { projectId: string; serviceId: string } }
   | { type: "configureConnection"; payload: { projectId: string } }
   | { type: "powerOn"; payload: { serverId: string } }
-  | { type: "powerOff"; payload: { serverId: string } };
+  | { type: "powerOff"; payload: { serverId: string } }
+  | { type: "duplicateProject"; payload: { projectId: string; destinationServerId: string } };
 ```
 
 Learning enroll/pause/resume/cancel remain on the same union (see Learning below).
@@ -156,8 +157,9 @@ Learning enroll/pause/resume/cancel remain on the same union (see Learning below
 | `installService` | enqueue Application Runtime or Relational Database install (requires placement) |
 | `configureConnection` | enqueue the one shared connection task |
 | `powerOn` / `powerOff` | immediate; off drops volatile ops progress and live slices, keeps completed installs |
+| `duplicateProject` | copies **this** served project only onto a compatible destination; copy is `accepted` with `pendingTransfer`; source stays served |
 
-Unknown project id or wrong source status throws. `startProject` throws when `ready` is false. Completing ops work never calls `startProject`. Cash-changing commands are `acceptProject` (credit advance), `cancelSetup` (debit refund), `buyServer` (debit purchase), and `sellServer` (credit salvage). `leaseServer` and `releaseServer` do not change cash. Any command carrying a `serverId` throws `unknown server id` when the box is absent.
+Unknown project id or wrong source status throws. `startProject` throws when `ready` is false or `pendingTransfer` is set. Completing ops work never calls `startProject`. Cash-changing commands are `acceptProject` (credit advance), `cancelSetup` (debit refund), `buyServer` (debit purchase), and `sellServer` (credit salvage). `leaseServer` and `releaseServer` do not change cash. Any command carrying a `serverId` throws `unknown server id` when the box is absent.
 
 `acceptProject`, `startProject`, `buyServer`, `leaseServer`, `enqueueOperationalTask`, `placeSetup`, `installService`, and `configureConnection` throw while `jailed`; `cancelSetup` / `cancelOperationalTask` / `powerOn` / `powerOff` / `moveProject` / `unassignProject` / `assignProject` / `sellServer` / `releaseServer` / `declineProject` are allowed while jailed.
 
@@ -225,6 +227,6 @@ Hourly arrival: `m = baseline × rhythm × campaign × spike`, then Gamma–Pois
 - M1 (in review on #98): [engine architecture and mathematics](../../.cursor/plans/m1-engine-architecture-and-mathematics.plan.md)
 - M2 (in review on #101): [entities and catalogs](../../.cursor/plans/m2-entities-and-catalogs.plan.md)
 - M3 (in review on #104): [demand, work retention and learning](../../.cursor/plans/m3-demand-and-learning-foundations.plan.md)
-- M4 (stacks on #104): [infrastructure preparation and operations](../../.cursor/plans/m4-infrastructure-preparation-and-operations.plan.md) — #71/#112, #113/#114, and #72/#115 are folded into #111. [#73](https://github.com/movahedan/fivenines/issues/73) is install/config/power.
+- M4 (stacks on #104): [infrastructure preparation and operations](../../.cursor/plans/m4-infrastructure-preparation-and-operations.plan.md) — #71–#73 folded into #111. [#74](https://github.com/movahedan/fivenines/issues/74) is pending transfer (no M5 movement).
 - Authored tuning: [Balance baseline](../../docs/product/balance/index.md)
 - Current behavior remains defined by this guide, source, and tests. Retired engine/hosting plans were deleted after product consolidation; the product reference does not imply that its future behavior is already implemented.

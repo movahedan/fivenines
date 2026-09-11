@@ -38,7 +38,8 @@ export type EngineCommand =
 	| { type: "installService"; payload: { projectId: string; serviceId: string } }
 	| { type: "configureConnection"; payload: { projectId: string } }
 	| { type: "powerOn"; payload: { serverId: string } }
-	| { type: "powerOff"; payload: { serverId: string } };
+	| { type: "powerOff"; payload: { serverId: string } }
+	| { type: "duplicateProject"; payload: { projectId: string; destinationServerId: string } };
 
 export interface GameGraph {
 	readonly customers: readonly Customer[];

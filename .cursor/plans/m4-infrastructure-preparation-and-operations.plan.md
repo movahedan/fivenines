@@ -16,6 +16,9 @@ todos:
     status: completed
   - id: install-config
     content: "#73 two installs + one shared config, power on/off"
+    status: completed
+  - id: duplicate-transfer
+    content: "#74 project-only duplication prep + pending transfer (no M5 movement)"
     status: in_progress
   - id: install-config
     content: "#73 two installs + one shared config, power on/off"

@@ -88,6 +88,7 @@ describe("hub-map - sla and sku labels", () => {
 		expect(commandLogTone("cancelOperationalTask")).toBe("warn");
 		expect(commandLogTone("installService")).toBe("success");
 		expect(commandLogTone("powerOff")).toBe("warn");
+		expect(commandLogTone("duplicateProject")).toBe("info");
 	});
 
 	it("still ticks served teaching fixtures so hub coverage includes live demand", () => {

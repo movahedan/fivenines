@@ -93,6 +93,13 @@ export interface ProjectInitial {
 	setupServerId?: string;
 	installedServiceIds?: readonly string[];
 	connectionConfigured?: boolean;
+	pendingTransfer?: PendingTransfer;
+}
+
+export interface PendingTransfer {
+	readonly status: "pending";
+	readonly sourceProjectId: string;
+	readonly destinationServerId: string;
 }
 
 function isProjectCategory(value: string): value is ProjectCategory {
@@ -163,6 +170,7 @@ export class Project {
 	readonly setupServerId: string | undefined;
 	readonly installedServiceIds: readonly string[];
 	readonly connectionConfigured: boolean;
+	readonly pendingTransfer: PendingTransfer | undefined;
 	readonly #status: ProjectStatus;
 	readonly #route: RouteTarget | undefined;
 	readonly #demandModel: DemandModel;
@@ -218,6 +226,7 @@ export class Project {
 		this.setupServerId = initial.setupServerId;
 		this.installedServiceIds = [...(initial.installedServiceIds ?? [])];
 		this.connectionConfigured = initial.connectionConfigured ?? false;
+		this.pendingTransfer = initial.pendingTransfer;
 		this.#demandModel =
 			initial.demand === "constant"
 				? new ConstantDemand(this.estimatedRequestsPerHour)
@@ -288,6 +297,10 @@ export class Project {
 			throw new Error(`project is not ready: ${this.id}`);
 		}
 
+		if (this.pendingTransfer !== undefined) {
+			throw new Error(`pending transfer blocks start: ${this.id}`);
+		}
+
 		return this.#transition(
 			"served",
 			{ kind: "server", serverId },
@@ -300,6 +313,10 @@ export class Project {
 	withReady(): Project {
 		if (this.#status !== "accepted") {
 			throw new Error(`project is not accepted: ${this.id}`);
+		}
+
+		if (this.pendingTransfer !== undefined) {
+			throw new Error(`pending transfer blocks ready: ${this.id}`);
 		}
 
 		return this.#transition("accepted", undefined, { ready: true });
@@ -333,6 +350,32 @@ export class Project {
 		}
 
 		return this.#transition("accepted", undefined, { connectionConfigured: true });
+	}
+
+	asDuplicate(copyId: string, destinationServerId: string, hourIndex: number): Project {
+		if (this.#status !== "served") {
+			throw new Error(`project is not served: ${this.id}`);
+		}
+
+		return new Project({
+			id: copyId,
+			estimatedRequestsPerHour: this.estimatedRequestsPerHour,
+			status: "accepted",
+			demand: this.demand,
+			category: this.category,
+			region: this.region,
+			campaignProne: this.campaignProne,
+			commercial: this.commercial,
+			acceptedHour: hourIndex,
+			ready: false,
+			setupServerId: destinationServerId,
+			pendingTransfer: {
+				status: "pending",
+				sourceProjectId: this.id,
+				destinationServerId,
+			},
+			...(this.campaign === undefined ? {} : { campaign: this.campaign }),
+		});
 	}
 
 	withPatienceMilliHours(patienceMilliHours: number): Project {
@@ -610,6 +653,7 @@ export class Project {
 			setupServerId: this.setupServerId,
 			installedServiceIds: this.installedServiceIds,
 			connectionConfigured: this.connectionConfigured,
+			pendingTransfer: this.pendingTransfer,
 			...(this.campaign === undefined ? {} : { campaign: this.campaign }),
 			...(route === undefined ? {} : { route }),
 			...overrides,

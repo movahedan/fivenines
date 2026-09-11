@@ -66,6 +66,7 @@ export type {
 	BillingSettlement,
 	CampaignWindow,
 	DemandKind,
+	PendingTransfer,
 	ProjectCategory,
 	ProjectInitial,
 	ProjectStatus,

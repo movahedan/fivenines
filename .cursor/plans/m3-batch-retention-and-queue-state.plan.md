@@ -4,13 +4,13 @@ overview: "Issue #68: waiting batches keep age/progress; durable vs volatile occ
 todos:
   - id: queues
     content: "Arrival cohorts, wait-policy carry, occupancy, overflow reject-new"
-    status: pending
+    status: completed
   - id: verify
     content: "bun test packages/fivenines-engine && bun run overall"
-    status: pending
+    status: completed
   - id: docs
     content: "documentation-sync: engine AGENTS + milestone row"
-    status: pending
+    status: completed
 isProject: false
 ---
 

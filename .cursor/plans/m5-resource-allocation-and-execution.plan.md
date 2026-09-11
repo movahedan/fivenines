@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: allocator
     content: "#76 replace place-demand with heterogeneous proportional allocation"
-    status: pending
+    status: completed
   - id: paths
     content: "#77 compiled required paths, branch joins, type-specific outcomes"
     status: pending

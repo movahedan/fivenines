@@ -4,7 +4,6 @@ import {
 	FixedRandomSource,
 	Game,
 	PAYG_ONLY_COMMERCIAL_STUB,
-	SequenceRandomSource,
 	twoBronzeInitial,
 } from "@packages/fivenines-engine";
 
@@ -92,7 +91,6 @@ describe("hub-map - sla and sku labels", () => {
 	});
 
 	it("still ticks served teaching fixtures so hub coverage includes live demand", () => {
-		const random = new SequenceRandomSource([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]);
 		const game = new Game(twoBronzeInitial, { random: new FixedRandomSource(0.5) }).tick();
 		const shaped = new Game(
 			{
@@ -102,7 +100,7 @@ describe("hub-map - sla and sku labels", () => {
 						projects: [
 							{
 								id: "shaped-1",
-								estimatedRequestsPerHour: 100,
+								estimatedRequestsPerHour: 120,
 								status: "served",
 								demand: "shaped",
 								category: "saas",
@@ -116,7 +114,7 @@ describe("hub-map - sla and sku labels", () => {
 				],
 				assets: [{ kind: "server", id: "server-1", catalogId: "bronze", region: "utc+0" }],
 			},
-			{ random },
+			{ random: new FixedRandomSource(0.5) },
 		).tick();
 
 		expect(game.metrics.handledRequests).toBeGreaterThan(0);

@@ -9,16 +9,19 @@ describe("CAPACITY_POLICY - v1 tables", () => {
 			cpuPerRequest: 1,
 			bytesPerRequest: 40,
 			memPerInflight: 2,
+			diskOpsPerRequest: 4,
 		});
 		expect(CAPACITY_POLICY.categories.saas).toEqual({
 			cpuPerRequest: 1,
 			bytesPerRequest: 10,
 			memPerInflight: 4,
+			diskOpsPerRequest: 2,
 		});
 		expect(CAPACITY_POLICY.categories.portfolio).toEqual({
 			cpuPerRequest: 1,
 			bytesPerRequest: 20,
 			memPerInflight: 1,
+			diskOpsPerRequest: 2,
 		});
 	});
 });

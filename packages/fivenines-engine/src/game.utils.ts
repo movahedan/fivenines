@@ -31,7 +31,9 @@ export type EngineCommand =
 	| { type: "enrollLearning"; payload: { subject: LearningSubject } }
 	| { type: "pauseLearning"; payload: { enrollmentId: string } }
 	| { type: "resumeLearning"; payload: { enrollmentId: string } }
-	| { type: "cancelLearning"; payload: { enrollmentId: string } };
+	| { type: "cancelLearning"; payload: { enrollmentId: string } }
+	| { type: "enqueueOperationalTask"; payload: { projectId: string; taskId: string } }
+	| { type: "cancelOperationalTask"; payload: { taskId: string } };
 
 export interface GameGraph {
 	readonly customers: readonly Customer[];
@@ -274,7 +276,7 @@ function assertNoServedRoute(customers: readonly Customer[], serverId: string): 
 	}
 }
 
-function replaceProject(
+export function replaceProject(
 	customers: readonly Customer[],
 	projectId: string,
 	requiredStatus: ProjectStatus,
@@ -325,7 +327,7 @@ function removeServer(assets: readonly GameAsset[], serverId: string): readonly 
 	return assets.filter((asset) => asset.id !== serverId);
 }
 
-function findProject(customers: readonly Customer[], projectId: string): Project {
+export function findProject(customers: readonly Customer[], projectId: string): Project {
 	for (const customer of customers) {
 		for (const project of customer.projects) {
 			if (project.id === projectId) {

@@ -80,7 +80,7 @@ async function setupFirstOffer(): Promise<void> {
 
 	await waitFor(() => {
 		expect(screen.getByText("Active (1)")).toBeTruthy();
-		expect(screen.getByText(/Install work is not in this slice/)).toBeTruthy();
+		expect(screen.getByText(/Installs are not applied to instances yet/)).toBeTruthy();
 	});
 }
 
@@ -125,6 +125,7 @@ describe("HubPage - session gate", () => {
 		);
 		expect(screen.getByRole("region", { name: "Learning" })).toBeTruthy();
 		expect(screen.getByText("LEARN")).toBeTruthy();
+		expect(screen.getByText("OPS")).toBeTruthy();
 	});
 });
 

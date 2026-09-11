@@ -3,6 +3,7 @@ import { units } from "@packages/shared/units";
 
 import { SETUP_WITHDRAWAL_REPUTATION_DELTA } from "./catalog/contract-policy";
 import { DEBT_LIMIT_CENTS, STARTING_CASH_CENTS } from "./catalog/economy-policy";
+import { firstProjectSetupTaskIds } from "./catalog/operations-policy";
 import { Customer, type CustomerInitial } from "./customer";
 import { placeProjectDemand } from "./demand";
 import {
@@ -25,11 +26,14 @@ import {
 	assertRoutesResolve,
 	createAsset,
 	type EngineCommand,
+	findProject,
 	type GameAsset,
 	postCashDelta,
+	replaceProject,
 } from "./game.utils";
 import { LearningBoard, type LearningSnapshot } from "./learning/board";
 import { type LearningCatalogRow, learningCatalog } from "./learning/catalog-view";
+import { OperationalQueue, type OperationalSnapshot } from "./operations/queue";
 import type { Project } from "./project";
 import type { Server } from "./server";
 import { spawnAcquaintanceIfDue } from "./setup-clock";
@@ -41,6 +45,7 @@ export type { GameTickMetrics } from "./game.metrics";
 export type { AssetInitial, EngineCommand, GameAsset } from "./game.utils";
 export type { LearningSnapshot, LearningSubject } from "./learning/board";
 export type { LearningCatalogRow, LearningRowStatus } from "./learning/catalog-view";
+export type { OperationalSnapshot, OperationalTask } from "./operations/queue";
 
 interface TickContext {
 	hour: number;
@@ -77,6 +82,7 @@ export class Game {
 	#jailed: boolean;
 	#opex: GameOpexTotals = EMPTY_GAME_OPEX;
 	#learning = new LearningBoard();
+	#operations = new OperationalQueue();
 	#reputation = 0;
 	#lastOfferResolveHour = 0;
 
@@ -172,6 +178,10 @@ export class Game {
 		return learningCatalog(this.#learning.snapshot(), this.#cashCents);
 	}
 
+	get operations(): OperationalSnapshot {
+		return this.#operations.snapshot();
+	}
+
 	get reputation(): number {
 		return this.#reputation;
 	}
@@ -184,6 +194,12 @@ export class Game {
 			command.type === "cancelLearning"
 		) {
 			this.#dispatchLearning(command);
+
+			return this;
+		}
+
+		if (command.type === "enqueueOperationalTask" || command.type === "cancelOperationalTask") {
+			this.#dispatchOperations(command);
 
 			return this;
 		}
@@ -386,7 +402,9 @@ export class Game {
 		ctx.cash = postCashDelta(ctx.cash, this.#learning.tick(simulatedHour, ctx.cash));
 	}
 
-	#tickOperations(_ctx: TickContext): void {}
+	#tickOperations(_ctx: TickContext): void {
+		this.#applyCompletedOperationalWork(this.#operations.tick());
+	}
 
 	#accruePayg(projects: readonly Project[]): void {
 		this.#accountsReceivableCents += accruePeriodPayg(projects);
@@ -530,6 +548,54 @@ export class Game {
 
 		if (command.type === "cancelLearning") {
 			this.#learning.cancel(command.payload.enrollmentId);
+		}
+	}
+
+	#dispatchOperations(command: EngineCommand): void {
+		if (command.type === "enqueueOperationalTask") {
+			if (this.#jailed) {
+				throw new Error("cannot enqueueOperationalTask while jailed");
+			}
+
+			const project = findProject(this.#customers, command.payload.projectId);
+
+			if (project.status !== "accepted") {
+				throw new Error(`project is not accepted: ${project.id}`);
+			}
+
+			this.#operations.enqueue(
+				command.payload.projectId,
+				command.payload.taskId,
+				this.#learning.snapshot().completedCourseLevels,
+			);
+			return;
+		}
+
+		if (command.type === "cancelOperationalTask") {
+			this.#operations.cancel(command.payload.taskId);
+		}
+	}
+
+	#applyCompletedOperationalWork(completedProjectIds: readonly string[]): void {
+		const required = firstProjectSetupTaskIds();
+
+		for (const projectId of new Set(completedProjectIds)) {
+			const completed = this.#operations.completedTaskIds(projectId);
+			const ready = required.every((taskId) => completed.includes(taskId));
+
+			if (!ready) {
+				continue;
+			}
+
+			const project = findProject(this.#customers, projectId);
+
+			if (project.status === "accepted" && !project.ready) {
+				this.#customers = [
+					...replaceProject(this.#customers, projectId, "accepted", (current) =>
+						current.withReady(),
+					),
+				];
+			}
 		}
 	}
 }

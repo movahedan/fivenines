@@ -39,6 +39,11 @@ export {
 	OPENING_SHIFT_HOURS,
 	openingShiftOutcome,
 } from "./catalog/opening-shift-policy";
+export {
+	FIRST_PROJECT_SETUP_TASKS,
+	firstProjectSetupTaskIds,
+	OPERATIONAL_SLOT_COUNT,
+} from "./catalog/operations-policy";
 export type { RegionId } from "./catalog/regions";
 export { DEFAULT_REGION, REGION_IDS, regions } from "./catalog/regions";
 export { SLA_WINDOW_HOURS, slaAvailabilityPpm, slaRecoveryHours } from "./catalog/sla-policy";

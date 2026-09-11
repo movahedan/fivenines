@@ -2,6 +2,12 @@
 
 Milestone 5 of 10. Status: in progress on the M5 stack branch from [#111](https://github.com/movahedan/fivenines/pull/111) (`feature/m4-infrastructure-preparation-and-operations`). Execution plan: [`.cursor/plans/m5-resource-allocation-and-execution.plan.md`](../../.cursor/plans/m5-resource-allocation-and-execution.plan.md). Follow the [standing delivery workflow](README.md). No slice is claimed delivered until its PR exists.
 
+## Interface-driven follow-up (planned)
+
+F1 verifies that same-host/split-host placement feeds actual allocation and retained work rather than only drawing a topology. F3 repeats commercial setup/activation/settlement, shared-resource, park and transfer tests with the approved longer preparation policy. Keep allocation formulas and historical playtest evidence; new tuning needs new evidence.
+
+Execution timing and gates: [F1–F3 delivery bridge](infrastructure-editor-and-interface-redesign.md). These follow-ups execute in M5.2, after M5.1 completes; they are not part of M5.1. This amendment does not change the historical PR/merge claims below.
+
 ## Outcome and boundaries
 
 Connect generated demand to actual shared-server work and compute end-to-end project outcomes, including data movement that competes with serving traffic.

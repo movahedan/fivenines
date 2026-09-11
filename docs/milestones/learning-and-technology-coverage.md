@@ -2,6 +2,16 @@
 
 Milestone 9 of 10. Status: planned; no implementation PR is claimed delivered. Follow the [standing delivery workflow](README.md).
 
+## Approved interface integration amendment
+
+**Dependencies:** Consume the [editor contract](../product/infrastructure-editor.md) and shared target/preparation APIs; F1–F3 foundations are not deferred to M9.
+
+**Changes to the proposed slices:** Extend eligibility and preparation by capability family: installed software, application integration, coverage and role-dependent replication are distinct. Required cards and optional Add share domain rules. Verify skills against longer preparation without adding Terraform.
+
+**Additional acceptance:** Every implemented v1 capability has a valid placement/detail route and actual overhead/work; research does not auto-install. Remove unsupported empty states only with real verified behavior.
+
+Status: planned; this documentation amendment does not claim implementation.
+
 ## Outcome and boundaries
 
 Close the gap between the version-one technology/course catalog and real engine capabilities, completing specialization effects and their player-facing explanations.

@@ -2,6 +2,12 @@
 
 Milestone 4 of 10. Status: in progress on the M4 stack branch from [#104](https://github.com/movahedan/fivenines/pull/104) (`feature/m3-demand-and-learning-foundations`). Execution plan: [`.cursor/plans/m4-infrastructure-preparation-and-operations.plan.md`](../../.cursor/plans/m4-infrastructure-preparation-and-operations.plan.md). Follow the [standing delivery workflow](README.md). No slice is claimed delivered until its PR exists.
 
+## Interface-driven follow-up (planned)
+
+F1 connects any remaining instance installation/readiness integration. F2/F3 extend setup with proposed changes, automatic dependency-aware work discovery and explicit apply. Shared settings and explicit project activation remain. The five-hour baseline below records the original policy; longer preparation is approved directionally but requires a numerical decision and replacement acceptance evidence before policy changes.
+
+Execution timing and gates: [F1–F3 delivery bridge](infrastructure-editor-and-interface-redesign.md). These follow-ups execute in M5.2, after M5.1 completes; they are not part of M5.1. This amendment does not change the historical PR/merge claims below.
+
 ## Outcome and boundaries
 
 Make a project system something the player prepares and operates: installation, shared configuration, readiness, power and project-scoped duplication become authoritative work.

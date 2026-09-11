@@ -2,6 +2,10 @@
 
 This is the product vocabulary and proposed relationship model. Existing engine entities are identified below; new concepts are not automatically new TypeScript classes, database tables, or UI nodes.
 
+## Editor representation and proposed changes
+
+The [infrastructure editor](infrastructure-editor.md) distinguishes unapplied intent from authoritative installations and tasks. A requirement card can represent installable software, an external integration or a capability with coverage; it is not always a deployment instance. Payment integration attaches to a compatible application. A hosted balancer may have an independent circular visual node without creating a second installation or hardware asset. Server nodes group current-project software rows; internal dependencies still exist semantically even though no lines are drawn inside the rack. Shared logical-service configuration remains authoritative. Exact host-link-to-domain mapping must be resolved before its command implementation.
+
 ## People, business, and agreements
 
 | Concept | Responsibility and relationships | Status |

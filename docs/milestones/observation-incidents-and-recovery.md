@@ -2,6 +2,16 @@
 
 Milestone 7 of 10. Status: planned; no implementation PR is claimed delivered. Follow the [standing delivery workflow](README.md).
 
+## Approved interface integration amendment
+
+**Dependencies:** Consume the shared proposal/target/preparation contracts from the [delivery bridge](infrastructure-editor-and-interface-redesign.md) as well as M6.
+
+**Changes to the proposed slices:** Extend coverage and recovery queries with eligible project components, prerequisites and real preparation tasks. Use existing bottom drawers, checklist and status slots instead of a new inspector layout.
+
+**Additional acceptance:** Verify host versus coverage selection, missing observations, actual recovery work and no hidden-cause exposure. Populate designed empty sections only when real support exists.
+
+Status: planned; this documentation amendment does not claim implementation.
+
 ## Outcome and boundaries
 
 Make failures, diagnosis and recovery obey actual coverage, data survival and customer responsibility, with useful historical feedback.

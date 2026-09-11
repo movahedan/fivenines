@@ -2,6 +2,12 @@
 
 Milestone 1 of 10. Status: in review on [#98](https://github.com/movahedan/fivenines/pull/98) (stacked [#99](https://github.com/movahedan/fivenines/pull/99) and [#100](https://github.com/movahedan/fivenines/pull/100) merged into it). Not yet on `main`. Follow the [standing delivery workflow](README.md).
 
+## Interface-driven follow-up (planned)
+
+Retain the one-clock architecture, tick ordering, resource equations and ledger. F1 verifies placement/accounting integration, F2 verifies pure proposal queries, and F3 reruns numerical/settlement scenarios. No formula rewrite is requested by this interface change.
+
+Execution timing and gates: [F1–F3 delivery bridge](infrastructure-editor-and-interface-redesign.md). These follow-ups execute in M5.2, after M5.1 completes; they are not part of M5.1. This amendment does not change the historical PR/merge claims below.
+
 ## Outcome and boundaries
 
 Agree and prove the contracts of the complete engine before replacing its runtime calculations. Produce durable technical documentation and executable numerical reference cases; this milestone does not claim a working redesigned campaign.

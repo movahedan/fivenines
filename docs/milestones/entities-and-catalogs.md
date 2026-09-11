@@ -2,6 +2,12 @@
 
 Milestone 2 of 10. Status: in progress on [#101](https://github.com/movahedan/fivenines/pull/101), stacked on [#98](https://github.com/movahedan/fivenines/pull/98). Follow the [standing delivery workflow](README.md). Execution plan: [`.cursor/plans/m2-entities-and-catalogs.plan.md`](../../.cursor/plans/m2-entities-and-catalogs.plan.md). **Merge target is #101**, not the former stacked slice PRs ([#102](https://github.com/movahedan/fivenines/pull/102) / [#103](https://github.com/movahedan/fivenines/pull/103), closed into #101). Milestone 3 is [#104](https://github.com/movahedan/fivenines/pull/104) on this same head.
 
+## Interface-driven follow-up (planned)
+
+F1 audits and completes live service/instance/shared-asset integration against the existing acceptance criteria. F2 adds requirement and proposed-state eligibility queries using those same identities. Separate remaining integration gaps from newly approved interaction behavior; do not introduce another topology owner.
+
+Execution timing and gates: [F1–F3 delivery bridge](infrastructure-editor-and-interface-redesign.md). These follow-ups execute in M5.2, after M5.1 completes; they are not part of M5.1. This amendment does not change the historical PR/merge claims below.
+
 ## Outcome and boundaries
 
 Replace the one-project/one-server assumption with project services, deployment instances and shared infrastructure identities, backed by validated catalog and policy modules.

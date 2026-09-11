@@ -2,6 +2,18 @@
 
 The product and interface discussion is complete for the current design handoff. There is no remaining general product questionnaire. Catalogs and coefficients were delegated and have an authored design-0.3 baseline; they are not measured runtime balance. New questions should identify a concrete contradiction or a necessary scope change, not reopen settled decisions.
 
+## Infrastructure editor integration decisions
+
+The [editor interaction](infrastructure-editor.md) is approved; the following details remain to resolve before their dependent engine changes in the [delivery bridge](../milestones/infrastructure-editor-and-interface-redesign.md):
+
+- Map drawn host links to logical service dependencies and instance routing while preserving shared configuration; distinguish routing from dependency and placement.
+- Define proposal acquisition/power/removal scope, temporary identities, purchase/lease timing, fresh validation, duplicate submissions and rejection/partial-apply semantics. Warning modal and edit preservation are agreed; they do not alone settle transactions.
+- Define mixed runnable/blocked preparation behavior and effects on already-running configured services.
+- Choose longer preparation work through first-project timing, patience/refund and affordability tests; preserve existing skill effects. No numeric replacement is approved yet.
+- Define host selection for the independent circular hosted load-balancer node in M8.
+
+These do not block visual-only component work. They block only the affected real engine behavior; no UI-local rules may fill the gap.
+
 ## Ready for use
 
 - Product identity, entities, lifecycle, obligations, relationships, learning and recovery rules.

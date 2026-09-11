@@ -2,6 +2,16 @@
 
 Milestone 10 of 10. Status: planned; no implementation PR is claimed delivered. Follow the [standing delivery workflow](README.md).
 
+## Approved interface integration amendment
+
+**Dependencies:** Consume the visual and integration records in the [delivery bridge](infrastructure-editor-and-interface-redesign.md), plus the original M9 prerequisite.
+
+**Changes to the proposed slices:** Audit complete desktop/mobile slots, Requirements rotation, both Add drawers, valid-only placement overlays, visible manual anchors, apply warnings, persistent setup checklist and growing full-width software rows. Automatic-only layout replaces free node dragging; compact acquisition/Inventory replaces mandatory rack reuse.
+
+**Additional acceptance:** Verify all formerly empty v1 sections against real capability data and full campaign outcomes. Fixture-only UI is never completion evidence; retain performance/accessibility/balance closure here.
+
+Status: planned; this documentation amendment does not claim implementation.
+
 ## Outcome and boundaries
 
 Finish the already integrated desktop/mobile experience and establish evidence that the complete business simulation is coherent, usable and balanced over extended play.
@@ -29,7 +39,7 @@ These are outcome-sized slices, not fixed file lists. Inspect current code and m
 - Mobile has five bottom-bar items: Projects, Inventory, the central New project action, Learning, and Finances. The four destinations switch views; New project opens the offer page, and acceptance happens only after full Contract Review; Back retains the selected offer. Desktop uses resizable/collapsible Projects on the left and one business destination on the right. Project Contract/Infrastructure/Setup or Project status sections and desktop top-bar/mobile-strip progress follow the approved design. Acquisition and impact drawers retain their own scroll/gesture rules.
 - Object inspectors use bottom drawers on both devices; checklist actions and recovery reach the same context. Connections work through source selection, Connect and compatible destination selection without required drag. Account menus expose only functional defined actions; Profile and What’s new remain omitted.
 - At narrow mobile widths, contain infrastructure pan/zoom within its canvas and keep surrounding pages and headers within the viewport; task progress and safe areas do not obscure navigation. Verify contrast, keyboard focus/return, chart point access and reduced motion with actual components, not merely the export.
-- Server visuals in project, Inventory, acquisition and details consistently reuse the main workspace rack design.
+- Project racks use full-width software rows; Inventory/acquisition/details use compact context-appropriate visuals with consistent identity and state language.
 - System rack, modules, balancers and asset actions preserve hierarchy and shared-project impact. Pending/rejected/disabled/destructive states remain understandable without hover.
 - The first-project then two-project multi-cycle validation flow succeeds under an attainable strategy, while overload and missing recovery can produce the intended losses and customer departure.
 - Charts, period summaries and debit/credit records reconcile with authoritative outcomes. Missing monitoring remains visibly missing; no presentation layer computes alternative economics.

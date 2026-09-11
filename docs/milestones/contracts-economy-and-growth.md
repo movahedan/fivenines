@@ -2,6 +2,16 @@
 
 Milestone 6 of 10. Status: planned; no implementation PR is claimed delivered. Follow the [standing delivery workflow](README.md).
 
+## Approved interface integration amendment
+
+**Dependencies:** This milestone depends on completed [M5.2](infrastructure-engine-and-interface-integration.md); do not rebuild a parallel setup lifecycle. M6 starts after M5.2 completes; its internal slice dependencies remain.
+
+**Changes to the proposed slices:** Extend the acceptance/setup slice to map contract requirements to supported card/entity semantics and consume automatic preparation. Preserve payment-as-application-integration, explicit activation, advances and patience.
+
+**Additional acceptance:** Verify central contract review → requirement placement → setup → explicit activation, longer preparation against documented patience, and actual finance projections. No billing origin is created by Setup alone.
+
+Status: planned; this documentation amendment does not claim implementation.
+
 ## Outcome and boundaries
 
 Generalize the first commercial loop delivered in milestones 4–5 to version-one contracts, relationships and business growth. Reuse its acceptance, activation, ledger, settlement and debt rules.
@@ -10,7 +20,7 @@ Use deterministic boundary tests and ledger reconciliation before stochastic bal
 
 ## Prerequisites and sources
 
-[Resource allocation and system execution](resource-allocation-and-execution.md), including the learning money-posting boundary from milestone 3.
+[Infrastructure engine and interface integration (M5.2)](infrastructure-engine-and-interface-integration.md), following M5.1 and the original M5 foundations, including the learning money-posting boundary from milestone 3.
 
 Product sources: [gameplay](../product/gameplay.md), [product direction](../product/product-direction.md), [contracts and time](../product/balance/contracts-and-time.md), [customers and offers](../product/balance/customers-and-offers.md), [hardware and economy](../product/balance/hardware-and-economy.md).
 

@@ -117,6 +117,9 @@ describe("HubPage - session gate", () => {
 
 		await waitForOpsFloor();
 		expect(screen.getByRole("region", { name: "Incoming queue" })).toBeTruthy();
+		expect(screen.getByRole("region", { name: "Projects" })).toBeTruthy();
+		expect(screen.getByRole("region", { name: "Business" })).toBeTruthy();
+		expect(screen.getByRole("navigation", { name: "Workspace" })).toBeTruthy();
 		expect(screen.getByRole("region", { name: "Server market" })).toBeTruthy();
 		expect(screen.getByText("Incoming (1)")).toBeTruthy();
 		expect(screen.getByText("Fleet (0)")).toBeTruthy();
@@ -126,6 +129,7 @@ describe("HubPage - session gate", () => {
 		expect(screen.getByRole("region", { name: "Learning" })).toBeTruthy();
 		expect(screen.getByText("LEARN")).toBeTruthy();
 		expect(screen.getByText("OPS")).toBeTruthy();
+		expect(screen.getByText(/Issue #66 shared-asset identity is incomplete/)).toBeTruthy();
 	});
 });
 

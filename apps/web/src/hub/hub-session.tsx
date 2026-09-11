@@ -137,6 +137,8 @@ export function HubSession() {
 	const [reviewProjectId, setReviewProjectId] = useState<string | null>(null);
 	const [routePicks, setRoutePicks] = useState<ReadonlyMap<string, string>>(new Map());
 	const [entries, setEntries] = useState<readonly EventLogEntry[]>([]);
+	const [inspectedAssetId, setInspectedAssetId] = useState<string | null>(null);
+	const [workspacePane, setWorkspacePane] = useState<"projects" | "floor" | "business">("floor");
 	const regionSelectId = useId();
 	const loggedHourRef = useRef<number | null>(null);
 	const { cashCents, accountsReceivableCents, jailed, opexCents } = game.finance;
@@ -195,6 +197,7 @@ export function HubSession() {
 	const accepted = collectAccepted(game.customers);
 	const served = collectServed(game.customers);
 	const parked = collectParked(game.customers);
+	const inspectedAsset = game.assets.find((asset) => asset.id === inspectedAssetId);
 	const shiftOutcome = evaluateOpeningShift(game);
 	const shiftCopy = openingShiftResultCopy(shiftOutcome);
 
@@ -293,39 +296,65 @@ export function HubSession() {
 					{lastError}
 				</p>
 			) : null}
+			<nav
+				aria-label="Workspace"
+				className="flex shrink-0 gap-1 border-b border-border bg-hud px-2 py-1"
+			>
+				{(
+					[
+						["projects", "Projects"],
+						["floor", "Floor"],
+						["business", "Business"],
+					] as const
+				).map(([id, label]) => (
+					<Button
+						key={id}
+						aria-current={workspacePane === id ? "page" : undefined}
+						size="sm"
+						variant={workspacePane === id ? "secondary" : "ghost"}
+						onClick={() => {
+							setWorkspacePane(id);
+						}}
+					>
+						{label}
+					</Button>
+				))}
+			</nav>
 			<main className="flex min-h-0 flex-1">
 				<section
-					aria-label="Incoming queue"
+					aria-label="Projects"
 					className="flex min-h-0 w-[320px] shrink-0 flex-col border-r border-border bg-panel"
 				>
-					<PanelHeader count={offers.length} label="Incoming" tone="warning" />
-					<div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
-						{offers.map(({ customerId, project }) => (
-							<ProjectOfferCard
-								cpuLabel={formatters.coresCompact(project.estimatedRequestsPerHour)}
-								customerName={customerId}
-								disabled={jailed}
-								key={project.id}
-								name={project.id}
-								onAccept={() => {
-									setReviewProjectId(project.id);
-								}}
-								onDecline={() => {
-									runCommand(
-										{ type: "declineProject", payload: { projectId: project.id } },
-										`Declined ${project.id}`,
-									);
-									if (reviewProjectId === project.id) {
-										setReviewProjectId(null);
-									}
-								}}
-								paygLabel={`${String(project.commercial.paygCentsPerThousandHandled)}¢/k`}
-								regionClassName={REGION_CLASS[project.region]}
-								regionLabel={project.region}
-								slaLabel={formatters.ppm(project.commercial.targetPpm)}
-							/>
-						))}
-					</div>
+					<section aria-label="Incoming queue" className="flex min-h-0 min-w-0 flex-1 flex-col">
+						<PanelHeader count={offers.length} label="Incoming" tone="warning" />
+						<div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
+							{offers.map(({ customerId, project }) => (
+								<ProjectOfferCard
+									cpuLabel={formatters.coresCompact(project.estimatedRequestsPerHour)}
+									customerName={customerId}
+									disabled={jailed}
+									key={project.id}
+									name={project.id}
+									onAccept={() => {
+										setReviewProjectId(project.id);
+									}}
+									onDecline={() => {
+										runCommand(
+											{ type: "declineProject", payload: { projectId: project.id } },
+											`Declined ${project.id}`,
+										);
+										if (reviewProjectId === project.id) {
+											setReviewProjectId(null);
+										}
+									}}
+									paygLabel={`${String(project.commercial.paygCentsPerThousandHandled)}¢/k`}
+									regionClassName={REGION_CLASS[project.region]}
+									regionLabel={project.region}
+									slaLabel={formatters.ppm(project.commercial.targetPpm)}
+								/>
+							))}
+						</div>
+					</section>
 				</section>
 				<section
 					aria-label="Active floor"
@@ -645,7 +674,7 @@ export function HubSession() {
 									selectServer(project.id, serverId);
 								}}
 								project={project}
-								routeLabel="ASSIGN"
+								routeLabel="Resume"
 								selectedServerId={pickedServerId(project)}
 								serverLabel={routedServerLabel(project)}
 								serverOptions={serverOptions}
@@ -661,108 +690,151 @@ export function HubSession() {
 								const leased = assetTenureKind(asset) === "leased";
 
 								return (
-									<ServerCard
-										cpuLabel={skuCpuLabel(asset.catalogId)}
-										cpuPercent={axisPercent(asset.metrics.cpuLoad, asset.computeUnitsPerHour)}
-										dotClassName={SKU_DOT_CLASS[asset.catalogId]}
-										idLabel={`${asset.id} · ${assetTenureKind(asset)}`}
-										key={asset.id}
-										label={`${SERVER_TIER_LABEL[asset.catalogId]} · ${asset.region}`}
-										netLabel={skuNetLabel(asset.catalogId)}
-										netPercent={axisPercent(asset.metrics.netLoad, asset.networkBytesPerHour)}
-										onRelease={
-											leased
-												? () => {
-														runCommand(
-															{ type: "releaseServer", payload: { serverId: asset.id } },
-															`Released ${asset.id}`,
-														);
-													}
-												: undefined
-										}
-										onSell={
-											leased
-												? undefined
-												: () => {
-														runCommand(
-															{ type: "sellServer", payload: { serverId: asset.id } },
-															`Sold ${asset.id}`,
-														);
-													}
-										}
-										opexLabel={skuFleetOpexLabel(asset.catalogId, asset.tenure)}
-										ramLabel={skuRamLabel(asset.catalogId)}
-										ramPercent={axisPercent(asset.metrics.memOcc, asset.memoryMiB)}
-										variant="fleet"
-									/>
+									<div className="flex flex-col gap-1" key={asset.id}>
+										<Button
+											size="sm"
+											variant="ghost"
+											onClick={() => {
+												setInspectedAssetId(asset.id);
+											}}
+										>
+											Inspect {asset.id}
+										</Button>
+										<ServerCard
+											cpuLabel={skuCpuLabel(asset.catalogId)}
+											cpuPercent={axisPercent(asset.metrics.cpuLoad, asset.computeUnitsPerHour)}
+											dotClassName={SKU_DOT_CLASS[asset.catalogId]}
+											idLabel={`${asset.id} · ${assetTenureKind(asset)}`}
+											label={`${SERVER_TIER_LABEL[asset.catalogId]} · ${asset.region}`}
+											netLabel={skuNetLabel(asset.catalogId)}
+											netPercent={axisPercent(asset.metrics.netLoad, asset.networkBytesPerHour)}
+											onRelease={
+												leased
+													? () => {
+															runCommand(
+																{ type: "releaseServer", payload: { serverId: asset.id } },
+																`Released ${asset.id}`,
+															);
+														}
+													: undefined
+											}
+											onSell={
+												leased
+													? undefined
+													: () => {
+															runCommand(
+																{ type: "sellServer", payload: { serverId: asset.id } },
+																`Sold ${asset.id}`,
+															);
+														}
+											}
+											opexLabel={skuFleetOpexLabel(asset.catalogId, asset.tenure)}
+											ramLabel={skuRamLabel(asset.catalogId)}
+											ramPercent={axisPercent(asset.metrics.memOcc, asset.memoryMiB)}
+											variant="fleet"
+										/>
+									</div>
 								);
 							})
 						)}
 					</div>
 				</section>
 				<section
-					aria-label="Server market"
+					aria-label="Business"
 					className="flex min-h-0 w-[300px] shrink-0 flex-col border-l border-border bg-panel"
 				>
-					<PanelHeader
-						count={SERVER_CATALOG_IDS.length}
-						label="Market"
-						tone="destructive"
-						trailing={
-							<label className="font-mono text-xs text-muted-foreground" htmlFor={regionSelectId}>
-								Region
-								<select
-									className="ml-1 bg-card text-foreground"
-									id={regionSelectId}
-									name="buy-region"
-									onChange={(event) => setBuyRegion(regions.parseRegionId(event.target.value))}
-									value={buyRegion}
-								>
-									{REGION_IDS.map((id) => (
-										<option key={id} value={id}>
-											{id}
-										</option>
-									))}
-								</select>
-							</label>
-						}
-					/>
-					<div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
-						{SERVER_CATALOG_IDS.map((catalogId: ServerCatalogId) => {
-							const canAfford = !jailed && cashCents >= SKU_ECONOMY[catalogId].purchaseCents;
-							const canAffordLease = !jailed;
+					<section aria-label="Server market" className="flex min-h-0 min-w-0 flex-1 flex-col">
+						<PanelHeader
+							count={SERVER_CATALOG_IDS.length}
+							label="Market"
+							tone="destructive"
+							trailing={
+								<label className="font-mono text-xs text-muted-foreground" htmlFor={regionSelectId}>
+									Region
+									<select
+										className="ml-1 bg-card text-foreground"
+										id={regionSelectId}
+										name="buy-region"
+										onChange={(event) => setBuyRegion(regions.parseRegionId(event.target.value))}
+										value={buyRegion}
+									>
+										{REGION_IDS.map((id) => (
+											<option key={id} value={id}>
+												{id}
+											</option>
+										))}
+									</select>
+								</label>
+							}
+						/>
+						<div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
+							{SERVER_CATALOG_IDS.map((catalogId: ServerCatalogId) => {
+								const canAfford = !jailed && cashCents >= SKU_ECONOMY[catalogId].purchaseCents;
+								const canAffordLease = !jailed;
 
-							return (
-								<ServerCard
-									canAfford={canAfford}
-									canAffordLease={canAffordLease}
-									costLabel={skuCostLabel(catalogId)}
-									cpuLabel={skuCpuLabel(catalogId)}
-									dotClassName={SKU_DOT_CLASS[catalogId]}
-									key={catalogId}
-									label={SERVER_TIER_LABEL[catalogId]}
-									leaseLabel={skuLeaseLabel(catalogId)}
-									onBuy={() => {
-										runCommand(
-											{
-												type: "buyServer",
-												payload: { serverType: catalogId, region: buyRegion },
-											},
-											`Bought ${SERVER_TIER_LABEL[catalogId]} in ${buyRegion}`,
-										);
-									}}
-									onLease={() => {
-										leaseCatalog(catalogId);
-									}}
-									opexLabel={skuOpexLabel(catalogId)}
-									ramLabel={skuRamLabel(catalogId)}
-									variant="market"
-								/>
-							);
-						})}
-					</div>
+								return (
+									<ServerCard
+										canAfford={canAfford}
+										canAffordLease={canAffordLease}
+										costLabel={skuCostLabel(catalogId)}
+										cpuLabel={skuCpuLabel(catalogId)}
+										dotClassName={SKU_DOT_CLASS[catalogId]}
+										key={catalogId}
+										label={SERVER_TIER_LABEL[catalogId]}
+										leaseLabel={skuLeaseLabel(catalogId)}
+										onBuy={() => {
+											runCommand(
+												{
+													type: "buyServer",
+													payload: { serverType: catalogId, region: buyRegion },
+												},
+												`Bought ${SERVER_TIER_LABEL[catalogId]} in ${buyRegion}`,
+											);
+										}}
+										onLease={() => {
+											leaseCatalog(catalogId);
+										}}
+										opexLabel={skuOpexLabel(catalogId)}
+										ramLabel={skuRamLabel(catalogId)}
+										variant="market"
+									/>
+								);
+							})}
+						</div>
+					</section>
 				</section>
 			</main>
+			{inspectedAsset !== undefined ? (
+				<section
+					aria-label="Object inspector"
+					className="flex shrink-0 flex-col gap-2 border-t border-border bg-panel p-2"
+				>
+					<PanelHeader count={1} label="Inventory" tone="info" />
+					<p className="font-mono text-xs text-muted-foreground">
+						Issue #66 shared-asset identity is incomplete. This drawer reuses the rack card; it is
+						not a topology id.
+					</p>
+					<ServerCard
+						cpuLabel={skuCpuLabel(inspectedAsset.catalogId)}
+						cpuPercent={axisPercent(
+							inspectedAsset.metrics.cpuLoad,
+							inspectedAsset.computeUnitsPerHour,
+						)}
+						dotClassName={SKU_DOT_CLASS[inspectedAsset.catalogId]}
+						idLabel={`${inspectedAsset.id} · ${assetTenureKind(inspectedAsset)}`}
+						label={`${SERVER_TIER_LABEL[inspectedAsset.catalogId]} · ${inspectedAsset.region}`}
+						netLabel={skuNetLabel(inspectedAsset.catalogId)}
+						netPercent={axisPercent(
+							inspectedAsset.metrics.netLoad,
+							inspectedAsset.networkBytesPerHour,
+						)}
+						opexLabel={skuFleetOpexLabel(inspectedAsset.catalogId, inspectedAsset.tenure)}
+						ramLabel={skuRamLabel(inspectedAsset.catalogId)}
+						ramPercent={axisPercent(inspectedAsset.metrics.memOcc, inspectedAsset.memoryMiB)}
+						variant="fleet"
+					/>
+				</section>
+			) : null}
 			<section
 				aria-label="Learning"
 				className="flex h-48 min-h-0 shrink-0 flex-col overflow-hidden border-t border-border bg-panel"
@@ -773,8 +845,8 @@ export function HubSession() {
 					tone="info"
 					trailing={
 						<span className="font-mono text-xs text-muted-foreground">
-							Completed courses vs active enrollments are separate. Effects are not applied to
-							missing consumers. Projects/Inventory shared-asset identity is still incomplete.
+							Completed courses vs active enrollments are separate. Issue #66 shared-asset identity
+							is incomplete; do not treat Projects and Inventory as the same graph.
 						</span>
 					}
 				/>

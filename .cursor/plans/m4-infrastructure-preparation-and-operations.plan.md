@@ -19,6 +19,9 @@ todos:
     status: completed
   - id: duplicate-transfer
     content: "#74 project-only duplication prep + pending transfer (no M5 movement)"
+    status: completed
+  - id: workspace
+    content: "#75 rack/workspace actions, Park/Resume blockers, honest #66"
     status: in_progress
   - id: install-config
     content: "#73 two installs + one shared config, power on/off"

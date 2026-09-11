@@ -69,7 +69,7 @@ flowchart TB
 - First-project preset is two installs + one shared configuration = 5h; do not add per-technology configuration a second time.
 - Hub/Lab must still launch. Figma app is visual reference only.
 - Overload fixtures (`oneBronzeInitial` / `twoBronzeInitial`) stay constructible as already-`served` with `billingOriginHour: 0` so existing physics tests do not walk setup.
-- **Tick structure (option C, [#113](https://github.com/movahedan/fivenines/issues/113), before #72):** `Game.tick` is an authored playlist. Entities expose their hour. Game sequences, shared-capacity, and `postCashDelta`. No `TickPhase[]` registry, no manager that copies `customers[]`.
+- **Tick structure (option C, [#113](https://github.com/movahedan/fivenines/issues/113) / [#114](https://github.com/movahedan/fivenines/pull/114)):** `Game.tick` is an authored playlist of private methods on one `TickContext` `{ hour, cash, events, rng }`. `#tickOperations` is empty until #72. No `TickPhase[]` registry, no manager that copies `customers[]`.
 
 ## Implementation choice (not a product conflict)
 
@@ -170,7 +170,7 @@ bun run overall
 
 ## Phase 2 — Hourly tick orchestration (#113)
 
-**Goal:** Behavior-preserving structure: `Game.tick` is a named playlist. Project-local setup TTL/patience live on the project; offer spawn, cap, reputation, and wallet commit stay on Game. Split `tickSetupContracts` along that cut. Optional `simulateHour` / `advanceCalendar` names for the post-increment boundary.
+**Goal (landed on [#114](https://github.com/movahedan/fivenines/pull/114)):** `Game.tick` is a named playlist on one `TickContext`. `Project.tickCalendar` owns offer TTL and setup patience; Game applies `postCashDelta`, clamps reputation, and `spawnAcquaintanceIfDue`. `#tickOperations` is reserved and empty. No plugin registry.
 
 **Hard constraints:**
 - Do not change acquaintance accept/advance/refund/hour-39/TTL/spawn numbers.
@@ -195,8 +195,8 @@ bun run overall
 ### Documentation before PR
 
 - `packages/fivenines-engine/AGENTS.md` — live playlist order
-- `docs/milestones/infrastructure-preparation-and-operations.md` — #113 in review
-- `docs/milestones/engine-architecture-and-mathematics.md` — current vs intended order already drafted; confirm runtime matches
+- `docs/milestones/infrastructure-preparation-and-operations.md` — #113 in review on #114
+- `docs/milestones/engine-architecture-and-mathematics.md` — runtime playlist matches `Game.tick`
 
 ---
 
@@ -204,13 +204,13 @@ bun run overall
 
 **Goal:** One player operational queue with prerequisites, retained progress, skill-adjusted duration using **stored** M3 course levels (Deployment Automation 0.92/level when that work exists). Explicit `ready` vs `active`; completing queue work never calls `startProject`.
 
-**Hard constraints:** No install application to instances yet (commands enqueue only / duration math). No M5 solver. Do not silently start contracts. Call the queue from the #113 playlist; do not add a second clock.
+**Hard constraints:** No install application to instances yet (commands enqueue only / duration math). No M5 solver. Do not silently start contracts. Fill `#tickOperations` on the #113 playlist; do not add a second clock.
 
 ### Code/config surfaces
 
 - `packages/fivenines-engine/src/catalog/operations-policy.ts` — one slot, cancel keeps completed progress
 - `packages/fivenines-engine/src/operations/queue.ts` — `OperationalQueue` analogous to `LearningBoard` but one slot
-- `Game.dispatch` enqueue/cancel; tick after learning or before — pick one order and document; skill factor from `learning.completedCourseLevels`
+- `Game.dispatch` enqueue/cancel; `#tickOperations` after learning and before PAYG accrue; skill factor from `learning.completedCourseLevels`
 - `Project.ready` flips when required setup tasks for that project are complete (checklist ids), still not served
 - Hub: distinct OPS n/1 indicator separate from LEARN
 
@@ -301,12 +301,13 @@ bun run overall
 
 | PR | Content | Merge gate |
 |----|---------|------------|
-| M4 base | Phase 0 | `bun run overall` |
-| #71 | Phase 1 | phase 1 verify |
-| #72 | Phase 2 | phase 2 verify |
-| #73 | Phase 3 | phase 3 verify |
-| #74 | Phase 4 | phase 4 verify |
-| #75 | Phase 5 | phase 5 verify |
+| M4 base #111 | Phase 0 | `bun run overall` |
+| #71 / #112 | Phase 1 | merged into #111 |
+| #113 / #114 | Phase 2 | stacked on #111 |
+| #72 | Phase 3 | after #114 folds into #111 |
+| #73 | Phase 4 | after #72 |
+| #74 | Phase 5 | after #73 |
+| #75 | Phase 6 | after #74 |
 
 ## Risk summary
 

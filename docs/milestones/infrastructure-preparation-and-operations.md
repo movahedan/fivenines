@@ -21,7 +21,7 @@ These are outcome-sized slices, not fixed file lists. Inspect current code and m
 | Slice | Depends on | Deliverable |
 |---|---|---|
 | Acquaintance acceptance and advance | Milestone prerequisite | Implement the first offer page, full Contract Review, upfront payment, setup allowance and subsequent patience/cancellation/refund, and explicit activation billing origin using the shared ledger boundary. |
-| Hourly tick orchestration | Acquaintance acceptance and advance | Keep one `Game.tick` hour. Make it a named playlist: entities expose their own hour; Game sequences entity hours, shared-capacity steps, wallet commit, and post-increment calendar. Move project-local setup TTL/patience onto the project; keep offer spawn, pending cap, and reputation on Game. No plugin phase registry, no second graph, no managers that copy `customers[]`. Behavior-preserving for the acquaintance path. |
+| Hourly tick orchestration | Acquaintance acceptance and advance | Keep one `Game.tick` hour as a named playlist on one `TickContext` (`hour`, `cash`, `events`, `rng`). Entities expose their hour; Game sequences, shared-capacity, wallet commit via `postCashDelta`, and post-increment calendar. Project-local TTL/patience; Game-local spawn/cap/reputation. Empty operations slot until the queue slice. No plugin phase registry, no second graph, no managers that copy `customers[]`. Behavior-preserving for the acquaintance path. |
 | Operational queue and readiness | Hourly tick orchestration | Implement the single player operational queue, prerequisites, retained progress and skill-adjusted work. Define explicit ready/active states; readiness never silently starts a contract. Plug the queue into the playlist; do not start a second clock. |
 | Installation and configuration actions | Operational queue and readiness | Connect project service installation and shared configuration to instances. Implement power commands and their effects on readiness and volatile work, preserving persistent data. |
 | Duplication and transfer lifecycle | Installation and configuration actions | Implement project-only duplication preparation, destination compatibility and pending data-transfer state. Source service continues during preparation; completed data movement awaits milestone 5 allocation. |
@@ -29,7 +29,7 @@ These are outcome-sized slices, not fixed file lists. Inspect current code and m
 
 ## Acceptance and verification
 
-- The outer hour remains one `Game.tick` playlist after acquaintance accept/advance: entities tick themselves; Game only sequences, shares capacity, and commits the wallet. Setup calendar is not a second simulation.
+- The outer hour remains one `Game.tick` playlist after acquaintance accept/advance: named phases share one `TickContext`; entities tick themselves; Game only sequences, shares capacity, and commits the wallet. Setup calendar is not a second simulation. The operations slot exists and stays empty until the queue slice.
 
 - Contract Review preserves offer identity on Back and never charges on Close. Setup allowance expiration starts the agreed patience policy rather than immediate cancellation. A signed contract remains inspectable before hardware acquisition. Park is unavailable during initial setup and cannot stop another project on shared hardware.
 
@@ -54,7 +54,7 @@ Deliver the approved desktop left Projects panel, right business panels and mobi
 | Milestone 4 stack base | In review | [#111](https://github.com/movahedan/fivenines/pull/111) | Docs/plan on #104 head; `bun overall` |
 | Acquaintance acceptance and advance | Merged into #111 | [#112](https://github.com/movahedan/fivenines/pull/112) | `bun overall`; GitHub merge into the M4 foundation |
 | Hourly tick orchestration | In review | [#114](https://github.com/movahedan/fivenines/pull/114) | [#113](https://github.com/movahedan/fivenines/issues/113); stacked on #111 |
-| Operational queue and readiness | Planned | — | Depends on #113 |
+| Operational queue and readiness | Planned | — | Depends on #113 / #114; fill `#tickOperations` |
 | Installation and configuration actions | Planned | — | Not run |
 | Duplication and transfer lifecycle | Planned | — | Not run |
 | System workspace operations | Planned | — | Not run |

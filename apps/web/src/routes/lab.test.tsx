@@ -4,9 +4,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 
 import { AuthProvider } from "@packages/auth/react";
 import {
-	OPENING_COMMERCIAL_STUB,
-	PAYG_SETTLE_HOURS,
-	paygCentsForHandled,
+	APPOINTMENT_COMMERCIAL,
 	SKU_ECONOMY,
 	STARTING_CASH_CENTS,
 } from "@packages/fivenines-engine";
@@ -37,16 +35,6 @@ async function waitForLab(): Promise<void> {
 	await waitFor(() => {
 		expect(screen.getByRole("heading", { name: "Lab" })).toBeTruthy();
 	});
-}
-
-function projectRow(match: RegExp): HTMLElement {
-	const row = screen.getByText(match).closest("li");
-
-	if (!(row instanceof HTMLElement)) {
-		throw new Error(`expected a project row matching ${String(match)}`);
-	}
-
-	return row;
 }
 
 describe("LabPage - session gate", () => {
@@ -102,24 +90,27 @@ describe("LabPage - tick metrics", () => {
 		expect(Number(value.textContent)).toBe(0);
 	});
 
-	it("shows droppedRequests above zero after a served project is parked and Tick runs", async () => {
+	it("keeps droppedRequests at zero after Accept because setup is not live service", async () => {
 		stubLoggedInHint(true);
 
 		renderLab();
 
 		await waitForLab();
 
-		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
-		fireEvent.click(screen.getByRole("button", { name: "Accept globex-portal" }));
-		fireEvent.click(screen.getByRole("button", { name: "Park globex-portal" }));
+		fireEvent.click(screen.getByRole("button", { name: "Accept maya-appointments" }));
+
+		await waitFor(() => {
+			expect(screen.getByText(/maya-appointments accepted/)).toBeTruthy();
+		});
+
 		fireEvent.click(screen.getByRole("button", { name: "Tick" }));
 
 		const row = screen.getByRole("row", { name: /droppedRequests/ });
-		const value = within(row).getByRole("cell");
-		expect(Number(value.textContent)).toBeGreaterThan(0);
+		expect(Number(within(row).getByRole("cell").textContent)).toBe(0);
+		expect(screen.getByText("ready no")).toBeTruthy();
 	});
 
-	it("handles accepted demand on a Bronze server after Tick", async () => {
+	it("handles no live demand on a Bronze after Accept and Tick", async () => {
 		stubLoggedInHint(true);
 
 		renderLab();
@@ -127,12 +118,12 @@ describe("LabPage - tick metrics", () => {
 		await waitForLab();
 
 		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
-		fireEvent.click(screen.getByRole("button", { name: "Accept globex-portal" }));
+		fireEvent.click(screen.getByRole("button", { name: "Accept maya-appointments" }));
 		fireEvent.click(screen.getByRole("button", { name: "Tick" }));
 
 		const handled = screen.getByRole("row", { name: /handledRequests/ });
 		const dropped = screen.getByRole("row", { name: /droppedRequests/ });
-		expect(Number(within(handled).getByRole("cell").textContent)).toBeGreaterThan(0);
+		expect(Number(within(handled).getByRole("cell").textContent)).toBe(0);
 		expect(Number(within(dropped).getByRole("cell").textContent)).toBe(0);
 	});
 
@@ -147,7 +138,7 @@ describe("LabPage - tick metrics", () => {
 
 		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
 
-		expect(screen.getByText(/server-1 Bronze utc\+0/)).toBeTruthy();
+		expect(screen.getByText(/server-1 Bronze/)).toBeTruthy();
 	});
 
 	it("adds a Bronze server in utc+9 when that region is selected", async () => {
@@ -199,79 +190,34 @@ describe("LabPage - tick metrics", () => {
 		expect(screen.getByRole("button", { name: "Buy Gold" })).toBeDisabled();
 	});
 
-	it("shows 0 this-hour ppm on a parked project after Tick", async () => {
+	it("shows setup copy after Accept instead of SLA digits", async () => {
 		stubLoggedInHint(true);
 
 		renderLab();
 
 		await waitForLab();
 
-		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
-		fireEvent.click(screen.getByRole("button", { name: "Accept globex-portal" }));
-		fireEvent.click(screen.getByRole("button", { name: "Park globex-portal" }));
-		fireEvent.click(screen.getByRole("button", { name: "Tick" }));
+		fireEvent.click(screen.getByRole("button", { name: "Accept maya-appointments" }));
 
-		const parked = screen.getByText(/globex-portal offline/).closest("li");
-		expect(parked instanceof HTMLElement).toBe(true);
-		if (!(parked instanceof HTMLElement)) {
-			return;
-		}
-
-		expect(within(parked).getByText("routed parked")).toBeTruthy();
-		expect(within(parked).getByText("this-hour 0 ppm")).toBeTruthy();
-		expect(within(parked).getByText("window 0 ppm")).toBeTruthy();
+		expect(screen.getByText(/maya-appointments accepted/)).toBeTruthy();
+		expect(screen.getByText("ready no")).toBeTruthy();
+		expect(screen.getByText(/Park unavailable during setup/)).toBeTruthy();
 	});
 
-	it("credits this-period PAYG and cash after Buy Bronze, Accept, and Tick", async () => {
+	it("credits the advance into cash on Accept without PAYG", async () => {
 		stubLoggedInHint(true);
 
 		renderLab();
 
 		await waitForLab();
 
-		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
-		fireEvent.click(screen.getByRole("button", { name: "Accept globex-portal" }));
-		fireEvent.click(screen.getByRole("button", { name: "Tick" }));
+		fireEvent.click(screen.getByRole("button", { name: "Accept maya-appointments" }));
 
-		const served = screen.getByText(/globex-portal served/).closest("li");
-		expect(served instanceof HTMLElement).toBe(true);
-		if (!(served instanceof HTMLElement)) {
-			return;
-		}
-
-		const handled = Number(
-			within(screen.getByRole("row", { name: /handledRequests/ })).getByRole("cell").textContent,
-		);
-		const paygCents = paygCentsForHandled(
-			handled,
-			OPENING_COMMERCIAL_STUB.paygCentsPerThousandHandled,
-		);
-
-		expect(paygCents).toBeGreaterThan(0);
-		expect(within(served).getByText(`this-period PAYG ${paygCents}`)).toBeTruthy();
-		expect(within(served).getByText("hours served this week 1")).toBeTruthy();
-		expect(within(served).getByText("last settlement —")).toBeTruthy();
-		expect(within(served).queryByRole("list", { name: "settlement history" })).toBeNull();
-
-		const maintenanceCents = Number(
-			within(screen.getByRole("row", { name: /Last opex maintenance/ })).getByRole("cell")
-				.textContent,
-		);
-		const powerCents = Number(
-			within(screen.getByRole("row", { name: /Last opex power/ })).getByRole("cell").textContent,
-		);
-		const cashCents = Number(
-			within(screen.getByRole("row", { name: /Cash/ })).getByRole("cell").textContent,
-		);
-		const receivableCents = Number(
-			within(screen.getByRole("row", { name: /Accounts receivable/ })).getByRole("cell")
-				.textContent,
-		);
-
-		expect(receivableCents).toBe(paygCents);
-		expect(cashCents).toBe(
-			STARTING_CASH_CENTS - SKU_ECONOMY.bronze.purchaseCents - maintenanceCents - powerCents,
-		);
+		await waitFor(() => {
+			expect(
+				Number(within(screen.getByRole("row", { name: /Cash/ })).getByRole("cell").textContent),
+			).toBe(STARTING_CASH_CENTS + APPOINTMENT_COMMERCIAL.recurringCentsPerPeriod);
+		});
 	});
 
 	it("does not show billing digits on offered project rows", async () => {
@@ -281,7 +227,7 @@ describe("LabPage - tick metrics", () => {
 
 		await waitForLab();
 
-		const offered = screen.getByText(/globex-portal offered/).closest("li");
+		const offered = screen.getByText(/maya-appointments offered/).closest("li");
 		expect(offered instanceof HTMLElement).toBe(true);
 		if (!(offered instanceof HTMLElement)) {
 			return;
@@ -291,17 +237,16 @@ describe("LabPage - tick metrics", () => {
 		expect(within(offered).queryByText(/hours served/)).toBeNull();
 		expect(within(offered).queryByText(/last settlement/)).toBeNull();
 		expect(within(offered).getByText("region utc+0")).toBeTruthy();
-		expect(within(offered).getByText("baseline 700")).toBeTruthy();
+		expect(within(offered).getByText("baseline 120")).toBeTruthy();
 		expect(within(offered).getByText("traffic saas")).toBeTruthy();
-		expect(within(offered).getByText("spikes campaign-prone")).toBeTruthy();
 		expect(
-			within(offered).getByText(`PAYG ${OPENING_COMMERCIAL_STUB.paygCentsPerThousandHandled}/1000`),
+			within(offered).getByText(`PAYG ${APPOINTMENT_COMMERCIAL.paygCentsPerThousandHandled}/1000`),
 		).toBeTruthy();
 		expect(
-			within(offered).getByText(`recurring ${OPENING_COMMERCIAL_STUB.recurringCentsPerPeriod}`),
+			within(offered).getByText(`recurring ${APPOINTMENT_COMMERCIAL.recurringCentsPerPeriod}`),
 		).toBeTruthy();
 		expect(
-			within(offered).getByText(`SLA target ${OPENING_COMMERCIAL_STUB.targetPpm}`),
+			within(offered).getByText(`SLA target ${APPOINTMENT_COMMERCIAL.targetPpm}`),
 		).toBeTruthy();
 		expect(
 			within(offered).getByText("penalty mild 25% / severe 50% / catastrophe 100%"),
@@ -315,7 +260,7 @@ describe("LabPage - tick metrics", () => {
 
 		await waitForLab();
 
-		const offered = screen.getByText(/globex-portal offered/).closest("li");
+		const offered = screen.getByText(/maya-appointments offered/).closest("li");
 		expect(offered instanceof HTMLElement).toBe(true);
 		if (!(offered instanceof HTMLElement)) {
 			return;
@@ -390,65 +335,27 @@ describe("LabPage - project routing", () => {
 		Reflect.deleteProperty(document, "cookie");
 	});
 
-	it("disables Accept while the fleet is empty", async () => {
+	it("keeps Accept enabled while the fleet is empty", async () => {
 		stubLoggedInHint(true);
 
 		renderLab();
 
 		await waitForLab();
 
-		expect(screen.getByRole("button", { name: "Accept globex-portal" })).toBeDisabled();
+		expect(screen.getByRole("button", { name: "Accept maya-appointments" })).toBeEnabled();
 	});
 
-	it("shows the routed server on a project accepted onto the selected box", async () => {
+	it("accepts without a server and keeps Start blocked", async () => {
 		stubLoggedInHint(true);
 
 		renderLab();
 
 		await waitForLab();
 
-		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
-		fireEvent.click(screen.getByRole("button", { name: "Accept globex-portal" }));
+		fireEvent.click(screen.getByRole("button", { name: "Accept maya-appointments" }));
 
-		expect(within(projectRow(/globex-portal served/)).getByText("routed server-1")).toBeTruthy();
-	});
-
-	it("parks a served project and assigns it back onto a server", async () => {
-		stubLoggedInHint(true);
-
-		renderLab();
-
-		await waitForLab();
-
-		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
-		fireEvent.click(screen.getByRole("button", { name: "Accept globex-portal" }));
-		fireEvent.click(screen.getByRole("button", { name: "Park globex-portal" }));
-
-		expect(within(projectRow(/globex-portal offline/)).getByText("routed parked")).toBeTruthy();
-
-		fireEvent.click(screen.getByRole("button", { name: "Assign globex-portal" }));
-
-		expect(within(projectRow(/globex-portal served/)).getByText("routed server-1")).toBeTruthy();
-	});
-
-	it("shows the new routed server after a served project is moved", async () => {
-		stubLoggedInHint(true);
-
-		renderLab();
-
-		await waitForLab();
-
-		fireEvent.click(screen.getByRole("button", { name: "Buy Bronze" }));
-		fireEvent.click(screen.getByRole("button", { name: "Accept acme-web" }));
-
-		for (let hour = 0; hour < PAYG_SETTLE_HOURS; hour += 1) {
-			fireEvent.click(screen.getByRole("button", { name: "Tick" }));
-		}
-
-		fireEvent.click(screen.getByRole("button", { name: "Buy Thin RAM" }));
-		fireEvent.change(screen.getByLabelText("Server"), { target: { value: "server-2" } });
-		fireEvent.click(screen.getByRole("button", { name: "Move acme-web" }));
-
-		expect(within(projectRow(/acme-web served/)).getByText("routed server-2")).toBeTruthy();
+		expect(screen.getByText(/maya-appointments accepted/)).toBeTruthy();
+		expect(screen.getByText("ready no")).toBeTruthy();
+		expect(screen.queryByRole("button", { name: "Park maya-appointments" })).toBeNull();
 	});
 });

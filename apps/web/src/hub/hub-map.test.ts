@@ -1,6 +1,12 @@
 import { describe, expect, it } from "bun:test";
 
-import { Game } from "@packages/fivenines-engine";
+import {
+	FixedRandomSource,
+	Game,
+	PAYG_ONLY_COMMERCIAL_STUB,
+	SequenceRandomSource,
+	twoBronzeInitial,
+} from "@packages/fivenines-engine";
 
 import {
 	addedAssetId,
@@ -72,6 +78,44 @@ describe("hub-map - sla and sku labels", () => {
 		expect(engineEventMessage({ type: "paygSettled", hourIndex: 24, cents: 100 })).toBe(
 			"PAYG settled $1.00",
 		);
+	});
+
+	it("tones start and cancel setup commands", () => {
+		expect(commandLogTone("startProject")).toBe("success");
+		expect(commandLogTone("cancelSetup")).toBe("warn");
+		expect(commandLogTone("acceptProject")).toBe("info");
+	});
+
+	it("still ticks served teaching fixtures so hub coverage includes live demand", () => {
+		const random = new SequenceRandomSource([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]);
+		const game = new Game(twoBronzeInitial, { random: new FixedRandomSource(0.5) }).tick();
+		const shaped = new Game(
+			{
+				customers: [
+					{
+						id: "customer-1",
+						projects: [
+							{
+								id: "shaped-1",
+								estimatedRequestsPerHour: 100,
+								status: "served",
+								demand: "shaped",
+								category: "saas",
+								region: "utc+0",
+								campaignProne: false,
+								commercial: PAYG_ONLY_COMMERCIAL_STUB,
+								route: { kind: "server", serverId: "server-1" },
+							},
+						],
+					},
+				],
+				assets: [{ kind: "server", id: "server-1", catalogId: "bronze", region: "utc+0" }],
+			},
+			{ random },
+		).tick();
+
+		expect(game.metrics.handledRequests).toBeGreaterThan(0);
+		expect(shaped.metrics.handledRequests).toBeGreaterThan(0);
 	});
 
 	it("tones learning commands and leaves completed base research on a new game", () => {

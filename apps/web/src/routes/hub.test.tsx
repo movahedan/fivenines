@@ -4,6 +4,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 
 import { AuthProvider } from "@packages/auth/react";
 
+import { ActiveProjectCard } from "@/molecules/active-project-card/active-project-card";
 import { HubPage, PlayButton } from "./hub";
 
 function stubLoggedInHint(present: boolean): void {
@@ -24,6 +25,16 @@ function renderHub(): ReturnType<typeof render> {
 			<HubPage />
 		</AuthProvider>,
 	);
+}
+
+function firstAcceptButton(): HTMLElement {
+	const button = screen.getAllByRole("button", { name: "ACCEPT" })[0];
+
+	if (button === undefined) {
+		throw new Error("expected an ACCEPT button");
+	}
+
+	return button;
 }
 
 async function waitForOpsFloor(): Promise<void> {
@@ -61,19 +72,15 @@ function acceptFirstOffer(): void {
 	}
 
 	fireEvent.click(accept);
+	fireEvent.click(screen.getByRole("button", { name: "Accept contract" }));
 }
 
-async function serveFirstOffer(): Promise<void> {
-	buyFirstMarketServer();
-
-	await waitFor(() => {
-		expect(screen.getByText("Fleet (1)")).toBeTruthy();
-	});
-
+async function setupFirstOffer(): Promise<void> {
 	acceptFirstOffer();
 
 	await waitFor(() => {
 		expect(screen.getByText("Active (1)")).toBeTruthy();
+		expect(screen.getByText(/Install work is not in this slice/)).toBeTruthy();
 	});
 }
 
@@ -111,7 +118,7 @@ describe("HubPage - session gate", () => {
 		await waitForOpsFloor();
 		expect(screen.getByRole("region", { name: "Incoming queue" })).toBeTruthy();
 		expect(screen.getByRole("region", { name: "Server market" })).toBeTruthy();
-		expect(screen.getByText("Incoming (10)")).toBeTruthy();
+		expect(screen.getByText("Incoming (1)")).toBeTruthy();
 		expect(screen.getByText("Fleet (0)")).toBeTruthy();
 		expect(screen.getByRole("region", { name: "Event log" }).className).toContain(
 			"overflow-hidden",
@@ -161,7 +168,7 @@ describe("HubPage - ops landmarks", () => {
 		await waitForOpsFloor();
 		fireEvent.click(screen.getByRole("button", { name: "Pause" }));
 		expect(screen.getByRole("button", { name: "Play" })).toBeTruthy();
-		expect(screen.getByText("Incoming (10)")).toBeTruthy();
+		expect(screen.getByText("Incoming (1)")).toBeTruthy();
 	});
 
 	it("moves a bought Bronze into the fleet panel", async () => {
@@ -202,7 +209,7 @@ describe("HubPage - ops landmarks", () => {
 
 		await waitFor(() => {
 			expect(screen.getByText("Active (1)")).toBeTruthy();
-			expect(screen.getByText("Incoming (9)")).toBeTruthy();
+			expect(screen.getByText("Incoming (0)")).toBeTruthy();
 		});
 	});
 
@@ -224,7 +231,7 @@ describe("HubPage - ops landmarks", () => {
 		fireEvent.click(decline);
 
 		await waitFor(() => {
-			expect(screen.getByText("Incoming (9)")).toBeTruthy();
+			expect(screen.getByText("Incoming (0)")).toBeTruthy();
 			expect(screen.getByText("Active (0)")).toBeTruthy();
 		});
 		expect(screen.queryByText(/not a kernel command/)).toBeNull();
@@ -237,94 +244,46 @@ describe("HubPage - project routing", () => {
 		Reflect.deleteProperty(document, "cookie");
 	});
 
-	it("keeps Accept disabled while the fleet is empty", async () => {
+	it("keeps Accept enabled while the fleet is empty", async () => {
 		stubSession();
 
 		renderHub();
 
 		await waitForOpsFloor();
 
-		expect(screen.getAllByRole("button", { name: "ACCEPT" })[0]).toBeDisabled();
+		expect(firstAcceptButton()).toBeEnabled();
 	});
 
-	it("shows the routed server on the active card after accepting an offer", async () => {
+	it("opens Contract Review and does not charge on Close", async () => {
 		stubSession();
 
 		renderHub();
 
 		await waitForOpsFloor();
-		await serveFirstOffer();
+		fireEvent.click(firstAcceptButton());
 
-		expect(within(activeFloor()).getByText("server-1 · Bronze")).toBeTruthy();
+		expect(screen.getByRole("region", { name: "Contract Review" })).toBeTruthy();
+		expect(screen.getByText("$250.00")).toBeTruthy();
+
+		fireEvent.click(screen.getByRole("button", { name: "Close" }));
+
+		expect(screen.queryByRole("region", { name: "Contract Review" })).toBeNull();
+		expect(screen.getByText("$250.00")).toBeTruthy();
+		fireEvent.click(firstAcceptButton());
+		expect(screen.getByRole("region", { name: "Contract Review" })).toBeTruthy();
 	});
 
-	it("moves a served project into the parked list and back when parked then assigned", async () => {
+	it("posts the advance on Accept contract without needing a server", async () => {
 		stubSession();
 
 		renderHub();
 
 		await waitForOpsFloor();
-		await serveFirstOffer();
+		await setupFirstOffer();
 
-		fireEvent.click(within(activeFloor()).getByRole("button", { name: "PARK" }));
-
-		await waitFor(() => {
-			expect(screen.getByText("Active (0)")).toBeTruthy();
-			expect(screen.getByText("Parked (1)")).toBeTruthy();
-		});
-		expect(within(activeFloor()).getByText("PARKED")).toBeTruthy();
-
-		fireEvent.click(within(activeFloor()).getByRole("button", { name: "ASSIGN" }));
-
-		await waitFor(() => {
-			expect(screen.getByText("Active (1)")).toBeTruthy();
-			expect(screen.getByText("Parked (0)")).toBeTruthy();
-		});
-		expect(within(activeFloor()).getByText("server-1 · Bronze")).toBeTruthy();
-	});
-
-	it("does not log a move when MOVE is clicked with the picker still on the current server", async () => {
-		stubSession();
-
-		renderHub();
-
-		await waitForOpsFloor();
-		await serveFirstOffer();
-
-		fireEvent.click(within(activeFloor()).getByRole("button", { name: "MOVE" }));
-
-		const log = screen.getByRole("region", { name: "Event log" });
-
-		await waitFor(() => {
-			expect(within(log).queryByText(/^Moved /)).toBeNull();
-		});
-		expect(within(activeFloor()).getByText("server-1 · Bronze")).toBeTruthy();
-	});
-
-	it("refuses to sell a server while a served project routes to it, then sells once parked", async () => {
-		stubSession();
-
-		renderHub();
-
-		await waitForOpsFloor();
-		await serveFirstOffer();
-
-		fireEvent.click(within(activeFloor()).getByRole("button", { name: "SELL" }));
-
-		await waitFor(() => {
-			expect(screen.getByRole("alert").textContent).toContain(
-				"server has a served project routed to it: acme-web",
-			);
-		});
-		expect(screen.getByText("Fleet (1)")).toBeTruthy();
-
-		fireEvent.click(within(activeFloor()).getByRole("button", { name: "PARK" }));
-		fireEvent.click(within(activeFloor()).getByRole("button", { name: "SELL" }));
-
-		await waitFor(() => {
-			expect(screen.getByText("Fleet (0)")).toBeTruthy();
-		});
-		expect(screen.queryByRole("alert")).toBeNull();
+		expect(screen.getByRole("button", { name: "Start" })).toBeDisabled();
+		expect(screen.queryByRole("button", { name: "PARK" })).toBeNull();
+		expect(screen.getByText("$330.00")).toBeTruthy();
 	});
 
 	it("leases a Bronze without debiting purchase and releases without salvage", async () => {
@@ -365,5 +324,37 @@ describe("PlayButton - hub entry", () => {
 		render(<PlayButton />);
 
 		expect(screen.getByRole("link", { name: "Play" }).getAttribute("href")).toBe("/hub");
+	});
+});
+
+describe("HubPage - served card molecule", () => {
+	it("renders MOVE and PARK on the active project card Hub uses after Start", () => {
+		render(
+			<ActiveProjectCard
+				currentHourLabel="100%"
+				customerName="maya"
+				name="maya-appointments"
+				onRoute={() => undefined}
+				onUnassign={() => undefined}
+				paygLabel="$0.00"
+				recoveryEtaLabel="—"
+				regionLabel="utc+0"
+				rollingLabel="—"
+				routeLabel="MOVE"
+				selectedServerId="server-1"
+				serverLabel="server-1 · Bronze"
+				serverOptions={[{ id: "server-1", label: "server-1 · Bronze" }]}
+				slaLabel="—"
+				slaPercent={0}
+				slaStatusLabel="warming"
+				sparkline={[0.8]}
+				sparklineTarget={0.8}
+				targetLabel="80.00%"
+				unassignLabel="PARK"
+			/>,
+		);
+
+		expect(screen.getByRole("button", { name: "MOVE" })).toBeEnabled();
+		expect(screen.getByRole("button", { name: "PARK" })).toBeEnabled();
 	});
 });

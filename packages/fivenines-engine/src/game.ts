@@ -1,7 +1,6 @@
 import { ids } from "@packages/shared/ids";
 import { units } from "@packages/shared/units";
 
-import { BILLING_PERIOD_HOURS } from "./catalog/commercial-policy";
 import { DEBT_LIMIT_CENTS, STARTING_CASH_CENTS } from "./catalog/economy-policy";
 import { Customer, type CustomerInitial } from "./customer";
 import { placeProjectDemand } from "./demand";
@@ -31,6 +30,7 @@ import {
 import { LearningBoard, type LearningSnapshot } from "./learning/board";
 import { type LearningCatalogRow, learningCatalog } from "./learning/catalog-view";
 import type { Server } from "./server";
+import { tickSetupContracts } from "./setup-clock";
 import { MathRandomSource, type RandomSource } from "./traffic/random-source";
 
 export type { EngineEvent } from "./game.events";
@@ -62,6 +62,8 @@ export class Game {
 	#jailed: boolean;
 	#opex: GameOpexTotals = EMPTY_GAME_OPEX;
 	#learning = new LearningBoard();
+	#reputation = 0;
+	#lastOfferResolveHour = 0;
 
 	#metrics: GameTickMetrics = EMPTY_GAME_TICK_METRICS;
 	#events: EngineEvent[] = [];
@@ -155,6 +157,10 @@ export class Game {
 		return learningCatalog(this.#learning.snapshot(), this.#cashCents);
 	}
 
+	get reputation(): number {
+		return this.#reputation;
+	}
+
 	dispatch(command: EngineCommand): Game {
 		if (
 			command.type === "enrollLearning" ||
@@ -172,6 +178,7 @@ export class Game {
 				assets: this.#assets,
 				cashCents: this.#cashCents,
 				jailed: this.#jailed,
+				hourIndex: this.#hourIndex,
 			},
 			command,
 		);
@@ -184,6 +191,15 @@ export class Game {
 		this.#assets = [...next.assets];
 		this.#cashCents = next.cashCents;
 		this.#jailed = next.jailed;
+
+		if (
+			command.type === "acceptProject" ||
+			command.type === "declineProject" ||
+			command.type === "cancelSetup"
+		) {
+			this.#lastOfferResolveHour = this.#hourIndex;
+		}
+
 		this.#syncDerivedState();
 
 		return this;
@@ -320,15 +336,31 @@ export class Game {
 			});
 		}
 
+		const setup = tickSetupContracts(
+			this.#customers,
+			this.#cashCents,
+			this.#reputation,
+			this.#hourIndex,
+			this.#lastOfferResolveHour,
+		);
+		this.#customers = [...setup.customers];
+		this.#cashCents = setup.cashCents;
+		this.#reputation = Math.min(100, Math.max(0, setup.reputation));
+		this.#lastOfferResolveHour = setup.lastOfferResolveHour;
+
+		const settlementCountById = new Map(
+			projects.map((project) => [project.id, project.settlements.length] as const),
+		);
+
 		this.#cashCents += closeBillingPeriodIfDue(projects, this.#hourIndex);
-		const closedPeriodIndex = this.#hourIndex / BILLING_PERIOD_HOURS;
 
 		for (const project of projects) {
+			const previousCount = settlementCountById.get(project.id) ?? 0;
 			const latest = project.settlements[project.settlements.length - 1];
 
 			if (
 				latest !== undefined &&
-				latest.periodIndex === closedPeriodIndex &&
+				project.settlements.length > previousCount &&
 				latest.creditCents > 0
 			) {
 				events.push({

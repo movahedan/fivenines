@@ -22,10 +22,10 @@ function tickHours(game: Game, hours: number): void {
 	}
 }
 
-function acceptAllOffered(game: Game, serverId: string): void {
+function acceptAllOffered(game: Game): void {
 	for (const project of allProjects(game)) {
 		if (project.status === "offered") {
-			game.dispatch({ type: "acceptProject", payload: { projectId: project.id, serverId } });
+			game.dispatch({ type: "acceptProject", payload: { projectId: project.id } });
 		}
 	}
 }
@@ -124,25 +124,26 @@ describe("Game - economy balance", () => {
 		expect(game.cashCents).toBeGreaterThanOrEqual(STARTING_CASH_CENTS);
 	});
 
-	it("jails or drains cash within 168 hours when every Opening project is accepted onto one Bronze", () => {
+	it("jails or drains cash within 168 hours when a Bronze is bought against Opening Shift cash", () => {
 		const game = new Game(openingInitial, { random: new FixedRandomSource(0.5) });
 		game.dispatch({
 			type: "buyServer",
 			payload: { serverType: "bronze", region: DEFAULT_REGION },
 		});
-		acceptAllOffered(game, FIRST_SERVER_ID);
 		tickHours(game, BILLING_PERIOD_HOURS);
 
 		expect(game.jailed || game.cashCents < 0).toBe(true);
 	});
 
-	it("does not profit after a 168-hour close when every accepted project is parked and the box is sold", () => {
-		const game = new Game(openingInitial, { random: new FixedRandomSource(0.5) });
-		game.dispatch({
-			type: "buyServer",
-			payload: { serverType: "bronze", region: DEFAULT_REGION },
-		});
-		acceptAllOffered(game, FIRST_SERVER_ID);
+	it("does not profit after a 168-hour close when a served project is parked and the box is sold", () => {
+		const game = new Game(
+			ownedBoxWith(
+				[constantContract("saas-1", 400, "saas", "served", FIRST_SERVER_ID)],
+				"bronze",
+				STARTING_CASH_CENTS,
+			),
+			{ random: new FixedRandomSource(0.5) },
+		);
 		parkAllServed(game);
 		game.dispatch({ type: "sellServer", payload: { serverId: FIRST_SERVER_ID } });
 		tickHours(game, BILLING_PERIOD_HOURS);
@@ -166,26 +167,23 @@ describe("Game - economy balance", () => {
 		expect(goldNet).toBeLessThan(bronzeNet);
 	});
 
-	it("survives 168 hours solvent when one Bronze serves only northwind-search", () => {
+	it("survives 168 hours solvent when the acquaintance offer is accepted without hardware", () => {
 		const game = new Game(openingInitial, { random: new FixedRandomSource(0.5) });
 		game.dispatch({
-			type: "buyServer",
-			payload: { serverType: "bronze", region: DEFAULT_REGION },
-		});
-		game.dispatch({
 			type: "acceptProject",
-			payload: { projectId: "northwind-search", serverId: FIRST_SERVER_ID },
+			payload: { projectId: "maya-appointments" },
 		});
 		tickHours(game, BILLING_PERIOD_HOURS);
 
 		expect(game.jailed).toBe(false);
 		expect(game.cashCents).toBeGreaterThan(0);
+		expect(allProjects(game).some((project) => project.status === "withdrawn")).toBe(true);
 	});
 
 	it("does not double starting cash in 24 hours when accepting all Opening projects and buying every affordable Bronze", () => {
 		const game = new Game(openingInitial, { random: new FixedRandomSource(0.5) });
 		buyAffordableServers(game, "bronze", DEFAULT_REGION);
-		acceptAllOffered(game, FIRST_SERVER_ID);
+		acceptAllOffered(game);
 
 		for (let hour = 0; hour < 24; hour++) {
 			buyAffordableServers(game, "bronze", DEFAULT_REGION);

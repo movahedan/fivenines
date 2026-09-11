@@ -55,10 +55,10 @@ describe("Game - tick", () => {
 	it("produces no demand when openingInitial projects stay offered and the fleet is empty", () => {
 		const game = new Game(openingInitial).tick();
 
-		expect(openingInitial.customers).toHaveLength(4);
+		expect(openingInitial.customers).toHaveLength(1);
 		const projectCount = openingInitial.customers.flatMap((customer) => customer.projects).length;
 
-		expect(projectCount).toBeGreaterThanOrEqual(10);
+		expect(projectCount).toBe(1);
 		expect(openingInitial.assets).toHaveLength(0);
 		expect(game.metrics.handledRequests).toBe(0);
 		expect(game.metrics.droppedRequests).toBe(0);
@@ -83,7 +83,7 @@ describe("Game - hourIndex", () => {
 
 		game.dispatch({
 			type: "acceptProject",
-			payload: { projectId: "project-1", serverId: "server-1" },
+			payload: { projectId: "project-1" },
 		});
 
 		expect(game.hourIndex).toBe(0);

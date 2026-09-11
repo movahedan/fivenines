@@ -21,16 +21,29 @@ import {
 import { formatters } from "@packages/shared/formatters";
 
 import { Button } from "@/atoms/button";
+import { Text } from "@/atoms/text";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
 	ActiveProjectCard,
 	type ServerOption,
 } from "@/molecules/active-project-card/active-project-card";
 import { EventLog, type EventLogEntry } from "@/molecules/event-log/event-log";
-import { Hud } from "@/molecules/hud/hud";
+import {
+	GameClockControls,
+	type GameClockSpeed,
+} from "@/molecules/game-clock-controls/game-clock-controls";
+import { MetricStat } from "@/molecules/metric-stat/metric-stat";
 import { PanelHeader } from "@/molecules/panel-header/panel-header";
 import { ProjectOfferCard } from "@/molecules/project-offer-card/project-offer-card";
 import { ServerCard } from "@/molecules/server-card/server-card";
 import { ServerSelect } from "@/molecules/server-select/server-select";
+import { GameTemplate } from "@/templates/game-template/game-template";
+import {
+	GAME_PANEL_WIDTH_PROJECTS_DEFAULT,
+	GAME_PANEL_WIDTH_RIGHT_DEFAULT,
+	type GameDestination,
+	type GameRightDestination,
+} from "@/templates/game-template/game-template.types";
 import {
 	addedAssetId,
 	assetTenureKind,
@@ -139,12 +152,19 @@ export function HubSession() {
 	const { user, logoutHref } = useAuth();
 	const { game, lastError, running, speed, toggleRunning, setSpeed, dispatch, reset } =
 		useHubGame();
+	const isMobile = useIsMobile();
 	const [buyRegion, setBuyRegion] = useState<RegionId>(DEFAULT_REGION);
 	const [reviewProjectId, setReviewProjectId] = useState<string | null>(null);
 	const [routePicks, setRoutePicks] = useState<ReadonlyMap<string, string>>(new Map());
 	const [entries, setEntries] = useState<readonly EventLogEntry[]>([]);
 	const [inspectedAssetId, setInspectedAssetId] = useState<string | null>(null);
-	const [workspacePane, setWorkspacePane] = useState<"projects" | "floor" | "business">("floor");
+	const [destination, setDestination] = useState<GameDestination>("projects");
+	const [projectsOpen, setProjectsOpen] = useState(true);
+	const [projectsWidth, setProjectsWidth] = useState(GAME_PANEL_WIDTH_PROJECTS_DEFAULT);
+	const [rightDestination, setRightDestination] = useState<GameRightDestination>("inventory");
+	const [rightWidth, setRightWidth] = useState(GAME_PANEL_WIDTH_RIGHT_DEFAULT);
+	const [activityOpen, setActivityOpen] = useState(false);
+	const [accountOpen, setAccountOpen] = useState(false);
 	const regionSelectId = useId();
 	const loggedHourRef = useRef<number | null>(null);
 	const { cashCents, accountsReceivableCents, jailed, opexCents } = game.finance;
@@ -241,6 +261,34 @@ export function HubSession() {
 	};
 
 	const reviewOffer = offers.find((row) => row.project.id === reviewProjectId);
+	const clockSpeed: GameClockSpeed = running ? speed : 0;
+	const hasLiveProjects = accepted.length > 0 || served.length > 0 || parked.length > 0;
+	const centerKind =
+		reviewOffer !== undefined ? "contractReview" : hasLiveProjects ? "project" : "empty";
+
+	const handleDestinationChange = (next: GameDestination): void => {
+		setDestination(next);
+
+		if (next !== "projects") {
+			setRightDestination(next);
+		}
+	};
+
+	const handleClockSpeed = (next: GameClockSpeed): void => {
+		if (next === 0) {
+			if (running) {
+				toggleRunning();
+			}
+
+			return;
+		}
+
+		if (!running) {
+			toggleRunning();
+		}
+
+		setSpeed(next === 1 || next === 2 || next === 4 ? next : 1);
+	};
 
 	const routedServerLabel = (project: Project): string => {
 		const serverId = project.route?.serverId;
@@ -254,675 +302,720 @@ export function HubSession() {
 		return asset === undefined ? serverId : `${serverId} · ${SERVER_TIER_LABEL[asset.catalogId]}`;
 	};
 
+	const signOut = (): void => {
+		window.location.assign(logoutHref({ redirectUri: "/" }));
+	};
+
 	return (
-		<div className="relative flex h-screen min-w-[1280px] flex-col overflow-hidden bg-background text-foreground">
-			<Hud
-				account={
-					<Button
-						onClick={() => {
-							window.location.assign(logoutHref({ redirectUri: "/" }));
-						}}
-						size="sm"
-						variant="ghost"
-					>
-						{user?.email ?? "Sign out"}
-					</Button>
-				}
-				clockLabel={formatters.clockLabel(game.hourIndex)}
-				jailed={jailed}
-				metrics={[
-					{ label: "CASH", value: formatters.cents(cashCents), tone: "primary" },
-					{
-						label: "Receivable today",
-						value: formatters.cents(accountsReceivableCents),
-						tone: "info",
-					},
-					{ label: "OPEX / hour", value: formatters.cents(opexCents), tone: "warning" },
-					{
-						label: "LEARN",
-						value: `${String(game.learning.slotsUsed)}/2`,
-						tone: "info",
-					},
-					{
-						label: "OPS",
-						value: `${String(game.operations.slotsUsed)}/1`,
-						tone: "warning",
-					},
-				]}
-				onSpeedChange={setSpeed}
-				onToggleRunning={toggleRunning}
-				running={running}
-				speed={speed}
-				subtitle="Opening Shift"
-				tickLabel={formatters.hourTick(game.hourIndex)}
-				title="Five Nines"
-			/>
+		<div className="relative flex h-screen flex-col overflow-hidden bg-background text-foreground">
 			{lastError !== null ? (
 				<p className="bg-destructive/10 px-4 py-2 font-mono text-sm text-destructive" role="alert">
 					{lastError}
 				</p>
 			) : null}
-			<nav
-				aria-label="Workspace"
-				className="flex shrink-0 gap-1 border-b border-border bg-hud px-2 py-1"
-			>
-				{(
-					[
-						["projects", "Projects"],
-						["floor", "Floor"],
-						["business", "Business"],
-					] as const
-				).map(([id, label]) => (
-					<Button
-						key={id}
-						aria-current={workspacePane === id ? "page" : undefined}
-						size="sm"
-						variant={workspacePane === id ? "secondary" : "ghost"}
-						onClick={() => {
-							setWorkspacePane(id);
-						}}
-					>
-						{label}
+			<GameTemplate
+				className="min-h-0 flex-1"
+				accountControl={
+					<Button onClick={signOut} size="sm" variant="ghost">
+						Sign out
 					</Button>
-				))}
-			</nav>
-			<main className="flex min-h-0 flex-1">
-				<section
-					aria-label="Projects"
-					className="flex min-h-0 w-[320px] shrink-0 flex-col border-r border-border bg-panel"
-				>
-					<section aria-label="Incoming queue" className="flex min-h-0 min-w-0 flex-1 flex-col">
-						<PanelHeader count={offers.length} label="Incoming" tone="warning" />
-						<div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
-							{offers.map(({ customerId, project }) => (
-								<ProjectOfferCard
-									cpuLabel={demandBaselineLabel(project.estimatedRequestsPerHour)}
-									customerName={customerId}
-									disabled={jailed}
-									key={project.id}
-									name={project.id}
-									onAccept={() => {
-										setReviewProjectId(project.id);
-									}}
-									onDecline={() => {
-										runCommand(
-											{ type: "declineProject", payload: { projectId: project.id } },
-											`Declined ${project.id}`,
-										);
-										if (reviewProjectId === project.id) {
-											setReviewProjectId(null);
-										}
-									}}
-									paygLabel={`${String(project.commercial.paygCentsPerThousandHandled)}¢/k`}
-									regionClassName={REGION_CLASS[project.region]}
-									regionLabel={project.region}
-									slaLabel={formatters.ppm(project.commercial.targetPpm)}
-								/>
-							))}
-						</div>
+				}
+				accountOpen={accountOpen}
+				accountOverlay={
+					<div className="flex flex-col gap-2 p-3">
+						<p className="font-mono text-xs text-muted-foreground">{user?.email ?? "Operator"}</p>
+						<Button onClick={signOut} size="sm" variant="ghost">
+							Sign out
+						</Button>
+					</div>
+				}
+				activityOpen={activityOpen}
+				activityOverlay={
+					<section aria-label="Event log" className="flex h-full min-h-0 flex-col overflow-hidden">
+						<EventLog className="min-h-0 flex-1" entries={entries} />
 					</section>
-				</section>
-				<section
-					aria-label="Active floor"
-					className="flex min-h-0 min-w-0 flex-1 flex-col bg-background"
-				>
-					<PanelHeader
-						count={served.length + accepted.length}
-						label="Active"
-						tone="primary"
-						trailing={
-							<span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-								{`Parked (${String(parked.length)}) · Paths ${pathHourLabel(game.pathHour)}`}
-							</span>
-						}
+				}
+				centerKind={centerKind}
+				clockControls={
+					<GameClockControls
+						dateLabel={formatters.clockLabel(game.hourIndex)}
+						dayProgress={(game.hourIndex % 24) / 24}
+						density={isMobile ? "mobile" : "desktop"}
+						onSpeedChange={handleClockSpeed}
+						speed={clockSpeed}
 					/>
-					{reviewOffer !== undefined ? (
-						<section
-							aria-label="Contract Review"
-							className="m-2 flex flex-col gap-3 border border-border bg-panel p-4"
-						>
-							<div className="flex items-start justify-between gap-2">
-								<div>
-									<p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-										Contract Review
-									</p>
-									<h2 className="font-mono text-lg font-semibold text-foreground">
-										{reviewOffer.project.id}
-									</h2>
-									<p className="font-mono text-sm text-muted-foreground">
-										{reviewOffer.customerId}
-									</p>
-								</div>
-								<div className="flex gap-2">
-									<Button
-										size="sm"
-										variant="ghost"
-										onClick={() => {
-											setReviewProjectId(reviewOffer.project.id);
-										}}
-									>
-										Back
-									</Button>
-									<Button
-										size="sm"
-										variant="ghost"
-										onClick={() => {
-											setReviewProjectId(null);
-										}}
-									>
-										Close
-									</Button>
-								</div>
-							</div>
-							<p className="font-mono text-sm">
-								<strong>Advance due at acceptance:</strong>{" "}
-								{formatters.cents(reviewOffer.project.commercial.recurringCentsPerPeriod)}
-							</p>
-							<p className="font-mono text-sm">
-								<strong>SLA:</strong> {formatters.ppm(reviewOffer.project.commercial.targetPpm)} ·
-								setup allowance {String(reviewOffer.project.setupAllowanceHours)}h then customer
-								patience, full refund if withdrawn
-							</p>
+				}
+				destination={destination}
+				learningProgress={
+					<Text className="px-2 text-[10px] text-info">
+						LEARN {String(game.learning.slotsUsed)}/2
+					</Text>
+				}
+				objectDrawer={
+					inspectedAsset === undefined ? undefined : (
+						<div className="flex flex-col gap-2 p-2">
 							<p className="font-mono text-xs text-muted-foreground">
-								Close never charges. Back keeps this offer selected.
+								Issue #66 shared-asset identity is incomplete. This drawer reuses the rack card; it
+								is not a topology id.
 							</p>
-							<Button
-								disabled={jailed}
-								onClick={() => {
-									runCommand(
-										{ type: "acceptProject", payload: { projectId: reviewOffer.project.id } },
-										`Accepted ${reviewOffer.project.id}`,
-									);
-									setReviewProjectId(null);
-								}}
-							>
-								Accept contract
-							</Button>
+							<ServerCard
+								{...fleetHostProjection(inspectedAsset)}
+								dotClassName={SKU_DOT_CLASS[inspectedAsset.catalogId]}
+								idLabel={`${inspectedAsset.id} · ${assetTenureKind(inspectedAsset)}`}
+								label={`${SERVER_TIER_LABEL[inspectedAsset.catalogId]} · ${inspectedAsset.region}`}
+								opexLabel={skuFleetOpexLabel(inspectedAsset.catalogId, inspectedAsset.tenure)}
+								variant="fleet"
+							/>
+						</div>
+					)
+				}
+				objectDrawerTitle={inspectedAsset === undefined ? undefined : inspectedAsset.id}
+				onAccountOpenChange={setAccountOpen}
+				onActivityOpenChange={setActivityOpen}
+				onDestinationChange={handleDestinationChange}
+				onNewProject={() => {
+					setDestination("projects");
+					setProjectsOpen(true);
+					setReviewProjectId(offers[0]?.project.id ?? null);
+				}}
+				onObjectDrawerClose={() => {
+					setInspectedAssetId(null);
+				}}
+				onProjectsOpenChange={setProjectsOpen}
+				onProjectsWidthChange={setProjectsWidth}
+				onRightDestinationChange={setRightDestination}
+				onRightWidthChange={setRightWidth}
+				operationsProgress={
+					<Text className="px-2 text-[10px] text-warning">
+						OPS {String(game.operations.slotsUsed)}/1
+					</Text>
+				}
+				projectsOpen={projectsOpen}
+				projectsWidth={projectsWidth}
+				rightDestination={rightDestination}
+				rightWidth={rightWidth}
+				statusMetrics={
+					<>
+						<MetricStat compact label="CASH" tone="primary" value={formatters.cents(cashCents)} />
+						<MetricStat compact label="REP" value={String(game.reputation)} />
+						<MetricStat
+							compact
+							label="Receivable today"
+							tone="info"
+							value={formatters.cents(accountsReceivableCents)}
+						/>
+						<MetricStat
+							compact
+							label="OPEX / hour"
+							tone="warning"
+							value={formatters.cents(opexCents)}
+						/>
+						<MetricStat
+							compact
+							label="LEARN"
+							tone="info"
+							value={`${String(game.learning.slotsUsed)}/2`}
+						/>
+						<MetricStat
+							compact
+							label="OPS"
+							tone="warning"
+							value={`${String(game.operations.slotsUsed)}/1`}
+						/>
+					</>
+				}
+				projectsPanel={
+					<section aria-label="Projects" className="flex h-full min-h-0 flex-col bg-panel">
+						<section aria-label="Incoming queue" className="flex min-h-0 min-w-0 flex-1 flex-col">
+							<PanelHeader count={offers.length} label="Incoming" tone="warning" />
+							<div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
+								{offers.map(({ customerId, project }) => (
+									<ProjectOfferCard
+										cpuLabel={demandBaselineLabel(project.estimatedRequestsPerHour)}
+										customerName={customerId}
+										disabled={jailed}
+										key={project.id}
+										name={project.id}
+										onAccept={() => {
+											setReviewProjectId(project.id);
+										}}
+										onDecline={() => {
+											runCommand(
+												{ type: "declineProject", payload: { projectId: project.id } },
+												`Declined ${project.id}`,
+											);
+											if (reviewProjectId === project.id) {
+												setReviewProjectId(null);
+											}
+										}}
+										paygLabel={`${String(project.commercial.paygCentsPerThousandHandled)}¢/k`}
+										regionClassName={REGION_CLASS[project.region]}
+										regionLabel={project.region}
+										slaLabel={formatters.ppm(project.commercial.targetPpm)}
+									/>
+								))}
+							</div>
 						</section>
-					) : null}
-					{/* auto-rows-min is load-bearing: with default auto rows the tracks divide
+					</section>
+				}
+				centerContent={
+					<section
+						aria-label="Active floor"
+						className="flex h-full min-h-0 min-w-0 flex-1 flex-col bg-background"
+					>
+						<PanelHeader
+							count={served.length + accepted.length}
+							label="Active"
+							tone="primary"
+							trailing={
+								<span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+									{`Parked (${String(parked.length)}) · Paths ${pathHourLabel(game.pathHour)}`}
+								</span>
+							}
+						/>
+						{reviewOffer !== undefined ? (
+							<section
+								aria-label="Contract Review"
+								className="m-2 flex flex-col gap-3 border border-border bg-panel p-4"
+							>
+								<div className="flex items-start justify-between gap-2">
+									<div>
+										<p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+											Contract Review
+										</p>
+										<h2 className="font-mono text-lg font-semibold text-foreground">
+											{reviewOffer.project.id}
+										</h2>
+										<p className="font-mono text-sm text-muted-foreground">
+											{reviewOffer.customerId}
+										</p>
+									</div>
+									<div className="flex gap-2">
+										<Button
+											size="sm"
+											variant="ghost"
+											onClick={() => {
+												setReviewProjectId(reviewOffer.project.id);
+											}}
+										>
+											Back
+										</Button>
+										<Button
+											size="sm"
+											variant="ghost"
+											onClick={() => {
+												setReviewProjectId(null);
+											}}
+										>
+											Close
+										</Button>
+									</div>
+								</div>
+								<p className="font-mono text-sm">
+									<strong>Advance due at acceptance:</strong>{" "}
+									{formatters.cents(reviewOffer.project.commercial.recurringCentsPerPeriod)}
+								</p>
+								<p className="font-mono text-sm">
+									<strong>SLA:</strong> {formatters.ppm(reviewOffer.project.commercial.targetPpm)} ·
+									setup allowance {String(reviewOffer.project.setupAllowanceHours)}h then customer
+									patience, full refund if withdrawn
+								</p>
+								<p className="font-mono text-xs text-muted-foreground">
+									Close never charges. Back keeps this offer selected.
+								</p>
+								<Button
+									disabled={jailed}
+									onClick={() => {
+										runCommand(
+											{ type: "acceptProject", payload: { projectId: reviewOffer.project.id } },
+											`Accepted ${reviewOffer.project.id}`,
+										);
+										setReviewProjectId(null);
+									}}
+								>
+									Accept contract
+								</Button>
+							</section>
+						) : null}
+						{/* auto-rows-min is load-bearing: with default auto rows the tracks divide
 					    the panel height instead of fitting the cards, and RN-web Views do not
 					    clip, so taller cards paint straight over the row below. */}
-					<div className="grid min-h-0 flex-1 auto-rows-min grid-cols-2 gap-2 overflow-y-auto p-2">
-						{served.length === 0 && parked.length === 0 && accepted.length === 0 ? (
-							<p className="col-span-2 font-mono text-sm text-muted-foreground">
-								No served projects
-							</p>
-						) : null}
-						{accepted.map(({ customerId, project }) => (
-							<div
-								className="flex flex-col gap-2 border border-border bg-panel p-3"
-								key={project.id}
-							>
-								<p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-									{customerId} · setup
+						<div className="grid min-h-0 flex-1 auto-rows-min grid-cols-2 gap-2 overflow-y-auto p-2">
+							{served.length === 0 && parked.length === 0 && accepted.length === 0 ? (
+								<p className="col-span-2 font-mono text-sm text-muted-foreground">
+									No served projects
 								</p>
-								<p className="font-mono text-sm font-semibold">{project.id}</p>
-								<p className="font-mono text-xs text-muted-foreground">
-									Advance {formatters.cents(project.advancePostedCents)} received. Ready:{" "}
-									{project.ready ? "yes" : "no"}. Assign a box, then install and configure. Start
-									stays explicit. Park stays blocked until activated.
-								</p>
-								<ServerSelect
-									emptyLabel="Buy a server to assign during setup"
-									label="Setup server"
-									onSelect={(serverId) => {
-										selectServer(project.id, serverId);
-									}}
-									options={serverOptions}
-									selectedId={pickedServerId(project)}
-								/>
-								<div className="flex flex-wrap gap-2">
+							) : null}
+							{accepted.map(({ customerId, project }) => (
+								<div
+									className="flex flex-col gap-2 border border-border bg-panel p-3"
+									key={project.id}
+								>
+									<p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+										{customerId} · setup
+									</p>
+									<p className="font-mono text-sm font-semibold">{project.id}</p>
+									<p className="font-mono text-xs text-muted-foreground">
+										Advance {formatters.cents(project.advancePostedCents)} received. Ready:{" "}
+										{project.ready ? "yes" : "no"}. Assign a box, then install and configure. Start
+										stays explicit. Park stays blocked until activated.
+									</p>
+									<ServerSelect
+										emptyLabel="Buy a server to assign during setup"
+										label="Setup server"
+										onSelect={(serverId) => {
+											selectServer(project.id, serverId);
+										}}
+										options={serverOptions}
+										selectedId={pickedServerId(project)}
+									/>
+									<div className="flex flex-wrap gap-2">
+										<Button
+											disabled={jailed || game.assets.length === 0}
+											size="sm"
+											variant="secondary"
+											onClick={() => {
+												withPickedServer(project, (serverId) => {
+													runCommand(
+														{
+															type: "placeSetup",
+															payload: { projectId: project.id, serverId },
+														},
+														`Assigned ${serverId} to ${project.id}`,
+													);
+												});
+											}}
+										>
+											Assign box
+										</Button>
+										{project.setupServerId !== undefined ? (
+											<>
+												<Button
+													disabled={jailed}
+													size="sm"
+													variant="outline"
+													onClick={() => {
+														runCommand(
+															{
+																type: "powerOn",
+																payload: { serverId: project.setupServerId ?? "" },
+															},
+															`Powered on ${project.setupServerId}`,
+														);
+													}}
+												>
+													Power on
+												</Button>
+												<Button
+													disabled={jailed}
+													size="sm"
+													variant="outline"
+													onClick={() => {
+														runCommand(
+															{
+																type: "powerOff",
+																payload: { serverId: project.setupServerId ?? "" },
+															},
+															`Powered off ${project.setupServerId}`,
+														);
+													}}
+												>
+													Power off
+												</Button>
+											</>
+										) : null}
+										{FIRST_PROJECT_SETUP_TASKS.map((task) => {
+											const done = game.operations.tasks.some(
+												(entry) =>
+													entry.projectId === project.id &&
+													entry.taskId === task.id &&
+													entry.status === "completed",
+											);
+											const active = game.operations.tasks.find(
+												(entry) =>
+													entry.projectId === project.id &&
+													entry.taskId === task.id &&
+													entry.status === "active",
+											);
+
+											if (done) {
+												return (
+													<p className="font-mono text-xs text-muted-foreground" key={task.id}>
+														{setupActionLabel(task.id)} done
+													</p>
+												);
+											}
+
+											if (active !== undefined) {
+												return (
+													<Button
+														key={task.id}
+														size="sm"
+														variant="outline"
+														onClick={() => {
+															runCommand(
+																{ type: "cancelOperationalTask", payload: { taskId: active.id } },
+																`Cancelled ${setupActionLabel(task.id)}`,
+															);
+														}}
+													>
+														Cancel {setupActionLabel(task.id)}
+													</Button>
+												);
+											}
+
+											return (
+												<Button
+													key={task.id}
+													disabled={
+														jailed ||
+														game.operations.slotsUsed >= 1 ||
+														project.setupServerId === undefined
+													}
+													size="sm"
+													variant="secondary"
+													onClick={() => {
+														runCommand(setupAction(project.id, task.id), setupActionLabel(task.id));
+													}}
+												>
+													{setupActionLabel(task.id)}
+												</Button>
+											);
+										})}
+									</div>
+									<div className="flex gap-2">
+										<Button
+											disabled={!project.ready || game.assets.length === 0 || jailed}
+											size="sm"
+											onClick={() => {
+												withPickedServer(project, (serverId) => {
+													const startServerId = project.setupServerId ?? serverId;
+
+													runCommand(
+														{
+															type: "startProject",
+															payload: { projectId: project.id, serverId: startServerId },
+														},
+														`Started ${project.id} on ${startServerId}`,
+													);
+												});
+											}}
+										>
+											Start
+										</Button>
+										<Button
+											size="sm"
+											variant="destructive"
+											onClick={() => {
+												runCommand(
+													{ type: "cancelSetup", payload: { projectId: project.id } },
+													`Cancelled setup ${project.id}`,
+												);
+											}}
+										>
+											Cancel setup
+										</Button>
+									</div>
+								</div>
+							))}
+							{served.map(({ customerId, project }) => (
+								<div className="flex flex-col gap-2" key={project.id}>
+									<ActiveRowCard
+										customerId={customerId}
+										onRoute={() => {
+											withPickedServer(project, (serverId) => {
+												if (serverId === project.route?.serverId) {
+													return;
+												}
+
+												runCommand(
+													{ type: "moveProject", payload: { projectId: project.id, serverId } },
+													`Moved ${project.id} to ${serverId}`,
+												);
+											});
+										}}
+										onSelectServer={(serverId) => {
+											selectServer(project.id, serverId);
+										}}
+										onUnassign={() => {
+											runCommand(
+												{ type: "unassignProject", payload: { projectId: project.id } },
+												`Parked ${project.id}`,
+											);
+										}}
+										project={project}
+										routeLabel="MOVE"
+										selectedServerId={pickedServerId(project)}
+										serverLabel={routedServerLabel(project)}
+										serverOptions={serverOptions}
+									/>
 									<Button
-										disabled={jailed || game.assets.length === 0}
+										disabled={jailed || game.assets.length < 2}
 										size="sm"
 										variant="secondary"
 										onClick={() => {
 											withPickedServer(project, (serverId) => {
 												runCommand(
 													{
-														type: "placeSetup",
-														payload: { projectId: project.id, serverId },
+														type: "duplicateProject",
+														payload: { projectId: project.id, destinationServerId: serverId },
 													},
-													`Assigned ${serverId} to ${project.id}`,
+													`Duplicating ${project.id} to ${serverId}`,
 												);
 											});
 										}}
 									>
-										Assign box
-									</Button>
-									{project.setupServerId !== undefined ? (
-										<>
-											<Button
-												disabled={jailed}
-												size="sm"
-												variant="outline"
-												onClick={() => {
-													runCommand(
-														{ type: "powerOn", payload: { serverId: project.setupServerId ?? "" } },
-														`Powered on ${project.setupServerId}`,
-													);
-												}}
-											>
-												Power on
-											</Button>
-											<Button
-												disabled={jailed}
-												size="sm"
-												variant="outline"
-												onClick={() => {
-													runCommand(
-														{
-															type: "powerOff",
-															payload: { serverId: project.setupServerId ?? "" },
-														},
-														`Powered off ${project.setupServerId}`,
-													);
-												}}
-											>
-												Power off
-											</Button>
-										</>
-									) : null}
-									{FIRST_PROJECT_SETUP_TASKS.map((task) => {
-										const done = game.operations.tasks.some(
-											(entry) =>
-												entry.projectId === project.id &&
-												entry.taskId === task.id &&
-												entry.status === "completed",
-										);
-										const active = game.operations.tasks.find(
-											(entry) =>
-												entry.projectId === project.id &&
-												entry.taskId === task.id &&
-												entry.status === "active",
-										);
-
-										if (done) {
-											return (
-												<p className="font-mono text-xs text-muted-foreground" key={task.id}>
-													{setupActionLabel(task.id)} done
-												</p>
-											);
-										}
-
-										if (active !== undefined) {
-											return (
-												<Button
-													key={task.id}
-													size="sm"
-													variant="outline"
-													onClick={() => {
-														runCommand(
-															{ type: "cancelOperationalTask", payload: { taskId: active.id } },
-															`Cancelled ${setupActionLabel(task.id)}`,
-														);
-													}}
-												>
-													Cancel {setupActionLabel(task.id)}
-												</Button>
-											);
-										}
-
-										return (
-											<Button
-												key={task.id}
-												disabled={
-													jailed ||
-													game.operations.slotsUsed >= 1 ||
-													project.setupServerId === undefined
-												}
-												size="sm"
-												variant="secondary"
-												onClick={() => {
-													runCommand(setupAction(project.id, task.id), setupActionLabel(task.id));
-												}}
-											>
-												{setupActionLabel(task.id)}
-											</Button>
-										);
-									})}
-								</div>
-								<div className="flex gap-2">
-									<Button
-										disabled={!project.ready || game.assets.length === 0 || jailed}
-										size="sm"
-										onClick={() => {
-											withPickedServer(project, (serverId) => {
-												const startServerId = project.setupServerId ?? serverId;
-
-												runCommand(
-													{
-														type: "startProject",
-														payload: { projectId: project.id, serverId: startServerId },
-													},
-													`Started ${project.id} on ${startServerId}`,
-												);
-											});
-										}}
-									>
-										Start
-									</Button>
-									<Button
-										size="sm"
-										variant="destructive"
-										onClick={() => {
-											runCommand(
-												{ type: "cancelSetup", payload: { projectId: project.id } },
-												`Cancelled setup ${project.id}`,
-											);
-										}}
-									>
-										Cancel setup
+										Duplicate this project
 									</Button>
 								</div>
-							</div>
-						))}
-						{served.map(({ customerId, project }) => (
-							<div className="flex flex-col gap-2" key={project.id}>
+							))}
+							{parked.map(({ customerId, project }) => (
 								<ActiveRowCard
 									customerId={customerId}
+									key={project.id}
 									onRoute={() => {
 										withPickedServer(project, (serverId) => {
-											if (serverId === project.route?.serverId) {
-												return;
-											}
-
 											runCommand(
-												{ type: "moveProject", payload: { projectId: project.id, serverId } },
-												`Moved ${project.id} to ${serverId}`,
+												{ type: "assignProject", payload: { projectId: project.id, serverId } },
+												`Assigned ${project.id} to ${serverId}`,
 											);
 										});
 									}}
 									onSelectServer={(serverId) => {
 										selectServer(project.id, serverId);
 									}}
-									onUnassign={() => {
-										runCommand(
-											{ type: "unassignProject", payload: { projectId: project.id } },
-											`Parked ${project.id}`,
-										);
-									}}
 									project={project}
-									routeLabel="MOVE"
+									routeLabel="Resume"
 									selectedServerId={pickedServerId(project)}
 									serverLabel={routedServerLabel(project)}
 									serverOptions={serverOptions}
 								/>
-								<Button
-									disabled={jailed || game.assets.length < 2}
-									size="sm"
-									variant="secondary"
-									onClick={() => {
-										withPickedServer(project, (serverId) => {
-											runCommand(
-												{
-													type: "duplicateProject",
-													payload: { projectId: project.id, destinationServerId: serverId },
-												},
-												`Duplicating ${project.id} to ${serverId}`,
-											);
-										});
-									}}
-								>
-									Duplicate this project
-								</Button>
-							</div>
-						))}
-						{parked.map(({ customerId, project }) => (
-							<ActiveRowCard
-								customerId={customerId}
-								key={project.id}
-								onRoute={() => {
-									withPickedServer(project, (serverId) => {
-										runCommand(
-											{ type: "assignProject", payload: { projectId: project.id, serverId } },
-											`Assigned ${project.id} to ${serverId}`,
-										);
-									});
-								}}
-								onSelectServer={(serverId) => {
-									selectServer(project.id, serverId);
-								}}
-								project={project}
-								routeLabel="Resume"
-								selectedServerId={pickedServerId(project)}
-								serverLabel={routedServerLabel(project)}
-								serverOptions={serverOptions}
-							/>
-						))}
-					</div>
-					<PanelHeader count={game.assets.length} label="Fleet" tone="info" />
-					<div className="grid max-h-[40%] min-h-0 auto-rows-min grid-cols-2 gap-2 overflow-y-auto p-2">
-						{game.assets.length === 0 ? (
-							<p className="col-span-2 font-mono text-sm text-muted-foreground">No servers</p>
-						) : (
-							game.assets.map((asset) => {
-								const leased = assetTenureKind(asset) === "leased";
+							))}
+						</div>
+						<PanelHeader count={game.assets.length} label="Fleet" tone="info" />
+						<div className="grid max-h-[40%] min-h-0 auto-rows-min grid-cols-2 gap-2 overflow-y-auto p-2">
+							{game.assets.length === 0 ? (
+								<p className="col-span-2 font-mono text-sm text-muted-foreground">No servers</p>
+							) : (
+								game.assets.map((asset) => {
+									const leased = assetTenureKind(asset) === "leased";
 
-								return (
-									<div className="flex flex-col gap-1" key={asset.id}>
-										<Button
-											size="sm"
-											variant="ghost"
-											onClick={() => {
-												setInspectedAssetId(asset.id);
-											}}
-										>
-											Inspect {asset.id}
-										</Button>
-										<ServerCard
-											{...fleetHostProjection(asset)}
-											dotClassName={SKU_DOT_CLASS[asset.catalogId]}
-											idLabel={`${asset.id} · ${assetTenureKind(asset)}`}
-											label={`${SERVER_TIER_LABEL[asset.catalogId]} · ${asset.region}`}
-											onRelease={
-												leased
-													? () => {
-															runCommand(
-																{ type: "releaseServer", payload: { serverId: asset.id } },
-																`Released ${asset.id}`,
-															);
-														}
-													: undefined
-											}
-											onSell={
-												leased
-													? undefined
-													: () => {
-															runCommand(
-																{ type: "sellServer", payload: { serverId: asset.id } },
-																`Sold ${asset.id}`,
-															);
-														}
-											}
-											opexLabel={skuFleetOpexLabel(asset.catalogId, asset.tenure)}
-											variant="fleet"
-										/>
-									</div>
-								);
-							})
-						)}
-					</div>
-				</section>
-				<section
-					aria-label="Business"
-					className="flex min-h-0 w-[300px] shrink-0 flex-col border-l border-border bg-panel"
-				>
-					<section aria-label="Server market" className="flex min-h-0 min-w-0 flex-1 flex-col">
-						<PanelHeader
-							count={SERVER_CATALOG_IDS.length}
-							label="Market"
-							tone="destructive"
-							trailing={
-								<label className="font-mono text-xs text-muted-foreground" htmlFor={regionSelectId}>
-									Region
-									<select
-										className="ml-1 bg-card text-foreground"
-										id={regionSelectId}
-										name="buy-region"
-										onChange={(event) => setBuyRegion(regions.parseRegionId(event.target.value))}
-										value={buyRegion}
-									>
-										{REGION_IDS.map((id) => (
-											<option key={id} value={id}>
-												{id}
-											</option>
-										))}
-									</select>
-								</label>
-							}
-						/>
-						<div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
-							{SERVER_CATALOG_IDS.map((catalogId: ServerCatalogId) => {
-								const canAfford = !jailed && cashCents >= SKU_ECONOMY[catalogId].purchaseCents;
-								const canAffordLease = !jailed;
-
-								return (
-									<ServerCard
-										canAfford={canAfford}
-										canAffordLease={canAffordLease}
-										costLabel={skuCostLabel(catalogId)}
-										cpuLabel={skuCpuLabel(catalogId)}
-										diskLabel={skuDiskLabel(catalogId)}
-										dotClassName={SKU_DOT_CLASS[catalogId]}
-										gpuLabel={skuGpuLabel(catalogId)}
-										key={catalogId}
-										label={SERVER_TIER_LABEL[catalogId]}
-										leaseLabel={skuLeaseLabel(catalogId)}
-										onBuy={() => {
-											runCommand(
-												{
-													type: "buyServer",
-													payload: { serverType: catalogId, region: buyRegion },
-												},
-												`Bought ${SERVER_TIER_LABEL[catalogId]} in ${buyRegion}`,
-											);
-										}}
-										onLease={() => {
-											leaseCatalog(catalogId);
-										}}
-										opexLabel={skuOpexLabel(catalogId)}
-										ramLabel={skuRamLabel(catalogId)}
-										variant="market"
-									/>
-								);
-							})}
+									return (
+										<div className="flex flex-col gap-1" key={asset.id}>
+											<Button
+												size="sm"
+												variant="ghost"
+												onClick={() => {
+													setInspectedAssetId(asset.id);
+												}}
+											>
+												Inspect {asset.id}
+											</Button>
+											<ServerCard
+												{...fleetHostProjection(asset)}
+												dotClassName={SKU_DOT_CLASS[asset.catalogId]}
+												idLabel={`${asset.id} · ${assetTenureKind(asset)}`}
+												label={`${SERVER_TIER_LABEL[asset.catalogId]} · ${asset.region}`}
+												onRelease={
+													leased
+														? () => {
+																runCommand(
+																	{ type: "releaseServer", payload: { serverId: asset.id } },
+																	`Released ${asset.id}`,
+																);
+															}
+														: undefined
+												}
+												onSell={
+													leased
+														? undefined
+														: () => {
+																runCommand(
+																	{ type: "sellServer", payload: { serverId: asset.id } },
+																	`Sold ${asset.id}`,
+																);
+															}
+												}
+												opexLabel={skuFleetOpexLabel(asset.catalogId, asset.tenure)}
+												variant="fleet"
+											/>
+										</div>
+									);
+								})
+							)}
 						</div>
 					</section>
-				</section>
-			</main>
-			{inspectedAsset !== undefined ? (
-				<section
-					aria-label="Object inspector"
-					className="flex shrink-0 flex-col gap-2 border-t border-border bg-panel p-2"
-				>
-					<PanelHeader count={1} label="Inventory" tone="info" />
-					<p className="font-mono text-xs text-muted-foreground">
-						Issue #66 shared-asset identity is incomplete. This drawer reuses the rack card; it is
-						not a topology id.
-					</p>
-					<ServerCard
-						{...fleetHostProjection(inspectedAsset)}
-						dotClassName={SKU_DOT_CLASS[inspectedAsset.catalogId]}
-						idLabel={`${inspectedAsset.id} · ${assetTenureKind(inspectedAsset)}`}
-						label={`${SERVER_TIER_LABEL[inspectedAsset.catalogId]} · ${inspectedAsset.region}`}
-						opexLabel={skuFleetOpexLabel(inspectedAsset.catalogId, inspectedAsset.tenure)}
-						variant="fleet"
-					/>
-				</section>
-			) : null}
-			<section
-				aria-label="Learning"
-				className="flex h-48 min-h-0 shrink-0 flex-col overflow-hidden border-t border-border bg-panel"
-			>
-				<PanelHeader
-					count={game.learning.slotsUsed}
-					label="Learning"
-					tone="info"
-					trailing={
-						<span className="font-mono text-xs text-muted-foreground">
-							Completed courses vs active enrollments are separate. Issue #66 shared-asset identity
-							is incomplete; do not treat Projects and Inventory as the same graph.
-						</span>
-					}
-				/>
-				<div className="flex min-h-0 flex-1 gap-2 overflow-x-auto p-2">
-					{game.learningCatalog.map((row) => (
-						<div
-							className="flex w-56 shrink-0 flex-col gap-1 border border-border bg-card p-2 font-mono text-xs"
-							key={row.id}
-						>
-							<p className="font-semibold text-foreground">{row.name}</p>
-							<p className="text-muted-foreground">{row.status}</p>
-							<p className="text-muted-foreground">
-								{String(row.durationHours)}h · {formatters.cents(row.monthlyTuitionCents)}
+				}
+				inventoryPanel={
+					<section aria-label="Business" className="flex h-full min-h-0 flex-col bg-panel">
+						<section aria-label="Server market" className="flex min-h-0 min-w-0 flex-1 flex-col">
+							<PanelHeader
+								count={SERVER_CATALOG_IDS.length}
+								label="Market"
+								tone="destructive"
+								trailing={
+									<label
+										className="font-mono text-xs text-muted-foreground"
+										htmlFor={regionSelectId}
+									>
+										Region
+										<select
+											className="ml-1 bg-card text-foreground"
+											id={regionSelectId}
+											name="buy-region"
+											onChange={(event) => setBuyRegion(regions.parseRegionId(event.target.value))}
+											value={buyRegion}
+										>
+											{REGION_IDS.map((id) => (
+												<option key={id} value={id}>
+													{id}
+												</option>
+											))}
+										</select>
+									</label>
+								}
+							/>
+							<div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
+								{SERVER_CATALOG_IDS.map((catalogId: ServerCatalogId) => {
+									const canAfford = !jailed && cashCents >= SKU_ECONOMY[catalogId].purchaseCents;
+									const canAffordLease = !jailed;
+
+									return (
+										<ServerCard
+											canAfford={canAfford}
+											canAffordLease={canAffordLease}
+											costLabel={skuCostLabel(catalogId)}
+											cpuLabel={skuCpuLabel(catalogId)}
+											diskLabel={skuDiskLabel(catalogId)}
+											dotClassName={SKU_DOT_CLASS[catalogId]}
+											gpuLabel={skuGpuLabel(catalogId)}
+											key={catalogId}
+											label={SERVER_TIER_LABEL[catalogId]}
+											leaseLabel={skuLeaseLabel(catalogId)}
+											onBuy={() => {
+												runCommand(
+													{
+														type: "buyServer",
+														payload: { serverType: catalogId, region: buyRegion },
+													},
+													`Bought ${SERVER_TIER_LABEL[catalogId]} in ${buyRegion}`,
+												);
+											}}
+											onLease={() => {
+												leaseCatalog(catalogId);
+											}}
+											opexLabel={skuOpexLabel(catalogId)}
+											ramLabel={skuRamLabel(catalogId)}
+											variant="market"
+										/>
+									);
+								})}
+							</div>
+							<p className="px-2 pb-2 font-mono text-xs text-muted-foreground">
+								Issue #66 shared-asset identity is incomplete. This drawer reuses the rack card; it
+								is not a topology id.
 							</p>
-							{row.status === "available" ? (
-								<Button
-									disabled={jailed}
-									onClick={() => {
-										runCommand(
-											{ type: "enrollLearning", payload: { subject: row.subject } },
-											`Enrolled ${row.name}`,
-										);
-									}}
-									size="sm"
+						</section>
+					</section>
+				}
+				learningPanel={
+					<section
+						aria-label="Learning"
+						className="flex h-full min-h-0 flex-col overflow-hidden bg-panel"
+					>
+						<PanelHeader
+							count={game.learning.slotsUsed}
+							label="Learning"
+							tone="info"
+							trailing={
+								<span className="font-mono text-xs text-muted-foreground">
+									Completed courses vs active enrollments are separate. Issue #66 shared-asset
+									identity is incomplete; do not treat Projects and Inventory as the same graph.
+								</span>
+							}
+						/>
+						<div className="flex min-h-0 flex-1 gap-2 overflow-x-auto p-2">
+							{game.learningCatalog.map((row) => (
+								<div
+									className="flex w-56 shrink-0 flex-col gap-1 border border-border bg-card p-2 font-mono text-xs"
+									key={row.id}
 								>
-									Enroll {row.name}
-								</Button>
-							) : null}
-							{row.status === "active" && row.enrollmentId !== undefined ? (
-								<Button
-									onClick={() => {
-										const enrollmentId = row.enrollmentId;
+									<p className="font-semibold text-foreground">{row.name}</p>
+									<p className="text-muted-foreground">{row.status}</p>
+									<p className="text-muted-foreground">
+										{String(row.durationHours)}h · {formatters.cents(row.monthlyTuitionCents)}
+									</p>
+									{row.status === "available" ? (
+										<Button
+											disabled={jailed}
+											onClick={() => {
+												runCommand(
+													{ type: "enrollLearning", payload: { subject: row.subject } },
+													`Enrolled ${row.name}`,
+												);
+											}}
+											size="sm"
+										>
+											Enroll {row.name}
+										</Button>
+									) : null}
+									{row.status === "active" && row.enrollmentId !== undefined ? (
+										<Button
+											onClick={() => {
+												const enrollmentId = row.enrollmentId;
 
-										if (enrollmentId === undefined) {
-											return;
-										}
+												if (enrollmentId === undefined) {
+													return;
+												}
 
-										runCommand(
-											{ type: "pauseLearning", payload: { enrollmentId } },
-											`Paused ${row.name}`,
-										);
-									}}
-									size="sm"
-									variant="outline"
-								>
-									Pause {row.name}
-								</Button>
-							) : null}
-							{(row.status === "paused" || row.status === "insufficient-funds") &&
-							row.enrollmentId !== undefined ? (
-								<Button
-									disabled={jailed && row.status === "insufficient-funds"}
-									onClick={() => {
-										const enrollmentId = row.enrollmentId;
+												runCommand(
+													{ type: "pauseLearning", payload: { enrollmentId } },
+													`Paused ${row.name}`,
+												);
+											}}
+											size="sm"
+											variant="outline"
+										>
+											Pause {row.name}
+										</Button>
+									) : null}
+									{(row.status === "paused" || row.status === "insufficient-funds") &&
+									row.enrollmentId !== undefined ? (
+										<Button
+											disabled={jailed && row.status === "insufficient-funds"}
+											onClick={() => {
+												const enrollmentId = row.enrollmentId;
 
-										if (enrollmentId === undefined) {
-											return;
-										}
+												if (enrollmentId === undefined) {
+													return;
+												}
 
-										runCommand(
-											{ type: "resumeLearning", payload: { enrollmentId } },
-											`Resumed ${row.name}`,
-										);
-									}}
-									size="sm"
-								>
-									Resume {row.name}
-								</Button>
-							) : null}
+												runCommand(
+													{ type: "resumeLearning", payload: { enrollmentId } },
+													`Resumed ${row.name}`,
+												);
+											}}
+											size="sm"
+										>
+											Resume {row.name}
+										</Button>
+									) : null}
+								</div>
+							))}
 						</div>
-					))}
-				</div>
-			</section>
-			<section
-				aria-label="Event log"
-				className="flex h-40 min-h-0 shrink-0 flex-col overflow-hidden border-t border-border"
-			>
-				<EventLog className="min-h-0 flex-1" entries={entries} />
-			</section>
+					</section>
+				}
+				financesPanel={
+					<section aria-label="Finances" className="flex h-full flex-col gap-2 p-3">
+						<PanelHeader label="Business" />
+						<p className="font-mono text-sm">CASH {formatters.cents(cashCents)}</p>
+						<p className="font-mono text-sm">
+							Receivable today {formatters.cents(accountsReceivableCents)}
+						</p>
+						<p className="font-mono text-sm">OPEX / hour {formatters.cents(opexCents)}</p>
+					</section>
+				}
+			/>
 			{shiftOutcome.status !== "in_progress" ? (
 				<div
 					aria-label="Opening Shift result"

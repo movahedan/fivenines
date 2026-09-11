@@ -15,7 +15,12 @@ function stubLoggedInHint(present: boolean): void {
 	});
 }
 
-function renderHub(): ReturnType<typeof render> {
+function renderHub(innerWidth = 1280): ReturnType<typeof render> {
+	Object.defineProperty(window, "innerWidth", {
+		configurable: true,
+		value: innerWidth,
+	});
+
 	return render(
 		<AuthProvider
 			restoreOnMount={false}
@@ -119,17 +124,46 @@ describe("HubPage - session gate", () => {
 		expect(screen.getByRole("region", { name: "Incoming queue" })).toBeTruthy();
 		expect(screen.getByRole("region", { name: "Projects" })).toBeTruthy();
 		expect(screen.getByRole("region", { name: "Business" })).toBeTruthy();
-		expect(screen.getByRole("navigation", { name: "Workspace" })).toBeTruthy();
+		expect(screen.getByRole("button", { name: "Activity" })).toBeTruthy();
 		expect(screen.getByRole("region", { name: "Server market" })).toBeTruthy();
 		expect(screen.getByText("Incoming (1)")).toBeTruthy();
 		expect(screen.getByText("Fleet (0)")).toBeTruthy();
+		fireEvent.click(screen.getByRole("button", { name: "Activity" }));
 		expect(screen.getByRole("region", { name: "Event log" }).className).toContain(
 			"overflow-hidden",
 		);
+		fireEvent.click(screen.getByRole("button", { name: "Dismiss Activity" }));
+		fireEvent.click(screen.getByRole("button", { name: "Open Learning" }));
 		expect(screen.getByRole("region", { name: "Learning" })).toBeTruthy();
 		expect(screen.getByText("LEARN")).toBeTruthy();
 		expect(screen.getByText("OPS")).toBeTruthy();
+		fireEvent.click(screen.getByRole("button", { name: "Open Inventory" }));
 		expect(screen.getByText(/Issue #66 shared-asset identity is incomplete/)).toBeTruthy();
+	});
+
+	it("shows mobile destination tabs below the desktop breakpoint", async () => {
+		window.matchMedia = mock((query: string) => ({
+			matches: String(query).includes("767"),
+			media: String(query),
+			onchange: null,
+			addEventListener: () => undefined,
+			removeEventListener: () => undefined,
+			addListener: () => undefined,
+			removeListener: () => undefined,
+			dispatchEvent: () => false,
+		})) as unknown as typeof window.matchMedia;
+
+		stubLoggedInHint(true);
+		globalThis.fetch = mock(async () =>
+			Promise.resolve(new Response(null, { status: 401 })),
+		) as unknown as typeof fetch;
+
+		renderHub(390);
+
+		await waitFor(() => {
+			expect(screen.getByLabelText("Game destinations")).toBeTruthy();
+		});
+		expect(screen.getByRole("button", { name: "New project" })).toBeTruthy();
 	});
 });
 
@@ -172,7 +206,7 @@ describe("HubPage - ops landmarks", () => {
 
 		await waitForOpsFloor();
 		fireEvent.click(screen.getByRole("button", { name: "Pause" }));
-		expect(screen.getByRole("button", { name: "Play" })).toBeTruthy();
+		expect(screen.getByRole("button", { name: "Pause" })).toBeTruthy();
 		expect(screen.getByText("Incoming (1)")).toBeTruthy();
 	});
 
@@ -203,6 +237,8 @@ describe("HubPage - ops landmarks", () => {
 		expect(screen.getAllByText("65536 MiB").length).toBeGreaterThan(0);
 		expect(screen.getByText("120 RPS")).toBeTruthy();
 		expect(screen.getByText(/Paths 0 ok · 0 miss/)).toBeTruthy();
+		fireEvent.click(screen.getByRole("button", { name: /Inspect/ }));
+		expect(screen.getByLabelText("server-1")).toBeTruthy();
 	});
 
 	it("moves an accepted offer into the active panel", async () => {

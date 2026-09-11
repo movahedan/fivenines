@@ -86,7 +86,7 @@ Business and game state stay in `@apps/web`. Shared UI receives display data and
 
 ## Current Hub versus this shell
 
-Today `/hub` is a desktop Opening Shift floor: HUD, Incoming/Active, Fleet/Market, Workspace nav, bounded event log. It is working gameplay. Milestone 5.1 must not remove those flows until P4 maps each supported command onto this shell. The template ships as Storybook compositions first; Hub cutover is a later 5.1 slice.
+Today `/hub` composes `GameTemplate` around the existing Opening Shift commands. Event log lives in the Activity overlay. The infrastructure canvas, Requirements, and live eligibility stay empty or later-slice. Do not fake unsupported setup, eligibility, or balancing.
 
 ## Out of scope for this map
 

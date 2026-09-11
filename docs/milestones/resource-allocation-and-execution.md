@@ -1,6 +1,6 @@
 # Resource allocation and system execution
 
-Milestone 5 of 10. Status: planned; no implementation PR is claimed delivered. Follow the [standing delivery workflow](README.md).
+Milestone 5 of 10. Status: in progress on the M5 stack branch from [#111](https://github.com/movahedan/fivenines/pull/111) (`feature/m4-infrastructure-preparation-and-operations`). Execution plan: [`.cursor/plans/m5-resource-allocation-and-execution.plan.md`](../../.cursor/plans/m5-resource-allocation-and-execution.plan.md). Follow the [standing delivery workflow](README.md). No slice is claimed delivered until its PR exists.
 
 ## Outcome and boundaries
 
@@ -46,10 +46,11 @@ Connect compact host activity and embedded project Status/Performance/Finances t
 
 | Slice | Status | PR | Verification evidence |
 |---|---|---|---|
-| Resource allocator | Planned | — | Not run |
-| Dependency graph execution | Planned | — | Not run |
-| Transfers and migration completion | Planned | — | Not run |
-| First-project settlement and playtest | Planned | — | Not run |
-| Integrated runtime projections | Planned | — | Not run |
+| Milestone 5 stack base | In review | — | Docs/plan on #111 head; `bun overall` pending this PR |
+| Resource allocator | Planned | — | [#76](https://github.com/movahedan/fivenines/issues/76); not started |
+| Dependency graph execution | Planned | — | [#77](https://github.com/movahedan/fivenines/issues/77); not started |
+| Transfers and migration completion | Planned | — | [#78](https://github.com/movahedan/fivenines/issues/78); not started |
+| First-project settlement and playtest | Planned | — | [#79](https://github.com/movahedan/fivenines/issues/79); not started |
+| Integrated runtime projections | Planned | — | [#80](https://github.com/movahedan/fivenines/issues/80); not started |
 
 No new product decision is required to begin planning. Implementation trade-offs belong in the assigned PR plan; escalate only a concrete contradiction or material scope change.

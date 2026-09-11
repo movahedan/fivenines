@@ -227,6 +227,7 @@ Hourly arrival: `m = baseline × rhythm × campaign × spike`, then Gamma–Pois
 - M1 (in review on #98): [engine architecture and mathematics](../../.cursor/plans/m1-engine-architecture-and-mathematics.plan.md)
 - M2 (in review on #101): [entities and catalogs](../../.cursor/plans/m2-entities-and-catalogs.plan.md)
 - M3 (in review on #104): [demand, work retention and learning](../../.cursor/plans/m3-demand-and-learning-foundations.plan.md)
-- M4 (stacks on #104): [infrastructure preparation and operations](../../.cursor/plans/m4-infrastructure-preparation-and-operations.plan.md) — #71–#74 folded into #111. [#75](https://github.com/movahedan/fivenines/issues/75) is workspace operations.
+- M4 (stacks on #104): [infrastructure preparation and operations](../../.cursor/plans/m4-infrastructure-preparation-and-operations.plan.md) — #71–#75 folded into [#111](https://github.com/movahedan/fivenines/pull/111). Live `Game` still places request slices via `#placeDemand`; `src/work/` and `src/demand-engine/` remain unwired.
+- M5 (stacks on #111): [resource allocation and system execution](../../.cursor/plans/m5-resource-allocation-and-execution.plan.md) — docs/plan only on the stack base. Do not claim allocation, path outcomes, completed transfers, or first-project playtest until those slice PRs exist.
 - Authored tuning: [Balance baseline](../../docs/product/balance/index.md)
 - Current behavior remains defined by this guide, source, and tests. Retired engine/hosting plans were deleted after product consolidation; the product reference does not imply that its future behavior is already implemented.

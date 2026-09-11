@@ -2,10 +2,22 @@ import { describe, expect, it } from "bun:test";
 
 import { PAYG_ONLY_COMMERCIAL_STUB } from "../catalog/commercial-policy";
 import { BRONZE } from "../catalog/kernel";
+import { DemandEngine } from "../demand-engine/engine";
 import { oneBronzeInitial, twoBronzeInitial } from "../fixtures";
 import { Game } from "../game";
 import { Server } from "../server";
-import { FixedRandomSource } from "../traffic/random-source";
+import { FixedRandomSource, type RandomSource } from "../traffic/random-source";
+
+class MixedShareRandomSource implements RandomSource {
+	#step = 0;
+
+	nextUnit(): number {
+		this.#step += 1;
+
+		return this.#step % 5 === 0 ? 0.95 : 0.35;
+	}
+}
+
 import { settleHostTick } from "../work/share";
 
 describe("Game - resource allocator", () => {
@@ -109,5 +121,53 @@ describe("Game - resource allocator", () => {
 		);
 		expect(game.pathHour.estimatedLatency).toBeGreaterThan(0);
 		expect(game.hourIndex).toBe(1);
+	});
+
+	it("sums mixed page-read and record-write cohorts instead of keeping the smaller type", () => {
+		const probe = DemandEngine.hourly("appointment-site", {
+			projectId: "shaped-1",
+			region: "utc+0",
+			random: new MixedShareRandomSource(),
+			active: true,
+		}).generate(12);
+		const page = probe.batches.find((batch) => batch.demandTypeId === "page-read");
+		const write = probe.batches.find((batch) => batch.demandTypeId === "record-write");
+
+		expect((page?.count ?? 0) > 0 && (write?.count ?? 0) > 0).toBe(true);
+
+		const game = new Game(
+			{
+				customers: [
+					{
+						id: "customer-1",
+						projects: [
+							{
+								id: "shaped-1",
+								estimatedRequestsPerHour: 120,
+								status: "served",
+								demand: "shaped",
+								category: "saas",
+								region: "utc+0",
+								campaignProne: false,
+								commercial: PAYG_ONLY_COMMERCIAL_STUB,
+								route: { kind: "server", serverId: "server-1" },
+							},
+						],
+					},
+				],
+				assets: [{ kind: "server", id: "server-1", catalogId: "silver", region: "utc+0" }],
+			},
+			{ random: new MixedShareRandomSource() },
+		);
+
+		for (let hour = 0; hour < 13; hour += 1) {
+			game.tick();
+		}
+
+		const project = game.customers[0]?.projects[0];
+
+		expect(project?.metrics.emittedRequests).toBeGreaterThan(0);
+		expect(project?.metrics.handledRequests).toBe(project?.metrics.emittedRequests);
+		expect(game.metrics.droppedRequests).toBe(0);
 	});
 });

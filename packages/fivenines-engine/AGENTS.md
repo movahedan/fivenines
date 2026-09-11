@@ -23,8 +23,8 @@ Package scripts: `typecheck` (`tsc --noEmit`), `test` (re-roots to repo `bun tes
 | Noun | Role |
 |------|------|
 | `Customer` | Org with `projects[]`. Does not emit load. |
-| `Project` | `offered` \| `declined` \| `served` \| `offline`. Served demand is integer RPS from a `DemandModel`. `offline` is a parked project: contract kept, nothing running, no route. |
-| `Server` | Inventory. Empty fleet: nothing can be accepted at all, because accept requires an existing `serverId`. Each box has a `region` (same enum as projects) and a `tenure`: `{ kind: "owned"; purchaseCents }` or `{ kind: "leased"; hourlyCents }`. Physics (compute, net, RAM) do not change with tenure. Omitted `AssetInitial.tenure` defaults to owned at catalog purchase. Tenure cents are non-negative integers (`src/server.ts`). |
+| `Project` | `offered` \| `accepted` \| `declined` \| `expired` \| `withdrawn` \| `served` \| `offline`. `accepted` is setup: contract signed, no route, no live demand. Served demand is integer RPS from a `DemandModel`. `offline` is a parked project: contract kept, nothing running, no route. Park (`unassignProject`) throws on `accepted`. |
+| `Server` | Inventory. Empty fleet is valid; `acceptProject` does not require a box. Live routing still needs a `serverId` on `startProject`. Each box has a `region` (same enum as projects) and a `tenure`: `{ kind: "owned"; purchaseCents }` or `{ kind: "leased"; hourlyCents }`. Physics (compute, net, RAM) do not change with tenure. Omitted `AssetInitial.tenure` defaults to owned at catalog purchase. Tenure cents are non-negative integers (`src/server.ts`). |
 
 Ids are unique per game (`customer.id`, `project.id` global, `asset.id`) via `@packages/shared/ids`. Construct throws on duplicates.
 
@@ -32,13 +32,13 @@ Tick walks each served project: `placeProjectDemand` puts the hour on the **one*
 
 On each box, `server.tick` converts slices via `CAPACITY_POLICY` (`src/catalog/capacity-policy.ts`): v1 `cpuPerRequest = 1` for all categories; shopping/saas/portfolio differ on `bytesPerRequest` (40/10/20) and `memPerInflight` (2/4/1). `cpuLoad` / `netLoad` are per assigned request this hour. `inFlight = floor(assigned × inflightPerThousandRequests / 1000)` (v1: 10). `memOcc = baseMemoryMiB + inFlight ×` request-weighted `memPerInflight`. Handled scales by the **min** finite cap/load ratio (floor) across CPU/net/RAM; leftover on that box is dropped. Utilization is the **tightest** axis.
 
-Catalog: Bronze–Diamond plus teaching `thin-ram` (`SERVER_CATALOG`). Bronze = compute **1000**, net **1_000_000**, memory **4096**, base **256**. `oneBronzeInitial` routes both **constant** 700 RPS projects to `server-1` (exact **1400** against a 1000 cap, CPU-bound on one Bronze). `twoBronzeInitial` routes one project per box and is the **isolation** fixture: overload on one box never spills onto the other. `openingInitial`: 4 customers, 10 **shaped** offered projects, `assets: []`. Opening `acme-web` baseline is **2000** shopping so a single Bronze cannot 99% an accept-all hog.
+Catalog: Bronze–Diamond plus teaching `thin-ram` (`SERVER_CATALOG`). Bronze = compute **1000**, net **1_000_000**, memory **4096**, base **256**. `oneBronzeInitial` routes both **constant** 700 RPS projects to `server-1` (exact **1400** against a 1000 cap, CPU-bound on one Bronze). `twoBronzeInitial` routes one project per box and is the **isolation** fixture: overload on one box never spills onto the other. `openingInitial`: Maya / Maya's Appointments only (`appointment-site` commercial, weekly fee 80 design units → 8000¢ via `DESIGN_UNIT_CENTS`, SLA 80% → 800_000 ppm, PAYG 0, baseline 120, `offerTtlHours: 48`), `assets: []`. Opening Shift still requires two **served** contracts to win. Completing the first-project setup checklist marks `ready`; it does not call `startProject`. After the first offer leaves pending (accept, decline, expire, or cancel setup), another acquaintance-style appointment may spawn after 24h when pending cap is 1. Live RPS for that appointment still uses saas `ProjectDemand` in `Game.tick` — DemandEngine is not placed.
 
 Runtime: `@packages/shared/units`, `@packages/shared/ids`. Integers only at the demand boundary. `1 tick() = 1` simulated hour.
 
 ## Clock and RNG
 
-`hourIndex` starts at `0`. Each `tick()` uses the **current** hour for demand, rolls physics metrics, attributes per-project SLA, charges opex, accrues PAYG into **accounts receivable**, may trip jail from **cash**, then `hourIndex += 1`. If `hourIndex % PAYG_SETTLE_HOURS === 0` (24), receivable settles into cash. If `hourIndex % BILLING_PERIOD_HOURS === 0`, week close runs. Derived: `hourOfDay = hourIndex % 24`, `dayIndex = floor(hourIndex / 24)`. `dispatch` does not change the clock, does not charge hourly opex, does not accrue PAYG, does not settle receivable, does not close the week, does not rewrite SLA ring slots, and does not emit sim events. Each `tick()` replaces `game.events` (`EngineEvent` in `src/game.events.ts`) with that hour’s **edge** lines only: `slaBreached` / `slaRecovered` (window vs `targetPpm`), `paygSettled`, `weeklyCreditCharged`, `serverSaturated` (utilization ≥ 100), `cashLow` (cash crossing ≤ 0). Construct starts with `events: []`. Event `hourIndex` is the hour just simulated (before the increment).
+`hourIndex` starts at `0`. `tick()` is a named playlist on one `TickContext` `{ hour, cash, events, rng }`, not a plugin registry: reset → demand/place → server physics → SLA → opex → learning → operations (`OperationalQueue`, one slot) → PAYG accrue → jail → `hour += 1` → daily settle → contract calendar → spawn → week close → cashLow events. Then Game writes `ctx.hour` / `ctx.cash` / `ctx.events` back. Demand uses the hour before the increment (`project.tick`); calendar uses the hour after (`project.tickCalendar`, `spawnAcquaintanceIfDue`, `Project.closeIfDue`). Refunds and opex/learning/settle/close go through `postCashDelta` on `ctx.cash`. If `hourIndex % PAYG_SETTLE_HOURS === 0` (24), receivable settles into cash. Each **served** project closes when `(hourIndex - billingOriginHour) % BILLING_PERIOD_HOURS === 0`. Served teaching fixtures set `billingOriginHour: 0` so the first close still lands at hour 168. `accepted` projects have no origin and do not close. Daily AR settle stays global (`hourIndex % 24 === 0`). Derived: `hourOfDay = hourIndex % 24`, `dayIndex = floor(hourIndex / 24)`. `dispatch` does not change the clock, does not charge hourly opex, does not accrue PAYG, does not settle receivable, does not close the week, does not rewrite SLA ring slots, and does not emit sim events. Each `tick()` replaces `game.events` (`EngineEvent` in `src/game.events.ts`) with that hour’s **edge** lines only: `slaBreached` / `slaRecovered` (window vs `targetPpm`), `paygSettled`, `weeklyCreditCharged`, `serverSaturated` (utilization ≥ 100), `cashLow` (cash crossing ≤ 0). Construct starts with `events: []`. Event `hourIndex` is the hour just simulated (before the increment).
 
 `new Game(initial, { random?: RandomSource })`. Default wraps `Math.random`. Demand code calls `random.nextUnit()` only.
 
@@ -90,7 +90,7 @@ opexCents    = maintenance + powerCents + leaseCents
 
 ## Billing (PAYG)
 
-Commercial tunables live in `src/catalog/commercial-policy.ts`. Every project must have `commercial: { paygCentsPerThousandHandled, recurringCentsPerPeriod, targetPpm, creditPpm }`. PAYG and recurring ≥ 0 integers; at least one > 0; `targetPpm` / `creditPpm` finite integers. Construct throws otherwise. `acceptProject` copies `commercial` (`asServed`); it does not invent a catalog card. Player–customer MSA (multipliers) is a **different** contract noun later — not fields on `Project`.
+Commercial tunables live in `src/catalog/commercial-policy.ts`. Every project must have `commercial: { paygCentsPerThousandHandled, recurringCentsPerPeriod, targetPpm, creditPpm }`. PAYG and recurring ≥ 0 integers; at least one > 0; `targetPpm` / `creditPpm` finite integers. Construct throws otherwise. `acceptProject` copies `commercial` onto `accepted` (`asAccepted`) and posts `recurringCentsPerPeriod` once via `postCashDelta`. It does not invent a catalog card and does not set a route. `startProject` copies the same terms onto `served` (`asStarted`) and sets `billingOriginHour`. Player–customer MSA (multipliers) is a **different** contract noun later — not fields on `Project`.
 
 Opening cards come from `commercialTermsForCategory` (portfolio 330 / saas 450 / shopping 650 cents per thousand handled; recurring 800 / 1_500 / 2_500; target 990_000; credit 1_000_000). `OPENING_COMMERCIAL_STUB` is the saas card. Overload fixtures use `PAYG_ONLY_COMMERCIAL_STUB` (1000 cents per thousand so PAYG equals handled count). Opening `acme-web` target is **995_000**; `initech-tps` is **980_000**.
 
@@ -98,7 +98,7 @@ After opex, served projects accrue `paygCentsForHandled(handled, paygCentsPerTho
 
 After `hourIndex += 1`, if `hourIndex % PAYG_SETTLE_HOURS === 0` (24), `cashCents += accountsReceivableCents` and receivable resets to 0.
 
-If `hourIndex % BILLING_PERIOD_HOURS === 0` (168), close each project with `hoursServedInPeriod > 0 || periodEmitted > 0` — a fully parked week still settles (recurring prorates to 0) and its period buckets reset instead of leaking misses into the next period:
+When `(hourIndex - billingOriginHour) % BILLING_PERIOD_HOURS === 0` (168 hours after activation), close each project with an origin and `hoursServedInPeriod > 0 || periodEmitted > 0` — a fully parked week still settles (recurring prorates to 0) and its period buckets reset instead of leaking misses into the next period. `accepted` / offered / declined / expired / withdrawn skip. `prepaidAdvance` (posted at accept) returns **−credit only** so week close does not charge the weekly fee a second time:
 
 ```
 recurring = floor(recurringCentsPerPeriod * hoursServedInPeriod / 168)
@@ -111,7 +111,7 @@ creditPpm = slaCreditPpm(periodPpm, targetPpm)
 credit    = min(periodRevenue, floor(periodRevenue * creditPpm / 1_000_000))
 ```
 
-`periodRevenue = periodPaygCents + recurring`. Cash += recurring − credit. Push a settlement (`periodIndex = hourIndex / 168`); keep `SETTLEMENT_HISTORY_K` (8). Reset period buckets. Offered/declined skip. Jail still closes.
+`periodRevenue = periodPaygCents + recurring`. Cash += (`prepaidAdvance` ? −credit : recurring − credit). Push a settlement (`periodIndex = (hourIndex - origin) / 168`); keep `SETTLEMENT_HISTORY_K` (8). Reset period buckets. Jail still closes.
 
 ## `dispatch`
 
@@ -119,28 +119,51 @@ credit    = min(periodRevenue, floor(periodRevenue * creditPpm / 1_000_000))
 
 ```ts
 type EngineCommand =
-  | { type: "acceptProject"; payload: { projectId: string; serverId: string } }
+  | { type: "acceptProject"; payload: { projectId: string } }
   | { type: "declineProject"; payload: { projectId: string } }
+  | { type: "startProject"; payload: { projectId: string; serverId: string } }
+  | { type: "cancelSetup"; payload: { projectId: string } }
   | { type: "moveProject"; payload: { projectId: string; serverId: string } }
   | { type: "unassignProject"; payload: { projectId: string } }
   | { type: "assignProject"; payload: { projectId: string; serverId: string } }
   | { type: "buyServer"; payload: { serverType: ServerCatalogId; region: RegionId } }
   | { type: "leaseServer"; payload: { serverType: ServerCatalogId; region: RegionId } }
   | { type: "sellServer"; payload: { serverId: string } }
-  | { type: "releaseServer"; payload: { serverId: string } };
+  | { type: "releaseServer"; payload: { serverId: string } }
+  | { type: "enqueueOperationalTask"; payload: { projectId: string; taskId: string } }
+  | { type: "cancelOperationalTask"; payload: { taskId: string } }
+  | { type: "placeSetup"; payload: { projectId: string; serverId: string } }
+  | { type: "installService"; payload: { projectId: string; serviceId: string } }
+  | { type: "configureConnection"; payload: { projectId: string } }
+  | { type: "powerOn"; payload: { serverId: string } }
+  | { type: "powerOff"; payload: { serverId: string } }
+  | { type: "duplicateProject"; payload: { projectId: string; destinationServerId: string } };
 ```
+
+Learning enroll/pause/resume/cancel remain on the same union (see Learning below).
 
 | Command | Transition |
 |---------|------------|
-| `acceptProject` | `offered` → `served` on `serverId` (**breaking**: the payload gained `serverId`) |
-| `declineProject` | `offered` → `declined` (`Project.asDeclined()`) |
+| `acceptProject` | `offered` → `accepted`, no route; posts advance once (`recurringCentsPerPeriod` via `postCashDelta`) |
+| `declineProject` | `offered` → `declined` |
+| `startProject` | `accepted` + `ready` → `served` on `serverId`; sets `billingOriginHour` |
+| `cancelSetup` | `accepted` → `withdrawn`; refunds `advancePostedCents` via `postCashDelta` |
 | `moveProject` | `served` → `served` on another box |
-| `unassignProject` | `served` → `offline`, clearing the route (park) |
+| `unassignProject` | `served` → `offline`, clearing the route (park). Throws `cannot park during setup` on `accepted` |
 | `assignProject` | `offline` → `served` on `serverId` |
+| `enqueueOperationalTask` | accepted project; one ops slot; commands enqueue only |
+| `cancelOperationalTask` | active ops task → cancelled; progress retained |
+| `placeSetup` | accepted project stores `setupServerId` without a live route |
+| `installService` | enqueue Application Runtime or Relational Database install (requires placement) |
+| `configureConnection` | enqueue the one shared connection task |
+| `powerOn` / `powerOff` | immediate; off drops volatile ops progress and live slices, keeps completed installs |
+| `duplicateProject` | copies **this** served project only onto a compatible destination; copy is `accepted` with `pendingTransfer`; source stays served |
 
-Unknown project id or wrong source status throws. Cash-changing commands are `buyServer` (debit purchase) and `sellServer` (credit salvage). `leaseServer` and `releaseServer` do not change cash. Any command carrying a `serverId` throws `unknown server id` when the box is absent.
+Unknown project id or wrong source status throws. `startProject` throws when `ready` is false or `pendingTransfer` is set. Completing ops work never calls `startProject`. Cash-changing commands are `acceptProject` (credit advance), `cancelSetup` (debit refund), `buyServer` (debit purchase), and `sellServer` (credit salvage). `leaseServer` and `releaseServer` do not change cash. Any command carrying a `serverId` throws `unknown server id` when the box is absent.
 
-`acceptProject`, `buyServer`, and `leaseServer` throw while `jailed`; `moveProject` / `unassignProject` / `assignProject` / `sellServer` / `releaseServer` / `declineProject` are allowed while jailed.
+`acceptProject`, `startProject`, `buyServer`, `leaseServer`, `enqueueOperationalTask`, `placeSetup`, `installService`, and `configureConnection` throw while `jailed`; `cancelSetup` / `cancelOperationalTask` / `powerOn` / `powerOff` / `moveProject` / `unassignProject` / `assignProject` / `sellServer` / `releaseServer` / `declineProject` are allowed while jailed.
+
+After the increment, `Project.tickCalendar` expires offered cards with `offerTtlHours > 0` at TTL (48h); other offered fixtures use `0` and never expire. After the 24h allowance, patience is millihours (`setupPatienceMilliHours`; acquaintance trust 70 / reputation 0 / hatred 0 → 14.4h). Withdrawal on the first outer tick at or after that threshold (accept-at-0 → hour 39) refunds the advance (`postCashDelta`) and applies reputation −3 on Game (clamped 0–100). `src/setup-clock.ts` only spawns the next acquaintance when pending cap and interval allow.
 
 `buyServer` throws if `jailed` or `cashCents < purchaseCents` (no debit). Else debit catalog purchase and add an **owned** box (`purchaseCents` from the SKU table).
 
@@ -182,9 +205,13 @@ Hourly arrival: `m = baseline × rhythm × campaign × spike`, then Gamma–Pois
 
 ## Learning
 
-`src/learning/board.ts` is two shared slots, monthly tuition on `Game.cashCents` via `postCashDelta` (same helper as buy/sell). Base techs start completed. Research does not stack; courses are sequential through five levels. `enrollLearning` / `pauseLearning` / `resumeLearning` / `cancelLearning` are `dispatch` commands. Enroll is blocked while jailed. Progress ticks after opex. Completion at a renewal boundary does not charge again. Effects are stored (completed ids / course levels) and not applied to missing install/incident/CPU consumers. Research is not installation.
+`src/learning/board.ts` is two shared slots, monthly tuition on `Game.cashCents` via `postCashDelta` (same helper as buy/sell). Base techs start completed. Research does not stack; courses are sequential through five levels. `enrollLearning` / `pauseLearning` / `resumeLearning` / `cancelLearning` are `dispatch` commands. Enroll is blocked while jailed. Progress ticks after opex. Completion at a renewal boundary does not charge again. Effects are stored (completed ids / course levels). Deployment Automation levels shorten operational-queue durations; installs are still not applied to instances. Incident/CPU consumers remain missing. Research is not installation.
 
 `learningCatalog` / `Game.learningCatalog` projects locked, available, insufficient-funds, active, paused, and completed rows. Completed course levels are a different projection from the active next-level enrollment. DemandEngine is still not imported by `Game`; Lab may import `@packages/fivenines-engine/demand-engine` (engine entry only — do not barrel `queue.ts` into Hub/Lab coverage).
+
+## Operational queue
+
+`src/operations/queue.ts` is one player slot (`OPERATIONAL_SLOT_COUNT`), analogous to `LearningBoard`. `#tickOperations` on the playlist advances active work by 1000 millihours per outer hour. First-project checklist ids (`install-application-runtime` 2h, `install-relational-database` 2h, `configure-shared-connection` 1h) live in `src/catalog/operations-policy.ts`. Shared configuration requires both installs complete. Cancel keeps completed millihours; re-enqueue resumes them. Duration uses stored `deployment-automation` course levels (0.92/level via catalog cumulative micro). When all three ids are `completed` for that project, `Project.withReady()` runs; status stays `accepted`. `installService` / `configureConnection` enqueue those ids. Completing them stamps `installedServiceIds` and `connectionConfigured` on the project. `Game` still does not import `src/topology/`. `placeSetup` assigns a box during setup without serving. `powerOn` is immediate. `powerOff` zeros active millihours (volatile) and live slices; completed installs stay.
 
 ## Identity registry
 
@@ -200,5 +227,6 @@ Hourly arrival: `m = baseline × rhythm × campaign × spike`, then Gamma–Pois
 - M1 (in review on #98): [engine architecture and mathematics](../../.cursor/plans/m1-engine-architecture-and-mathematics.plan.md)
 - M2 (in review on #101): [entities and catalogs](../../.cursor/plans/m2-entities-and-catalogs.plan.md)
 - M3 (in review on #104): [demand, work retention and learning](../../.cursor/plans/m3-demand-and-learning-foundations.plan.md)
+- M4 (stacks on #104): [infrastructure preparation and operations](../../.cursor/plans/m4-infrastructure-preparation-and-operations.plan.md) — #71–#74 folded into #111. [#75](https://github.com/movahedan/fivenines/issues/75) is workspace operations.
 - Authored tuning: [Balance baseline](../../docs/product/balance/index.md)
 - Current behavior remains defined by this guide, source, and tests. Retired engine/hosting plans were deleted after product consolidation; the product reference does not imply that its future behavior is already implemented.

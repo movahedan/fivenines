@@ -28,6 +28,7 @@ function graphOf(
 		assets: options.assets ?? [bronze("server-1"), bronze("server-2")],
 		cashCents: 40_000,
 		jailed: options.jailed ?? false,
+		hourIndex: 0,
 	};
 }
 
@@ -41,31 +42,24 @@ describe("applyCommand - acceptProject", () => {
 
 		const next = applyCommand(graph, {
 			type: "acceptProject",
-			payload: { projectId: "project-1", serverId: "server-1" },
+			payload: { projectId: "project-1" },
 		});
 
 		expect(projectOf(graph)?.status).toBe("offered");
-		expect(projectOf(next)?.status).toBe("served");
-		expect(projectOf(next)?.route).toEqual({ kind: "server", serverId: "server-1" });
+		expect(projectOf(next)?.status).toBe("accepted");
+		expect(projectOf(next)?.route).toBeUndefined();
+		expect(next.cashCents).toBe(40_000);
 		expect(next.customers).not.toBe(graph.customers);
 	});
 
-	it("throws when the serverId does not exist", () => {
-		expect(() =>
-			applyCommand(graphOf("offered"), {
-				type: "acceptProject",
-				payload: { projectId: "project-1", serverId: "server-9" },
-			}),
-		).toThrow("unknown server id: server-9");
-	});
+	it("accepts when the fleet is empty", () => {
+		const next = applyCommand(graphOf("offered", { assets: [] }), {
+			type: "acceptProject",
+			payload: { projectId: "project-1" },
+		});
 
-	it("throws when the fleet is empty", () => {
-		expect(() =>
-			applyCommand(graphOf("offered", { assets: [] }), {
-				type: "acceptProject",
-				payload: { projectId: "project-1", serverId: "server-1" },
-			}),
-		).toThrow("unknown server id: server-1");
+		expect(projectOf(next)?.status).toBe("accepted");
+		expect(next.assets).toHaveLength(0);
 	});
 });
 
@@ -163,10 +157,19 @@ describe("applyCommand - status guards", () => {
 			expect(() =>
 				applyCommand(graphOf(status), {
 					type: "acceptProject",
-					payload: { projectId: "project-1", serverId: "server-2" },
+					payload: { projectId: "project-1" },
 				}),
 			).toThrow("project is not offered: project-1");
 		}
+	});
+
+	it("throws when unassignProject targets a project still in setup", () => {
+		expect(() =>
+			applyCommand(graphOf("accepted"), {
+				type: "unassignProject",
+				payload: { projectId: "project-1" },
+			}),
+		).toThrow("cannot park during setup: project-1");
 	});
 
 	it("throws when moveProject or unassignProject targets a project that is not served", () => {
@@ -203,7 +206,7 @@ describe("applyCommand - jail guards", () => {
 		expect(() =>
 			applyCommand(graphOf("offered", { jailed: true }), {
 				type: "acceptProject",
-				payload: { projectId: "project-1", serverId: "server-1" },
+				payload: { projectId: "project-1" },
 			}),
 		).toThrow("cannot acceptProject while jailed");
 		expect(() =>

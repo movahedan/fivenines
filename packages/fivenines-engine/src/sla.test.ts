@@ -115,7 +115,7 @@ describe("Game - SLA attribution", () => {
 
 		game.dispatch({
 			type: "acceptProject",
-			payload: { projectId: "project-2", serverId: "server-1" },
+			payload: { projectId: "project-2" },
 		});
 
 		const servedAfter = projectOf(game, "project-1");

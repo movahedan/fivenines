@@ -1,10 +1,7 @@
 import { describe, expect, it } from "bun:test";
 
-import {
-	commercialTermsForCategory,
-	PAYG_ONLY_COMMERCIAL_STUB,
-	paygCentsForHandled,
-} from "./catalog/commercial-policy";
+import { APPOINTMENT_COMMERCIAL } from "./catalog/acquaintance-offer";
+import { PAYG_ONLY_COMMERCIAL_STUB, paygCentsForHandled } from "./catalog/commercial-policy";
 import { SKU_ECONOMY, STARTING_CASH_CENTS } from "./catalog/economy-policy";
 import { constantProject, oneBronzeInitial, openingInitial, twoBronzeInitial } from "./fixtures";
 import type { GameInitial } from "./game";
@@ -127,14 +124,11 @@ describe("Game - PAYG", () => {
 		expect(game.cashCents).toBe(0 - game.finance.opexCents);
 	});
 
-	it("puts category PAYG and recurring on every opening project", () => {
+	it("puts acquaintance appointment terms on the opening project", () => {
 		const game = new Game(openingInitial);
 
 		for (const project of allProjects(game)) {
-			const card = commercialTermsForCategory(project.category);
-
-			expect(project.commercial.paygCentsPerThousandHandled).toBe(card.paygCentsPerThousandHandled);
-			expect(project.commercial.recurringCentsPerPeriod).toBe(card.recurringCentsPerPeriod);
+			expect(project.commercial).toEqual(APPOINTMENT_COMMERCIAL);
 		}
 	});
 

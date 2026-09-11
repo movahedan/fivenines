@@ -6,7 +6,7 @@ Milestone 5 of 10. Status: planned; no implementation PR is claimed delivered. F
 
 Connect generated demand to actual shared-server work and compute end-to-end project outcomes, including data movement that competes with serving traffic.
 
-Run permutation and seeded stress checks in addition to exact fixtures. Record graph compilation and per-tick complexity measurements; avoid per-request objects and unnecessary graph rebuilds.
+Run permutation and seeded stress checks in addition to exact fixtures. Record graph compilation and per-tick complexity measurements; avoid per-request objects and unnecessary graph rebuilds. Allocation replaces the place-demand step inside the existing `Game.tick` playlist from milestone 4; it does not add a second clock or a discovered phase registry.
 
 ## Prerequisites and sources
 

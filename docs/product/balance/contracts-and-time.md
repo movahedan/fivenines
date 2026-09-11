@@ -4,6 +4,8 @@
 
 Retain one simulated hour per outer tick. Default wall cadence is one tick per five seconds; speed options are pause, 1×, 2×, and 4×. Speed changes only wall cadence, never work budgets or demand distribution per simulated hour. One week is 168 ticks. There are no subticks or millisecond event loops. Sub-hour latency values, if shown, are aggregate estimates, not event timestamps. No strict real-time deadline accuracy is promised by this model.
 
+Demand and physics use the hour being simulated. Daily collection, setup allowance/patience, offer expiry, and weekly close use the hour after the index advances — what already happened. Game sequences both halves; entities do not each increment the world clock.
+
 Demand types with no carry allowance are resolved within their arrival tick. Work completion can advance through multiple components using aggregate budgets; the unresolved solver must conserve every server resource and cannot use iteration order as priority. This document does not claim that solver is implemented.
 
 ## Operations

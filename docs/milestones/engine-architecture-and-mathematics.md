@@ -42,7 +42,7 @@ No new player screen is required for mathematical proofs. Use existing lightweig
 
 Product rules stay in [product docs](../product/index.md). Do not ship TypeScript tables that only restate them. When a later milestone implements a behavior, it follows these links and the live `Game` code.
 
-**Current `Game.tick` order** (implemented): reset demand → generate and place demand → `server.tick` → SLA → opex → PAYG accrue → sticky jail → `hourIndex += 1` → daily PAYG settle → week close. `dispatch` is immediate and does not advance the clock. See [engine AGENTS](../../packages/fivenines-engine/AGENTS.md).
+**Current `Game.tick` order** ([#113](https://github.com/movahedan/fivenines/issues/113)): named playlist on one `TickContext` `{ hour, cash, events, rng }`: reset → demand/place → server physics → SLA → opex → learning → operations (empty until the queue) → PAYG accrue → jail → `hour += 1` → daily settle → `project.tickCalendar` → spawn → week close → cashLow. Game sequences; refunds and other cash moves use `postCashDelta` on `ctx.cash`. No plugin `TickPhase[]` registry, no second graph, no managers that copy `customers[]`. `dispatch` is immediate and does not advance the clock. See [engine AGENTS](../../packages/fivenines-engine/AGENTS.md). Milestone 5 replaces the place-demand step with allocation inside that playlist, not a new clock.
 
 **Current vs later owners:** `Game` coordinates; `placeProjectDemand` + `Server` are today's placement/capacity; SLA/finance/commercial modules already exist; component graphs, relationships, and activation are later milestones. Rebuild processing structure on topology/config change, not every tick — when that compiler exists.
 

@@ -98,12 +98,8 @@ describe("Game - billing close", () => {
 		);
 	});
 
-	it("prorates recurring when hoursServedInPeriod is less than 168", () => {
-		const hoursOffered = 48;
-		const hoursServed = BILLING_PERIOD_HOURS - hoursOffered;
-		const recurringCents = Math.floor(
-			(OPENING_COMMERCIAL_STUB.recurringCentsPerPeriod * hoursServed) / BILLING_PERIOD_HOURS,
-		);
+	it("does not start billing or SLA hours while the contract is only accepted", () => {
+		const advanceCents = OPENING_COMMERCIAL_STUB.recurringCentsPerPeriod;
 		const game = new Game(
 			oneBronzeWith([
 				{
@@ -113,30 +109,20 @@ describe("Game - billing close", () => {
 			]),
 		);
 
-		tickHours(game, hoursOffered);
+		tickHours(game, 24);
 		game.dispatch({
 			type: "acceptProject",
-			payload: { projectId: "project-1", serverId: "server-1" },
+			payload: { projectId: "project-1" },
 		});
-		tickHours(game, hoursServed);
+		tickHours(game, 10);
 
 		const project = allProjects(game)[0];
 
-		expect(game.hourIndex).toBe(BILLING_PERIOD_HOURS);
-		expect(project?.settlements).toEqual([
-			{
-				periodIndex: 1,
-				hoursServedInPeriod: hoursServed,
-				paygCents: 0,
-				recurringCents,
-				creditCents: 0,
-				periodPpm: null,
-				periodRevenueCents: recurringCents,
-			},
-		]);
-		expect(game.cashCents).toBe(
-			STARTING_CASH_CENTS - IDLE_BRONZE_OPEX_CENTS * BILLING_PERIOD_HOURS + recurringCents,
-		);
+		expect(game.hourIndex).toBe(34);
+		expect(project?.status).toBe("accepted");
+		expect(project?.settlements).toEqual([]);
+		expect(project?.hoursServedInPeriod).toBe(0);
+		expect(game.cashCents).toBe(STARTING_CASH_CENTS - IDLE_BRONZE_OPEX_CENTS * 34 + advanceCents);
 	});
 
 	it("counts emit-0 served hours toward recurring and not PAYG", () => {

@@ -134,7 +134,7 @@ describe("Game - events", () => {
 		game.dispatch({ type: "declineProject", payload: { projectId: "project-1" } });
 		game.dispatch({
 			type: "acceptProject",
-			payload: { projectId: "project-2", serverId: "server-1" },
+			payload: { projectId: "project-2" },
 		});
 
 		expect(game.events).toBe(afterTick);

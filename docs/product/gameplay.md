@@ -88,6 +88,8 @@ Customer-visible success requires completion of all essential operations for tha
 
 Dependent processing stages may advance within the same simulation tick when their dependencies and available resources permit. Traversing an application, database, or other component must not automatically add a whole tick of latency per node. This does not imply instantaneous completion or unlimited work within a tick: processing time, waiting, and shared capacity still constrain progress. Use aggregate work and resource budgets within the game tick; do not introduce a millisecond event timeline. There are no internal subticks. Exact aggregate solving and latency estimation remain technical design work.
 
+The outer hour is orchestration, not a second engine. Each thing that has an hour of work (project demand, server capacity, learning progress, later operational tasks and incidents) advances itself. Game names the order of those calls, plus steps that need more than one owner (placement onto a box, SLA split, wallet commit). After the hour index advances, calendar work runs (daily collection, setup allowance and patience, weekly close). Player commands accepted between ticks cannot rewrite a closed hour. Do not discover tick phases through a plugin registry; the order is authored. Shared work that Game already owns, such as the two learning slots, stays a Game-owned object Game calls — not a manager that duplicates the customer list.
+
 ## Economic difficulty
 
 Early projects should give the player room to learn and recover from mistakes. Sound management should produce understandable profit, with server investments paying back gradually through operation.

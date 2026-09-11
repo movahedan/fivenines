@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 
 import { OPENING_COMMERCIAL_STUB } from "./catalog/commercial-policy";
+import { setupPatienceMilliHours } from "./catalog/contract-policy";
 import { Project, type ProjectInitial } from "./project";
 import { FixedRandomSource, SequenceRandomSource } from "./traffic/random-source";
 
@@ -25,6 +26,53 @@ function servedInitial(overrides: Partial<ProjectInitial> = {}): ProjectInitial 
 		...overrides,
 	});
 }
+
+describe("Project - tickCalendar", () => {
+	const relationship = { trust: 70, reputation: 0, hatred: 0 } as const;
+
+	it("expires an offered project when TTL elapses", () => {
+		const offered = new Project(shapedInitial({ offeredHour: 0, offerTtlHours: 48 }));
+		const ticked = offered.tickCalendar(48, relationship);
+
+		expect(ticked.project.status).toBe("expired");
+		expect(ticked.expired).toBe(true);
+		expect(ticked.refundCents).toBe(0);
+	});
+
+	it("leaves an offered fixture unchanged when TTL is 0", () => {
+		const offered = new Project(shapedInitial({ offeredHour: 0, offerTtlHours: 0 }));
+		const ticked = offered.tickCalendar(100, relationship);
+
+		expect(ticked.project).toBe(offered);
+		expect(ticked.expired).toBe(false);
+	});
+
+	it("freezes patience after the setup allowance", () => {
+		const accepted = new Project(shapedInitial()).asAccepted(0);
+		const ticked = accepted.tickCalendar(24, relationship);
+
+		expect(ticked.project.patienceMilliHours).toBe(setupPatienceMilliHours(70, 0, 0));
+		expect(ticked.withdrawn).toBe(false);
+		expect(ticked.refundCents).toBe(0);
+	});
+
+	it("withdraws and reports the posted advance when patience is spent", () => {
+		let project = new Project(shapedInitial()).asAccepted(0).tickCalendar(24, relationship).project;
+
+		for (let hour = 25; hour < 39; hour++) {
+			const ticked = project.tickCalendar(hour, relationship);
+
+			expect(ticked.withdrawn).toBe(false);
+			project = ticked.project;
+		}
+
+		const withdrawn = project.tickCalendar(39, relationship);
+
+		expect(withdrawn.withdrawn).toBe(true);
+		expect(withdrawn.project.status).toBe("withdrawn");
+		expect(withdrawn.refundCents).toBe(OPENING_COMMERCIAL_STUB.recurringCentsPerPeriod);
+	});
+});
 
 describe("Project - tick", () => {
 	it("returns 0 without consuming RNG when the project is offered", () => {
@@ -121,7 +169,7 @@ describe("Project - construction", () => {
 	});
 });
 
-describe("Project - asServed", () => {
+describe("Project - asAccepted", () => {
 	it("copies existing commercial terms without inventing a catalog card", () => {
 		const offered = new Project(
 			shapedInitial({
@@ -133,11 +181,14 @@ describe("Project - asServed", () => {
 				},
 			}),
 		);
-		const served = offered.asServed("server-1");
+		const accepted = offered.asAccepted(0);
 
-		expect(served.status).toBe("served");
-		expect(served.route).toEqual({ kind: "server", serverId: "server-1" });
-		expect(served.commercial).toEqual({
+		expect(accepted.status).toBe("accepted");
+		expect(accepted.route).toBeUndefined();
+		expect(accepted.advancePostedCents).toBe(4_000);
+		expect(accepted.prepaidAdvance).toBe(true);
+		expect(accepted.ready).toBe(false);
+		expect(accepted.commercial).toEqual({
 			paygCentsPerThousandHandled: 3,
 			recurringCentsPerPeriod: 4_000,
 			targetPpm: 950_000,

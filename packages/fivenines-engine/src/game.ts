@@ -1,8 +1,14 @@
 import { ids } from "@packages/shared/ids";
 import { units } from "@packages/shared/units";
 
-import { BILLING_PERIOD_HOURS } from "./catalog/commercial-policy";
+import { SETUP_WITHDRAWAL_REPUTATION_DELTA } from "./catalog/contract-policy";
 import { DEBT_LIMIT_CENTS, STARTING_CASH_CENTS } from "./catalog/economy-policy";
+import {
+	firstProjectSetupTaskIds,
+	installTaskId,
+	parseInstallableServiceId,
+	SHARED_CONNECTION_TASK_ID,
+} from "./catalog/operations-policy";
 import { Customer, type CustomerInitial } from "./customer";
 import { placeProjectDemand } from "./demand";
 import {
@@ -25,12 +31,17 @@ import {
 	assertRoutesResolve,
 	createAsset,
 	type EngineCommand,
+	findProject,
 	type GameAsset,
 	postCashDelta,
+	replaceProject,
 } from "./game.utils";
 import { LearningBoard, type LearningSnapshot } from "./learning/board";
 import { type LearningCatalogRow, learningCatalog } from "./learning/catalog-view";
+import { OperationalQueue, type OperationalSnapshot } from "./operations/queue";
+import type { Project } from "./project";
 import type { Server } from "./server";
+import { spawnAcquaintanceIfDue } from "./setup-clock";
 import { MathRandomSource, type RandomSource } from "./traffic/random-source";
 
 export type { EngineEvent } from "./game.events";
@@ -39,6 +50,20 @@ export type { GameTickMetrics } from "./game.metrics";
 export type { AssetInitial, EngineCommand, GameAsset } from "./game.utils";
 export type { LearningSnapshot, LearningSubject } from "./learning/board";
 export type { LearningCatalogRow, LearningRowStatus } from "./learning/catalog-view";
+export type { OperationalSnapshot, OperationalTask } from "./operations/queue";
+
+interface TickContext {
+	hour: number;
+	cash: number;
+	events: EngineEvent[];
+	rng: RandomSource;
+}
+
+interface PlacedDemand {
+	readonly projects: readonly Project[];
+	readonly totalDemand: number;
+	readonly unroutableDemand: number;
+}
 
 export interface GameOptions {
 	random?: RandomSource;
@@ -62,6 +87,9 @@ export class Game {
 	#jailed: boolean;
 	#opex: GameOpexTotals = EMPTY_GAME_OPEX;
 	#learning = new LearningBoard();
+	#operations = new OperationalQueue();
+	#reputation = 0;
+	#lastOfferResolveHour = 0;
 
 	#metrics: GameTickMetrics = EMPTY_GAME_TICK_METRICS;
 	#events: EngineEvent[] = [];
@@ -155,6 +183,14 @@ export class Game {
 		return learningCatalog(this.#learning.snapshot(), this.#cashCents);
 	}
 
+	get operations(): OperationalSnapshot {
+		return this.#operations.snapshot();
+	}
+
+	get reputation(): number {
+		return this.#reputation;
+	}
+
 	dispatch(command: EngineCommand): Game {
 		if (
 			command.type === "enrollLearning" ||
@@ -166,12 +202,37 @@ export class Game {
 
 			return this;
 		}
+
+		if (command.type === "enqueueOperationalTask" || command.type === "cancelOperationalTask") {
+			this.#dispatchOperations(command);
+
+			return this;
+		}
+
+		if (
+			command.type === "placeSetup" ||
+			command.type === "installService" ||
+			command.type === "configureConnection" ||
+			command.type === "powerOn" ||
+			command.type === "powerOff"
+		) {
+			this.#dispatchSetupAndPower(command);
+
+			return this;
+		}
+
+		if (command.type === "duplicateProject") {
+			this.#dispatchDuplicate(command);
+
+			return this;
+		}
 		const next = applyCommand(
 			{
 				customers: this.#customers,
 				assets: this.#assets,
 				cashCents: this.#cashCents,
 				jailed: this.#jailed,
+				hourIndex: this.#hourIndex,
 			},
 			command,
 		);
@@ -184,39 +245,76 @@ export class Game {
 		this.#assets = [...next.assets];
 		this.#cashCents = next.cashCents;
 		this.#jailed = next.jailed;
+
+		if (
+			command.type === "acceptProject" ||
+			command.type === "declineProject" ||
+			command.type === "cancelSetup"
+		) {
+			this.#lastOfferResolveHour = this.#hourIndex;
+		}
+
 		this.#syncDerivedState();
 
 		return this;
 	}
 
 	tick(): Game {
-		const eventHourIndex = this.#hourIndex;
-		const cashBeforeCents = this.#cashCents;
-		const windowPpmByProjectId = new Map(
+		const ctx: TickContext = {
+			hour: this.#hourIndex,
+			cash: this.#cashCents,
+			events: [],
+			rng: this.#random,
+		};
+		const simulatedHour = ctx.hour;
+		const cashBefore = ctx.cash;
+
+		const previousWindowPpmByProjectId = new Map(
 			this.customers.flatMap((customer) =>
 				customer.projects.map(
 					(project) => [project.id, project.metrics.windowAvailabilityPpm] as const,
 				),
 			),
 		);
-		const utilizationByServerId = new Map(
-			[...this.#serversById.values()].map(
-				(server) => [server.id, server.metrics.utilization] as const,
-			),
-		);
-		const events: EngineEvent[] = [];
 
+		this.#resetDemand();
+		const placed = this.#placeDemand(ctx);
+		this.#tickServerPhysics(ctx, simulatedHour);
+		this.#attributeSla(ctx, placed.projects, simulatedHour, previousWindowPpmByProjectId);
+		this.#chargeOpex(ctx, placed);
+		this.#tickLearning(ctx, simulatedHour);
+		this.#tickOperations(ctx);
+		this.#accruePayg(placed.projects);
+		this.#applyJail(ctx);
+
+		ctx.hour += 1;
+		this.#hourIndex = ctx.hour;
+
+		this.#settleDailyPayg(ctx, simulatedHour);
+		this.#tickContractCalendars(ctx);
+		this.#spawnAcquaintanceOffers(ctx);
+		this.#closeWeeks(ctx, placed.projects, simulatedHour);
+		this.#emitCashLow(ctx, cashBefore, simulatedHour);
+
+		this.#cashCents = ctx.cash;
+		this.#events = ctx.events;
+
+		return this;
+	}
+
+	#resetDemand(): void {
 		for (const server of this.#serversById.values()) {
 			server.resetDemand();
 		}
+	}
 
+	#placeDemand(ctx: TickContext): PlacedDemand {
 		let totalDemand = 0;
 		let unroutableDemand = 0;
-		const servers = [...this.#serversById.values()];
 
 		for (const customer of this.customers) {
 			for (const project of customer.projects) {
-				const demand = project.tick(this.#hourIndex, this.#random);
+				const demand = project.tick(ctx.hour, ctx.rng);
 
 				totalDemand += demand;
 
@@ -228,7 +326,7 @@ export class Game {
 				const routedServer =
 					route === undefined ? undefined : this.#serversById.get(route.serverId);
 
-				if (routedServer === undefined) {
+				if (routedServer === undefined || !routedServer.poweredOn) {
 					unroutableDemand += demand;
 					continue;
 				}
@@ -243,26 +341,47 @@ export class Game {
 			}
 		}
 
+		return {
+			projects: this.customers.flatMap((customer) => customer.projects),
+			totalDemand,
+			unroutableDemand,
+		};
+	}
+
+	#tickServerPhysics(ctx: TickContext, simulatedHour: number): void {
+		const utilizationByServerId = new Map(
+			[...this.#serversById.values()].map(
+				(server) => [server.id, server.metrics.utilization] as const,
+			),
+		);
+
 		for (const server of this.#serversById.values()) {
 			server.tick();
 
 			const previousUtilization = utilizationByServerId.get(server.id) ?? 0;
 
 			if (previousUtilization < 100 && server.metrics.utilization >= 100) {
-				events.push({
+				ctx.events.push({
 					type: "serverSaturated",
-					hourIndex: eventHourIndex,
+					hourIndex: simulatedHour,
 					serverId: server.id,
 				});
 			}
 		}
+	}
 
-		const projects = this.customers.flatMap((customer) => customer.projects);
+	#attributeSla(
+		ctx: TickContext,
+		projects: readonly Project[],
+		simulatedHour: number,
+		previousWindowPpmByProjectId: ReadonlyMap<string, number | null>,
+	): void {
+		const servers = [...this.#serversById.values()];
 
 		applyProjectSla(projects, servers);
 
 		for (const project of projects) {
-			const previousPpm = windowPpmByProjectId.get(project.id) ?? null;
+			const previousPpm = previousWindowPpmByProjectId.get(project.id) ?? null;
 			const nextPpm = project.metrics.windowAvailabilityPpm;
 			const targetPpm = project.commercial.targetPpm;
 			const previousMeetingOrNull = previousPpm === null || previousPpm >= targetPpm;
@@ -271,86 +390,143 @@ export class Game {
 			const nextMeeting = nextPpm !== null && nextPpm >= targetPpm;
 
 			if (previousMeetingOrNull && nextBreached && nextPpm !== null) {
-				events.push({
+				ctx.events.push({
 					type: "slaBreached",
-					hourIndex: eventHourIndex,
+					hourIndex: simulatedHour,
 					projectId: project.id,
 					windowPpm: nextPpm,
 				});
 			}
 
 			if (previousBreached && nextMeeting && nextPpm !== null) {
-				events.push({
+				ctx.events.push({
 					type: "slaRecovered",
-					hourIndex: eventHourIndex,
+					hourIndex: simulatedHour,
 					projectId: project.id,
 					windowPpm: nextPpm,
 				});
 			}
 		}
+	}
+
+	#chargeOpex(ctx: TickContext, placed: PlacedDemand): void {
+		const servers = [...this.#serversById.values()];
 
 		this.#metrics = measureGameTick(
 			servers.map((server) => server.metrics),
-			totalDemand,
-			unroutableDemand,
+			placed.totalDemand,
+			placed.unroutableDemand,
 		);
-
 		this.#opex = measureGameOpex(servers);
-		this.#cashCents -= this.#opex.opexCents;
-		this.#cashCents += this.#learning.tick(eventHourIndex, this.#cashCents);
-		this.#accountsReceivableCents += accruePeriodPayg(projects);
+		ctx.cash = postCashDelta(ctx.cash, -this.#opex.opexCents);
+	}
 
-		if (this.#cashCents <= -DEBT_LIMIT_CENTS) {
+	#tickLearning(ctx: TickContext, simulatedHour: number): void {
+		ctx.cash = postCashDelta(ctx.cash, this.#learning.tick(simulatedHour, ctx.cash));
+	}
+
+	#tickOperations(_ctx: TickContext): void {
+		this.#applyCompletedOperationalWork(this.#operations.tick());
+	}
+
+	#accruePayg(projects: readonly Project[]): void {
+		this.#accountsReceivableCents += accruePeriodPayg(projects);
+	}
+
+	#applyJail(ctx: TickContext): void {
+		if (ctx.cash <= -DEBT_LIMIT_CENTS) {
 			this.#jailed = true;
 		}
+	}
 
-		this.#hourIndex += 1;
-		const settledPaygCents = settlePaygReceivableIfDue(
-			this.#hourIndex,
-			this.#accountsReceivableCents,
-		);
-		this.#cashCents += settledPaygCents;
+	#settleDailyPayg(ctx: TickContext, simulatedHour: number): void {
+		const settledPaygCents = settlePaygReceivableIfDue(ctx.hour, this.#accountsReceivableCents);
+
+		ctx.cash = postCashDelta(ctx.cash, settledPaygCents);
 
 		if (settledPaygCents > 0) {
 			this.#accountsReceivableCents = 0;
-			events.push({
+			ctx.events.push({
 				type: "paygSettled",
-				hourIndex: eventHourIndex,
+				hourIndex: simulatedHour,
 				cents: settledPaygCents,
 			});
 		}
+	}
 
-		this.#cashCents += closeBillingPeriodIfDue(projects, this.#hourIndex);
-		const closedPeriodIndex = this.#hourIndex / BILLING_PERIOD_HOURS;
+	#tickContractCalendars(ctx: TickContext): void {
+		const reputationForPatience = this.#reputation;
+		let nextReputation = this.#reputation;
 
-		for (const project of projects) {
+		this.#customers = this.#customers.map((customer) => {
+			const projects = customer.projects.map((project) => {
+				const ticked = project.tickCalendar(ctx.hour, {
+					trust: customer.trust,
+					reputation: reputationForPatience,
+					hatred: customer.hatred,
+				});
+
+				ctx.cash = postCashDelta(ctx.cash, -ticked.refundCents);
+
+				if (ticked.withdrawn) {
+					nextReputation += SETUP_WITHDRAWAL_REPUTATION_DELTA;
+					this.#lastOfferResolveHour = ctx.hour;
+				}
+
+				if (ticked.expired) {
+					this.#lastOfferResolveHour = ctx.hour;
+				}
+
+				return ticked.project;
+			});
+
+			return customer.withProjects(projects);
+		});
+
+		this.#reputation = Math.min(100, Math.max(0, nextReputation));
+	}
+
+	#spawnAcquaintanceOffers(ctx: TickContext): void {
+		const market = spawnAcquaintanceIfDue(this.#customers, ctx.hour, this.#lastOfferResolveHour);
+
+		this.#customers = [...market.customers];
+		this.#lastOfferResolveHour = market.lastOfferResolveHour;
+	}
+
+	#closeWeeks(ctx: TickContext, physicsProjects: readonly Project[], simulatedHour: number): void {
+		const settlementCountById = new Map(
+			physicsProjects.map((project) => [project.id, project.settlements.length] as const),
+		);
+
+		ctx.cash = postCashDelta(ctx.cash, closeBillingPeriodIfDue(physicsProjects, ctx.hour));
+
+		for (const project of physicsProjects) {
+			const previousCount = settlementCountById.get(project.id) ?? 0;
 			const latest = project.settlements[project.settlements.length - 1];
 
 			if (
 				latest !== undefined &&
-				latest.periodIndex === closedPeriodIndex &&
+				project.settlements.length > previousCount &&
 				latest.creditCents > 0
 			) {
-				events.push({
+				ctx.events.push({
 					type: "weeklyCreditCharged",
-					hourIndex: eventHourIndex,
+					hourIndex: simulatedHour,
 					projectId: project.id,
 					creditCents: latest.creditCents,
 				});
 			}
 		}
+	}
 
-		if (cashBeforeCents > 0 && this.#cashCents <= 0) {
-			events.push({
+	#emitCashLow(ctx: TickContext, cashBefore: number, simulatedHour: number): void {
+		if (cashBefore > 0 && ctx.cash <= 0) {
+			ctx.events.push({
 				type: "cashLow",
-				hourIndex: eventHourIndex,
-				cashCents: this.#cashCents,
+				hourIndex: simulatedHour,
+				cashCents: ctx.cash,
 			});
 		}
-
-		this.#events = events;
-
-		return this;
 	}
 
 	#syncDerivedState(): void {
@@ -395,6 +571,235 @@ export class Game {
 
 		if (command.type === "cancelLearning") {
 			this.#learning.cancel(command.payload.enrollmentId);
+		}
+	}
+
+	#dispatchOperations(command: EngineCommand): void {
+		if (command.type === "enqueueOperationalTask") {
+			if (this.#jailed) {
+				throw new Error("cannot enqueueOperationalTask while jailed");
+			}
+
+			const project = findProject(this.#customers, command.payload.projectId);
+
+			if (project.status !== "accepted") {
+				throw new Error(`project is not accepted: ${project.id}`);
+			}
+
+			this.#operations.enqueue(
+				command.payload.projectId,
+				command.payload.taskId,
+				this.#learning.snapshot().completedCourseLevels,
+			);
+			return;
+		}
+
+		if (command.type === "cancelOperationalTask") {
+			this.#operations.cancel(command.payload.taskId);
+		}
+	}
+
+	#dispatchSetupAndPower(command: EngineCommand): void {
+		if (command.type === "placeSetup") {
+			if (this.#jailed) {
+				throw new Error("cannot placeSetup while jailed");
+			}
+
+			const server = this.#serversById.get(command.payload.serverId);
+
+			if (server === undefined) {
+				throw new Error(`unknown server id: ${command.payload.serverId}`);
+			}
+
+			const project = findProject(this.#customers, command.payload.projectId);
+
+			if (project.status !== "accepted") {
+				throw new Error(`project is not accepted: ${project.id}`);
+			}
+
+			this.#customers = [
+				...replaceProject(this.#customers, command.payload.projectId, "accepted", (current) =>
+					current.withSetupServerId(command.payload.serverId),
+				),
+			];
+			return;
+		}
+
+		if (command.type === "installService") {
+			if (this.#jailed) {
+				throw new Error("cannot installService while jailed");
+			}
+
+			const project = findProject(this.#customers, command.payload.projectId);
+
+			if (project.status !== "accepted") {
+				throw new Error(`project is not accepted: ${project.id}`);
+			}
+
+			if (project.setupServerId === undefined) {
+				throw new Error(`setup placement missing: ${project.id}`);
+			}
+
+			const serviceId = parseInstallableServiceId(command.payload.serviceId);
+
+			this.#operations.enqueue(
+				command.payload.projectId,
+				installTaskId(serviceId),
+				this.#learning.snapshot().completedCourseLevels,
+			);
+			return;
+		}
+
+		if (command.type === "configureConnection") {
+			if (this.#jailed) {
+				throw new Error("cannot configureConnection while jailed");
+			}
+
+			const project = findProject(this.#customers, command.payload.projectId);
+
+			if (project.status !== "accepted") {
+				throw new Error(`project is not accepted: ${project.id}`);
+			}
+
+			this.#operations.enqueue(
+				command.payload.projectId,
+				SHARED_CONNECTION_TASK_ID,
+				this.#learning.snapshot().completedCourseLevels,
+			);
+			return;
+		}
+
+		if (command.type === "powerOn") {
+			const server = this.#serversById.get(command.payload.serverId);
+
+			if (server === undefined) {
+				throw new Error(`unknown server id: ${command.payload.serverId}`);
+			}
+
+			server.powerOn();
+			return;
+		}
+
+		if (command.type === "powerOff") {
+			const server = this.#serversById.get(command.payload.serverId);
+
+			if (server === undefined) {
+				throw new Error(`unknown server id: ${command.payload.serverId}`);
+			}
+
+			server.powerOff();
+
+			for (const customer of this.#customers) {
+				for (const project of customer.projects) {
+					const placed =
+						project.setupServerId === command.payload.serverId ||
+						project.route?.serverId === command.payload.serverId;
+
+					if (placed) {
+						this.#operations.dropVolatileProgress(project.id);
+					}
+				}
+			}
+		}
+	}
+
+	#dispatchDuplicate(command: EngineCommand): void {
+		if (command.type !== "duplicateProject") {
+			return;
+		}
+
+		if (this.#jailed) {
+			throw new Error("cannot duplicateProject while jailed");
+		}
+
+		const source = findProject(this.#customers, command.payload.projectId);
+
+		if (source.status !== "served" || source.route === undefined) {
+			throw new Error(`project is not served: ${source.id}`);
+		}
+
+		if (source.route.serverId === command.payload.destinationServerId) {
+			throw new Error(`destination is the source server: ${command.payload.destinationServerId}`);
+		}
+
+		const sourceServer = this.#serversById.get(source.route.serverId);
+		const destination = this.#serversById.get(command.payload.destinationServerId);
+
+		if (destination === undefined) {
+			throw new Error(`unknown server id: ${command.payload.destinationServerId}`);
+		}
+
+		if (sourceServer === undefined) {
+			throw new Error(`unknown server id: ${source.route.serverId}`);
+		}
+
+		if (
+			!destination.poweredOn ||
+			destination.computeUnitsPerHour < sourceServer.computeUnitsPerHour ||
+			destination.memoryMiB < sourceServer.memoryMiB ||
+			destination.networkBytesPerHour < sourceServer.networkBytesPerHour
+		) {
+			throw new Error(`destination is incompatible: ${destination.id}`);
+		}
+
+		const knownIds = new Set(
+			this.#customers.flatMap((customer) => customer.projects.map((project) => project.id)),
+		);
+		let sequence = 1;
+		let copyId = `${source.id}-copy`;
+
+		while (knownIds.has(copyId)) {
+			sequence += 1;
+			copyId = `${source.id}-copy-${String(sequence)}`;
+		}
+
+		const copy = source.asDuplicate(copyId, destination.id, this.#hourIndex);
+
+		this.#customers = this.#customers.map((customer) => {
+			if (!customer.projects.some((project) => project.id === source.id)) {
+				return customer;
+			}
+
+			return customer.withProjects([...customer.projects, copy]);
+		});
+	}
+
+	#applyCompletedOperationalWork(completedProjectIds: readonly string[]): void {
+		const required = firstProjectSetupTaskIds();
+
+		for (const projectId of new Set(completedProjectIds)) {
+			const project = findProject(this.#customers, projectId);
+
+			if (project.status !== "accepted") {
+				continue;
+			}
+
+			const completed = this.#operations.completedTaskIds(projectId);
+			let next = project;
+
+			if (completed.includes("install-application-runtime")) {
+				next = next.withInstalledService("application-runtime");
+			}
+
+			if (completed.includes("install-relational-database")) {
+				next = next.withInstalledService("relational-database");
+			}
+
+			if (completed.includes(SHARED_CONNECTION_TASK_ID)) {
+				next = next.withConnectionConfigured();
+			}
+
+			if (
+				required.every((taskId) => completed.includes(taskId)) &&
+				!next.ready &&
+				next.pendingTransfer === undefined
+			) {
+				next = next.withReady();
+			}
+
+			if (next !== project) {
+				this.#customers = [...replaceProject(this.#customers, projectId, "accepted", () => next)];
+			}
 		}
 	}
 }

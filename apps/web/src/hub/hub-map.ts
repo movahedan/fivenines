@@ -165,6 +165,8 @@ export function axisPercent(load: number, cap: number): number {
 const COMMAND_LOG_TONE: Record<EngineCommand["type"], EventLogTone> = {
 	acceptProject: "info",
 	declineProject: "warn",
+	startProject: "success",
+	cancelSetup: "warn",
 	moveProject: "info",
 	unassignProject: "warn",
 	assignProject: "success",
@@ -176,6 +178,14 @@ const COMMAND_LOG_TONE: Record<EngineCommand["type"], EventLogTone> = {
 	pauseLearning: "warn",
 	resumeLearning: "success",
 	cancelLearning: "warn",
+	enqueueOperationalTask: "success",
+	cancelOperationalTask: "warn",
+	placeSetup: "info",
+	installService: "success",
+	configureConnection: "success",
+	powerOn: "success",
+	powerOff: "warn",
+	duplicateProject: "info",
 };
 
 export function commandLogTone(commandType: EngineCommand["type"]): EventLogTone {

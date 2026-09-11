@@ -56,7 +56,7 @@ A later checkpoint, after the initial playable product, is hiring and training a
 - Spline is set aside. Graph/chart libraries remain undecided and must account for native mobile support.
 - Reputation, relationships, courses, and technology progression have delegated numeric defaults. Staffing remains deferred; runtime balance validation remains required.
 - Opening Shift is excluded from product direction; its existing implementation is prototype behavior to address in a later technical plan.
-- One outer tick with no subticks is settled; aggregate latency and work allocation still require technical verification.
+- One outer tick with no subticks is settled; Game sequences entity hours. Aggregate latency and work allocation still require technical verification.
 
 ## Independent platform delivery
 

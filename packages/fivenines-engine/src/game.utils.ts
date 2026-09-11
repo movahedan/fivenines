@@ -17,8 +17,10 @@ export type AssetInitial = {
 export type GameAsset = Server;
 
 export type EngineCommand =
-	| { type: "acceptProject"; payload: { projectId: string; serverId: string } }
+	| { type: "acceptProject"; payload: { projectId: string } }
 	| { type: "declineProject"; payload: { projectId: string } }
+	| { type: "startProject"; payload: { projectId: string; serverId: string } }
+	| { type: "cancelSetup"; payload: { projectId: string } }
 	| { type: "moveProject"; payload: { projectId: string; serverId: string } }
 	| { type: "unassignProject"; payload: { projectId: string } }
 	| { type: "assignProject"; payload: { projectId: string; serverId: string } }
@@ -29,13 +31,22 @@ export type EngineCommand =
 	| { type: "enrollLearning"; payload: { subject: LearningSubject } }
 	| { type: "pauseLearning"; payload: { enrollmentId: string } }
 	| { type: "resumeLearning"; payload: { enrollmentId: string } }
-	| { type: "cancelLearning"; payload: { enrollmentId: string } };
+	| { type: "cancelLearning"; payload: { enrollmentId: string } }
+	| { type: "enqueueOperationalTask"; payload: { projectId: string; taskId: string } }
+	| { type: "cancelOperationalTask"; payload: { taskId: string } }
+	| { type: "placeSetup"; payload: { projectId: string; serverId: string } }
+	| { type: "installService"; payload: { projectId: string; serviceId: string } }
+	| { type: "configureConnection"; payload: { projectId: string } }
+	| { type: "powerOn"; payload: { serverId: string } }
+	| { type: "powerOff"; payload: { serverId: string } }
+	| { type: "duplicateProject"; payload: { projectId: string; destinationServerId: string } };
 
 export interface GameGraph {
 	readonly customers: readonly Customer[];
 	readonly assets: readonly GameAsset[];
 	readonly cashCents: number;
 	readonly jailed: boolean;
+	readonly hourIndex: number;
 }
 
 export function applyCommand(graph: GameGraph, command: EngineCommand): GameGraph {
@@ -45,20 +56,63 @@ export function applyCommand(graph: GameGraph, command: EngineCommand): GameGrap
 				throw new Error("cannot acceptProject while jailed");
 			}
 
+			const current = findProject(graph.customers, command.payload.projectId);
+			const accepted = current.asAccepted(graph.hourIndex);
+
+			return {
+				...graph,
+				cashCents: postCashDelta(graph.cashCents, accepted.advancePostedCents),
+				customers: replaceProject(
+					graph.customers,
+					command.payload.projectId,
+					"offered",
+					() => accepted,
+				),
+			};
+		}
+		case "startProject": {
+			if (graph.jailed) {
+				throw new Error("cannot startProject while jailed");
+			}
+
 			assertServerExists(graph.assets, command.payload.serverId);
 
 			return {
 				...graph,
-				customers: mapProject(graph.customers, command.payload.projectId, "offered", (project) =>
-					project.asServed(command.payload.serverId),
+				customers: replaceProject(
+					graph.customers,
+					command.payload.projectId,
+					"accepted",
+					(project) => project.asStarted(command.payload.serverId, graph.hourIndex),
+				),
+			};
+		}
+		case "cancelSetup": {
+			const current = findProject(graph.customers, command.payload.projectId);
+
+			if (current.status !== "accepted") {
+				throw new Error(`project is not accepted: ${current.id}`);
+			}
+
+			return {
+				...graph,
+				cashCents: postCashDelta(graph.cashCents, -current.advancePostedCents),
+				customers: replaceProject(
+					graph.customers,
+					command.payload.projectId,
+					"accepted",
+					(project) => project.asWithdrawn(),
 				),
 			};
 		}
 		case "declineProject":
 			return {
 				...graph,
-				customers: mapProject(graph.customers, command.payload.projectId, "offered", (project) =>
-					project.asDeclined(),
+				customers: replaceProject(
+					graph.customers,
+					command.payload.projectId,
+					"offered",
+					(project) => project.asDeclined(),
 				),
 			};
 		case "moveProject": {
@@ -66,25 +120,35 @@ export function applyCommand(graph: GameGraph, command: EngineCommand): GameGrap
 
 			return {
 				...graph,
-				customers: mapProject(graph.customers, command.payload.projectId, "served", (project) =>
+				customers: replaceProject(graph.customers, command.payload.projectId, "served", (project) =>
 					project.asRoutedTo(command.payload.serverId),
 				),
 			};
 		}
-		case "unassignProject":
+		case "unassignProject": {
+			const current = findProject(graph.customers, command.payload.projectId);
+
+			if (current.status === "accepted") {
+				throw new Error(`cannot park during setup: ${current.id}`);
+			}
+
 			return {
 				...graph,
-				customers: mapProject(graph.customers, command.payload.projectId, "served", (project) =>
+				customers: replaceProject(graph.customers, command.payload.projectId, "served", (project) =>
 					project.asOffline(),
 				),
 			};
+		}
 		case "assignProject": {
 			assertServerExists(graph.assets, command.payload.serverId);
 
 			return {
 				...graph,
-				customers: mapProject(graph.customers, command.payload.projectId, "offline", (project) =>
-					project.asRoutedTo(command.payload.serverId),
+				customers: replaceProject(
+					graph.customers,
+					command.payload.projectId,
+					"offline",
+					(project) => project.asRoutedTo(command.payload.serverId),
 				),
 			};
 		}
@@ -218,7 +282,7 @@ function assertNoServedRoute(customers: readonly Customer[], serverId: string): 
 	}
 }
 
-function mapProject(
+export function replaceProject(
 	customers: readonly Customer[],
 	projectId: string,
 	requiredStatus: ProjectStatus,
@@ -236,7 +300,12 @@ function mapProject(
 		}
 
 		return new Customer(
-			{ id: customer.id, projects: [] },
+			{
+				id: customer.id,
+				trust: customer.trust,
+				hatred: customer.hatred,
+				projects: [],
+			},
 			customer.projects.map((project) =>
 				project.id === projectId ? nextProject(project) : project,
 			),
@@ -264,7 +333,7 @@ function removeServer(assets: readonly GameAsset[], serverId: string): readonly 
 	return assets.filter((asset) => asset.id !== serverId);
 }
 
-function findProject(customers: readonly Customer[], projectId: string): Project {
+export function findProject(customers: readonly Customer[], projectId: string): Project {
 	for (const customer of customers) {
 		for (const project of customer.projects) {
 			if (project.id === projectId) {

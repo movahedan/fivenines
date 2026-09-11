@@ -103,7 +103,7 @@ describe("Game - buy sell accept money", () => {
 		expect(() =>
 			game.dispatch({
 				type: "acceptProject",
-				payload: { projectId: "project-1", serverId: "server-1" },
+				payload: { projectId: "project-1" },
 			}),
 		).toThrow("cannot acceptProject while jailed");
 		expect(game.cashCents).toBe(STARTING_CASH_CENTS);

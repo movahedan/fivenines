@@ -55,7 +55,7 @@ Deliver the approved desktop left Projects panel, right business panels and mobi
 | Acquaintance acceptance and advance | Merged into #111 | [#112](https://github.com/movahedan/fivenines/pull/112) | `bun overall`; GitHub merge into the M4 foundation |
 | Hourly tick orchestration | Merged into #111 | [#114](https://github.com/movahedan/fivenines/pull/114) | [#113](https://github.com/movahedan/fivenines/issues/113); GitHub-merged into the M4 foundation |
 | Operational queue and readiness | Merged into #111 | [#115](https://github.com/movahedan/fivenines/pull/115) | [#72](https://github.com/movahedan/fivenines/issues/72); GitHub-merged into the M4 foundation |
-| Installation and configuration actions | In review | — | First-project 5h preset; install/config/power; `bun overall` |
+| Installation and configuration actions | In review | [#116](https://github.com/movahedan/fivenines/pull/116) | [#73](https://github.com/movahedan/fivenines/issues/73); stacked on #111 |
 | Duplication and transfer lifecycle | Planned | — | Not run |
 | System workspace operations | Planned | — | Not run |
 

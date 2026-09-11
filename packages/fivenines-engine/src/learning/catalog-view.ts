@@ -29,7 +29,7 @@ export function learningCatalog(
 	cashCents: number,
 ): readonly LearningCatalogRow[] {
 	const researchRows = Object.values(RESEARCH_CATALOG)
-		.filter((entry) => entry.release === "v1" && entry.durationHours > 0)
+		.filter((entry) => entry.release === "v1")
 		.map((entry) => {
 			const subject: LearningSubject = { kind: "research", technologyId: entry.id };
 			const enrollment = snapshot.enrollments.find(

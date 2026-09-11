@@ -18,6 +18,20 @@ function clockLabel(hourIndex: number): string {
 	return `DAY ${String(dayIndex).padStart(2, "0")} · HR ${String(hourOfDay).padStart(2, "0")}:00`;
 }
 
+const SIM_ORIGIN_UTC_MS = Date.UTC(2026, 8, 9);
+const MS_PER_DAY = 86_400_000;
+
+function simDate(hourIndex: number): string {
+	const days = Math.floor(hourIndex / 24);
+
+	return new Date(SIM_ORIGIN_UTC_MS + days * MS_PER_DAY).toLocaleDateString("en-US", {
+		month: "short",
+		day: "numeric",
+		year: "numeric",
+		timeZone: "UTC",
+	});
+}
+
 function ppm(value: number | null): string {
 	return value === null ? "—" : `${(value / 10_000).toFixed(2)}%`;
 }
@@ -34,6 +48,7 @@ export const formatters = {
 	cents,
 	hourTick,
 	clockLabel,
+	simDate,
 	ppm,
 	cores,
 	coresCompact,

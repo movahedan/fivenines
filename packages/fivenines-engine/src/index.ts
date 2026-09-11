@@ -20,6 +20,7 @@ export {
 	SLA_CREDIT_SEVERE_PPM,
 	slaCreditPpm,
 } from "./catalog/commercial-policy";
+export { COURSE_CATALOG } from "./catalog/course-catalog";
 export {
 	DEBT_LIMIT_CENTS,
 	SALVAGE_PERCENT,
@@ -48,6 +49,7 @@ export {
 } from "./catalog/operations-policy";
 export type { RegionId } from "./catalog/regions";
 export { DEFAULT_REGION, REGION_IDS, regions } from "./catalog/regions";
+export { RESEARCH_CATALOG } from "./catalog/research-catalog";
 export { SLA_WINDOW_HOURS, slaAvailabilityPpm, slaRecoveryHours } from "./catalog/sla-policy";
 export type { CustomerInitial } from "./customer";
 export { Customer } from "./customer";
@@ -63,6 +65,7 @@ export type {
 export { Game } from "./game";
 export type { GameFinanceSnapshot } from "./game.finance";
 export type { GameTickMetrics } from "./game.metrics";
+export type { LearningCatalogRow, LearningRowStatus } from "./learning/catalog-view";
 export type {
 	BillingSettlement,
 	CampaignWindow,

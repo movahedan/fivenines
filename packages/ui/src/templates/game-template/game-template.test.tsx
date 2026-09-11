@@ -87,6 +87,19 @@ describe("GameTemplate", () => {
 		expect(screen.getByText("No active tasks")).toBeInTheDocument();
 	});
 
+	it("releases the business panel width when the right destination is closed", () => {
+		render(<Harness isMobile={false} />);
+
+		fireEvent.click(screen.getByRole("button", { name: "Open Inventory" }));
+		expect(screen.getByRole("button", { name: "Close business panel" })).toBeInTheDocument();
+
+		fireEvent.click(screen.getByRole("button", { name: "Close business panel" }));
+
+		expect(screen.queryByRole("button", { name: "Close business panel" })).not.toBeInTheDocument();
+		expect(screen.getByText("center")).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "Open Inventory" })).toBeInTheDocument();
+	});
+
 	it("opens a slotted activity overlay when the default trigger is pressed", () => {
 		render(<Harness isMobile={false} />);
 

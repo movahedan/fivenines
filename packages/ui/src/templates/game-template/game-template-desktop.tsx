@@ -5,10 +5,14 @@ import { PanelHeader } from "../../molecules/panel-header/panel-header";
 import { GameChromeIconButton } from "./game-chrome-icon-button";
 import { GAME_PANEL_TAB_WIDTH, GamePanelRailTab } from "./game-panel-rail-tab";
 import type { GameRightDestination, GameTemplateProps } from "./game-template.types";
-import { panelPercentToWidth, panelWidthToPercent } from "./game-template.types";
+import {
+	GAME_PANEL_WIDTH_MIN,
+	panelPercentToWidth,
+	panelWidthToPercent,
+} from "./game-template.types";
 
 const ROW_WIDTH_FALLBACK = 1440;
-const TAB_PERCENT = panelWidthToPercent(GAME_PANEL_TAB_WIDTH, ROW_WIDTH_FALLBACK);
+const TAB_PERCENT = (GAME_PANEL_TAB_WIDTH / ROW_WIDTH_FALLBACK) * 100;
 
 const RIGHT_TABS: readonly { id: Exclude<GameRightDestination, null>; label: string }[] = [
 	{ id: "inventory", label: "Inventory" },
@@ -46,19 +50,29 @@ function HiddenResizeHandle({ label }: { label: string }) {
 }
 
 function GameTemplateDesktop({ template }: GameTemplateDesktopProps) {
+	const rightOpen = template.rightDestination !== null;
 	const projectsSize = template.projectsOpen
 		? panelWidthToPercent(template.projectsWidth + GAME_PANEL_TAB_WIDTH, ROW_WIDTH_FALLBACK)
 		: TAB_PERCENT;
+	const projectsMinSize = template.projectsOpen
+		? panelWidthToPercent(GAME_PANEL_WIDTH_MIN + GAME_PANEL_TAB_WIDTH, ROW_WIDTH_FALLBACK)
+		: TAB_PERCENT;
+	const rightSize = rightOpen ? panelWidthToPercent(template.rightWidth, ROW_WIDTH_FALLBACK) : 0;
+	const centerSize = Math.max(24, 100 - projectsSize - rightSize);
 
 	return (
 		<View className="min-h-0 flex-1 flex-row">
-			<PanelGroup className="h-full min-w-0 flex-1" direction="horizontal">
+			<PanelGroup
+				className="h-full min-w-0 flex-1"
+				direction="horizontal"
+				key={`desktop-row-${template.projectsOpen ? "projects" : "tabs"}-${rightOpen ? "right" : "closed"}`}
+			>
 				<Panel
 					defaultSize={projectsSize}
 					id="projects"
 					key={`projects-${String(template.projectsOpen)}`}
 					maxSize={panelWidthToPercent(520 + GAME_PANEL_TAB_WIDTH, ROW_WIDTH_FALLBACK)}
-					minSize={TAB_PERCENT}
+					minSize={projectsMinSize}
 					onResize={(percent) => {
 						if (!template.projectsOpen) {
 							return;
@@ -89,7 +103,7 @@ function GameTemplateDesktop({ template }: GameTemplateDesktopProps) {
 
 				{template.projectsOpen ? <HiddenResizeHandle label="Resize Projects" /> : null}
 
-				<Panel id="center" minSize={24} order={2}>
+				<Panel defaultSize={centerSize} id="center" minSize={24} order={2}>
 					<View className="h-full min-h-0 bg-background">{template.centerContent}</View>
 				</Panel>
 

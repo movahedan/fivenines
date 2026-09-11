@@ -13,6 +13,9 @@ describe("formatters - display labels", () => {
 		expect(formatters.hourTick(24)).toBe("TICK 0024");
 		expect(formatters.clockLabel(0)).toBe("DAY 01 · HR 00:00");
 		expect(formatters.clockLabel(25)).toBe("DAY 02 · HR 01:00");
+		expect(formatters.simDate(0)).toBe("Sep 9, 2026");
+		expect(formatters.simDate(24)).toBe("Sep 10, 2026");
+		expect(formatters.simDate(109)).toBe("Sep 13, 2026");
 	});
 
 	it("formats nullable parts-per-million as a percent", () => {

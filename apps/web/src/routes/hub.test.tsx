@@ -128,6 +128,10 @@ describe("HubPage - session gate", () => {
 		expect(screen.getByRole("region", { name: "Server market" })).toBeTruthy();
 		expect(screen.getByText("Incoming (1)")).toBeTruthy();
 		expect(screen.getByText("Fleet (0)")).toBeTruthy();
+		expect(screen.getByText("Sep 9, 2026")).toBeTruthy();
+		expect(screen.getByText("No active tasks")).toBeTruthy();
+		expect(screen.queryByText("LEARN")).toBeNull();
+		expect(screen.queryByText("OPS")).toBeNull();
 		fireEvent.click(screen.getByRole("button", { name: "Activity" }));
 		expect(screen.getByRole("region", { name: "Event log" }).className).toContain(
 			"overflow-hidden",
@@ -135,8 +139,11 @@ describe("HubPage - session gate", () => {
 		fireEvent.click(screen.getByRole("button", { name: "Dismiss Activity" }));
 		fireEvent.click(screen.getByRole("button", { name: "Open Learning" }));
 		expect(screen.getByRole("region", { name: "Learning" })).toBeTruthy();
-		expect(screen.getByText("LEARN")).toBeTruthy();
-		expect(screen.getByText("OPS")).toBeTruthy();
+		expect(screen.getByText("No active study")).toBeTruthy();
+		expect(screen.getByRole("tab", { name: "Technologies" })).toBeTruthy();
+		expect(screen.getByRole("button", { name: "Monitoring" })).toBeTruthy();
+		fireEvent.click(screen.getByRole("tab", { name: "Courses" }));
+		expect(screen.getByRole("button", { name: "System Administration" })).toBeTruthy();
 		fireEvent.click(screen.getByRole("button", { name: "Open Inventory" }));
 		expect(screen.getByText(/Issue #66 shared-asset identity is incomplete/)).toBeTruthy();
 	});
@@ -182,10 +189,14 @@ describe("HubPage - ops landmarks", () => {
 		renderHub();
 
 		await waitForOpsFloor();
+
+		fireEvent.click(screen.getByRole("button", { name: "Account" }));
+		const accountDialog = screen.getByRole("dialog", { name: "Account" });
+
 		const assign = mock(() => undefined);
 		window.location.assign = assign as typeof window.location.assign;
 
-		fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+		fireEvent.click(within(accountDialog).getByRole("button", { name: "Sign out" }));
 
 		expect(assign).toHaveBeenCalled();
 		const href = String(
@@ -269,8 +280,9 @@ describe("HubPage - ops landmarks", () => {
 		renderHub();
 
 		await waitForOpsFloor();
-		expect(screen.getByText("Receivable today")).toBeTruthy();
-		expect(screen.getByText("OPEX / hour")).toBeTruthy();
+		const status = screen.getByLabelText("Game status");
+		expect(within(status).getByText("CASH")).toBeTruthy();
+		expect(within(status).getByText("OPEX")).toBeTruthy();
 		const decline = screen.getAllByRole("button", { name: "DECLINE" })[0];
 		if (decline === undefined) {
 			throw new Error("expected an offer DECLINE button");
@@ -384,7 +396,9 @@ describe("HubPage - project routing", () => {
 		fireEvent.click(screen.getByRole("button", { name: "Install Application Runtime" }));
 
 		await waitFor(() => {
-			expect(screen.getByText("1/1")).toBeTruthy();
+			const status = screen.getByLabelText("Game status");
+			expect(within(status).getByText("Install Application Runtime")).toBeTruthy();
+			expect(within(status).getByText("2h")).toBeTruthy();
 		});
 		expect(screen.getByRole("button", { name: "Start" })).toBeDisabled();
 	});

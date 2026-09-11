@@ -21,17 +21,19 @@ import {
 import { formatters } from "@packages/shared/formatters";
 
 import { Button } from "@/atoms/button";
-import { Text } from "@/atoms/text";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
 	ActiveProjectCard,
 	type ServerOption,
 } from "@/molecules/active-project-card/active-project-card";
 import { EventLog, type EventLogEntry } from "@/molecules/event-log/event-log";
+import { GameAccountControl } from "@/molecules/game-account-control/game-account-control";
 import {
 	GameClockControls,
 	type GameClockSpeed,
 } from "@/molecules/game-clock-controls/game-clock-controls";
+import { GameLearningPanel } from "@/molecules/game-learning-panel/game-learning-panel";
+import { GamePipelineChip } from "@/molecules/game-pipeline-chip/game-pipeline-chip";
 import { MetricStat } from "@/molecules/metric-stat/metric-stat";
 import { PanelHeader } from "@/molecules/panel-header/panel-header";
 import { ProjectOfferCard } from "@/molecules/project-offer-card/project-offer-card";
@@ -44,6 +46,7 @@ import {
 	type GameDestination,
 	type GameRightDestination,
 } from "@/templates/game-template/game-template.types";
+import { learningCourses, learningOngoing, learningTechnologies } from "./hub-learning";
 import {
 	addedAssetId,
 	assetTenureKind,
@@ -146,6 +149,23 @@ function setupActionLabel(taskId: string): string {
 	}
 
 	return taskId;
+}
+
+const MILLI_HOURS_PER_SIM_HOUR = 1000;
+
+function ratioPercent(progress: number, duration: number): number {
+	if (duration <= 0) {
+		return 0;
+	}
+
+	return Math.round((progress / duration) * 100);
+}
+
+function opsHoursRemaining(progressMilliHours: number, durationMilliHours: number): number {
+	return Math.max(
+		0,
+		Math.ceil((durationMilliHours - progressMilliHours) / MILLI_HOURS_PER_SIM_HOUR),
+	);
 }
 
 export function HubSession() {
@@ -262,6 +282,30 @@ export function HubSession() {
 
 	const reviewOffer = offers.find((row) => row.project.id === reviewProjectId);
 	const clockSpeed: GameClockSpeed = running ? speed : 0;
+	const activeOpsTask = game.operations.tasks.find((task) => task.status === "active");
+	const activeLearningRows = game.learningCatalog.filter((row) => row.status === "active");
+	const learningTechItems = learningTechnologies(game.learningCatalog, jailed);
+	const learningCourseItems = learningCourses(game.learningCatalog, jailed);
+	const learningOngoingItems = learningOngoing(learningTechItems, learningCourseItems);
+	const opsChip =
+		activeOpsTask === undefined ? undefined : (
+			<GamePipelineChip
+				detail={`${String(opsHoursRemaining(activeOpsTask.progressMilliHours, activeOpsTask.durationMilliHours))}h`}
+				label={setupActionLabel(activeOpsTask.taskId)}
+				progress={ratioPercent(activeOpsTask.progressMilliHours, activeOpsTask.durationMilliHours)}
+				tone="ops"
+			/>
+		);
+	const learnChips = activeLearningRows.map((row) => (
+		<GamePipelineChip
+			detail={`${String(ratioPercent(row.progressHours ?? 0, row.durationHours))}%`}
+			key={row.id}
+			label={row.name}
+			progress={ratioPercent(row.progressHours ?? 0, row.durationHours)}
+			tone="learn"
+		/>
+	));
+	const hasPipeline = opsChip !== undefined || learnChips.length > 0;
 	const hasLiveProjects = accepted.length > 0 || served.length > 0 || parked.length > 0;
 	const centerKind =
 		reviewOffer !== undefined ? "contractReview" : hasLiveProjects ? "project" : "empty";
@@ -316,14 +360,23 @@ export function HubSession() {
 			<GameTemplate
 				className="min-h-0 flex-1"
 				accountControl={
-					<Button onClick={signOut} size="sm" variant="ghost">
-						Sign out
-					</Button>
+					<GameAccountControl
+						compact={isMobile}
+						email={user?.email ?? "ops@fivenines.io"}
+						onPress={() => {
+							setAccountOpen(true);
+						}}
+					/>
 				}
 				accountOpen={accountOpen}
 				accountOverlay={
 					<div className="flex flex-col gap-2 p-3">
-						<p className="font-mono text-xs text-muted-foreground">{user?.email ?? "Operator"}</p>
+						<p className="font-mono text-xs text-muted-foreground">
+							{user?.email ?? "ops@fivenines.io"}
+						</p>
+						<Button size="sm" type="button" variant="ghost">
+							Settings
+						</Button>
 						<Button onClick={signOut} size="sm" variant="ghost">
 							Sign out
 						</Button>
@@ -338,7 +391,7 @@ export function HubSession() {
 				centerKind={centerKind}
 				clockControls={
 					<GameClockControls
-						dateLabel={formatters.clockLabel(game.hourIndex)}
+						dateLabel={formatters.simDate(game.hourIndex)}
 						dayProgress={(game.hourIndex % 24) / 24}
 						density={isMobile ? "mobile" : "desktop"}
 						onSpeedChange={handleClockSpeed}
@@ -346,10 +399,34 @@ export function HubSession() {
 					/>
 				}
 				destination={destination}
-				learningProgress={
-					<Text className="px-2 text-[10px] text-info">
-						LEARN {String(game.learning.slotsUsed)}/2
-					</Text>
+				learningProgress={!isMobile && learnChips.length > 0 ? learnChips : undefined}
+				mobileProgressStrip={
+					isMobile && hasPipeline ? (
+						<div className="border-b border-border">
+							{activeOpsTask === undefined ? null : (
+								<GamePipelineChip
+									detail={`${String(opsHoursRemaining(activeOpsTask.progressMilliHours, activeOpsTask.durationMilliHours))}h`}
+									flush
+									label={setupActionLabel(activeOpsTask.taskId)}
+									progress={ratioPercent(
+										activeOpsTask.progressMilliHours,
+										activeOpsTask.durationMilliHours,
+									)}
+									tone="ops"
+								/>
+							)}
+							{activeLearningRows.map((row) => (
+								<GamePipelineChip
+									detail={`${String(ratioPercent(row.progressHours ?? 0, row.durationHours))}%`}
+									flush
+									key={row.id}
+									label={row.name}
+									progress={ratioPercent(row.progressHours ?? 0, row.durationHours)}
+									tone="learn"
+								/>
+							))}
+						</div>
+					) : undefined
 				}
 				objectDrawer={
 					inspectedAsset === undefined ? undefined : (
@@ -385,42 +462,25 @@ export function HubSession() {
 				onProjectsWidthChange={setProjectsWidth}
 				onRightDestinationChange={setRightDestination}
 				onRightWidthChange={setRightWidth}
-				operationsProgress={
-					<Text className="px-2 text-[10px] text-warning">
-						OPS {String(game.operations.slotsUsed)}/1
-					</Text>
-				}
+				operationsProgress={!isMobile ? opsChip : undefined}
 				projectsOpen={projectsOpen}
 				projectsWidth={projectsWidth}
 				rightDestination={rightDestination}
 				rightWidth={rightWidth}
 				statusMetrics={
 					<>
-						<MetricStat compact label="CASH" tone="primary" value={formatters.cents(cashCents)} />
-						<MetricStat compact label="REP" value={String(game.reputation)} />
 						<MetricStat
-							compact
-							label="Receivable today"
-							tone="info"
-							value={formatters.cents(accountsReceivableCents)}
+							compact={isMobile}
+							label="CASH"
+							tone="primary"
+							value={formatters.cents(cashCents)}
 						/>
+						<MetricStat compact={isMobile} label="REP" value={String(game.reputation)} />
 						<MetricStat
-							compact
-							label="OPEX / hour"
+							compact={isMobile}
+							label="OPEX"
 							tone="warning"
 							value={formatters.cents(opexCents)}
-						/>
-						<MetricStat
-							compact
-							label="LEARN"
-							tone="info"
-							value={`${String(game.learning.slotsUsed)}/2`}
-						/>
-						<MetricStat
-							compact
-							label="OPS"
-							tone="warning"
-							value={`${String(game.operations.slotsUsed)}/1`}
 						/>
 					</>
 				}
@@ -923,86 +983,49 @@ export function HubSession() {
 						aria-label="Learning"
 						className="flex h-full min-h-0 flex-col overflow-hidden bg-panel"
 					>
-						<PanelHeader
-							count={game.learning.slotsUsed}
-							label="Learning"
-							tone="info"
-							trailing={
-								<span className="font-mono text-xs text-muted-foreground">
-									Completed courses vs active enrollments are separate. Issue #66 shared-asset
-									identity is incomplete; do not treat Projects and Inventory as the same graph.
-								</span>
-							}
+						<GameLearningPanel
+							courses={learningCourseItems}
+							ongoing={learningOngoingItems}
+							onEnrollCourse={(courseId) => {
+								const row = game.learningCatalog.find(
+									(item) =>
+										item.kind === "course" &&
+										item.subject.kind === "course" &&
+										item.subject.courseId === courseId,
+								);
+
+								if (row === undefined) {
+									return;
+								}
+
+								runCommand(
+									{ type: "enrollLearning", payload: { subject: row.subject } },
+									`Enrolled ${row.name}`,
+								);
+							}}
+							onPause={(enrollmentId) => {
+								runCommand({ type: "pauseLearning", payload: { enrollmentId } }, "Paused learning");
+							}}
+							onResume={(enrollmentId) => {
+								runCommand(
+									{ type: "resumeLearning", payload: { enrollmentId } },
+									"Resumed learning",
+								);
+							}}
+							onStartResearch={(technologyId) => {
+								const row = game.learningCatalog.find((item) => item.id === technologyId);
+
+								if (row === undefined) {
+									return;
+								}
+
+								runCommand(
+									{ type: "enrollLearning", payload: { subject: row.subject } },
+									`Enrolled ${row.name}`,
+								);
+							}}
+							technologies={learningTechItems}
 						/>
-						<div className="flex min-h-0 flex-1 gap-2 overflow-x-auto p-2">
-							{game.learningCatalog.map((row) => (
-								<div
-									className="flex w-56 shrink-0 flex-col gap-1 border border-border bg-card p-2 font-mono text-xs"
-									key={row.id}
-								>
-									<p className="font-semibold text-foreground">{row.name}</p>
-									<p className="text-muted-foreground">{row.status}</p>
-									<p className="text-muted-foreground">
-										{String(row.durationHours)}h · {formatters.cents(row.monthlyTuitionCents)}
-									</p>
-									{row.status === "available" ? (
-										<Button
-											disabled={jailed}
-											onClick={() => {
-												runCommand(
-													{ type: "enrollLearning", payload: { subject: row.subject } },
-													`Enrolled ${row.name}`,
-												);
-											}}
-											size="sm"
-										>
-											Enroll {row.name}
-										</Button>
-									) : null}
-									{row.status === "active" && row.enrollmentId !== undefined ? (
-										<Button
-											onClick={() => {
-												const enrollmentId = row.enrollmentId;
-
-												if (enrollmentId === undefined) {
-													return;
-												}
-
-												runCommand(
-													{ type: "pauseLearning", payload: { enrollmentId } },
-													`Paused ${row.name}`,
-												);
-											}}
-											size="sm"
-											variant="outline"
-										>
-											Pause {row.name}
-										</Button>
-									) : null}
-									{(row.status === "paused" || row.status === "insufficient-funds") &&
-									row.enrollmentId !== undefined ? (
-										<Button
-											disabled={jailed && row.status === "insufficient-funds"}
-											onClick={() => {
-												const enrollmentId = row.enrollmentId;
-
-												if (enrollmentId === undefined) {
-													return;
-												}
-
-												runCommand(
-													{ type: "resumeLearning", payload: { enrollmentId } },
-													`Resumed ${row.name}`,
-												);
-											}}
-											size="sm"
-										>
-											Resume {row.name}
-										</Button>
-									) : null}
-								</div>
-							))}
-						</div>
 					</section>
 				}
 				financesPanel={

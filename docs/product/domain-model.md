@@ -92,8 +92,12 @@ A hardware failure of S affects both deployments. A configuration error in A nee
 
 These connections may be visible together but must not be treated as interchangeable edges. Routing through two components does not imply two customer requests. Layout coordinates belong to presentation rather than capacity or billing rules.
 
+## Simulation hour
+
+One outer tick is one simulated hour. Game sequences (1) each entity's hour of work, (2) shared-capacity steps no single entity can see, (3) wallet commit, (4) the calendar after the hour index advances. Offer TTL and setup patience are project-local. Pending-offer cap, spawn interval, and reputation are Game-local. There is still only one clock. A discovered plugin list of phases, a second tick loop, or managers that copy `customers[]` are out of scope.
+
 ## Mapping from today's engine
 
-Today, Project holds traffic traits, commercial terms, a lifecycle status, and one server route. Server processes demand slices attributed to projects. Game advances time, coordinates resource use, and applies financial and SLA effects.
+Today, Project holds traffic traits, commercial terms, a lifecycle status, and one server route. Server processes demand slices attributed to projects. Game owns the outer hour: it calls each entity's tick, runs shared-capacity steps that no single entity can see (placement, SLA split, learning slots), commits money, then advances the calendar (daily collection, contract setup clocks, week close). Local timers such as offer TTL and setup patience belong to the project; spawning the next offer, pending-offer cap, and reputation belong to Game. Do not introduce a second simulation loop, internal subticks, a discovered plugin phase list, or managers that copy the customer graph.
 
-The target model introduces components and preparation between Project and Server. Retain the engine's authority, shared resource constraints, and accounting foundations while redesigning placement, lifecycle, and end-to-end success attribution. See [Product direction](product-direction.md) for the transition boundary.
+The target model introduces components and preparation between Project and Server. Retain the engine's authority, shared resource constraints, and accounting foundations while redesigning placement, lifecycle, and end-to-end success attribution. See [Product direction](product-direction.md) for the transition boundary. Milestone 4 records the runtime playlist in [infrastructure preparation and operations](../milestones/infrastructure-preparation-and-operations.md); later allocation replaces the place-demand step without replacing Game as orchestrator.

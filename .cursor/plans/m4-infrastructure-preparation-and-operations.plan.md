@@ -1,12 +1,15 @@
 ---
 name: M4 infrastructure preparation
-overview: "Milestone 4 stacked on #104: base docs PR, then acquaintance accept/advance, operational queue, install/config, pending transfers, workspace operations. Game still one RouteTarget, Bronze SKUs, tenure, Opening Shift clock."
+overview: "Milestone 4 stacked on #104: base docs PR, acquaintance accept/advance (#112 merged), hourly tick playlist (#113) before the ops queue, then install/config, pending transfers, workspace operations."
 todos:
   - id: base
     content: "Base PR on #104: milestone stack branch + this plan"
-    status: in_progress
+    status: completed
   - id: accept-advance
     content: "#71 accept without hardware, advance via postCashDelta, setup patience/refund, Start as billing origin"
+    status: completed
+  - id: tick-playlist
+    content: "#113 Game.tick named playlist; entity hours; no plugin registry; before #72"
     status: pending
   - id: queue-ready
     content: "#72 one operational queue, retained progress, ready vs active"
@@ -25,7 +28,7 @@ isProject: false
 
 # Milestone 4 — Infrastructure preparation and operations
 
-Milestone: [infrastructure preparation and operations](../../docs/milestones/infrastructure-preparation-and-operations.md) · GitHub [milestone 4](https://github.com/movahedan/fivenines/milestone/4) · Tracking [#41](https://github.com/movahedan/fivenines/issues/41) · Issues [#71](https://github.com/movahedan/fivenines/issues/71) [#72](https://github.com/movahedan/fivenines/issues/72) [#73](https://github.com/movahedan/fivenines/issues/73) [#74](https://github.com/movahedan/fivenines/issues/74) [#75](https://github.com/movahedan/fivenines/issues/75)
+Milestone: [infrastructure preparation and operations](../../docs/milestones/infrastructure-preparation-and-operations.md) · GitHub [milestone 4](https://github.com/movahedan/fivenines/milestone/4) · Tracking [#41](https://github.com/movahedan/fivenines/issues/41) · Issues [#71](https://github.com/movahedan/fivenines/issues/71) [#113](https://github.com/movahedan/fivenines/issues/113) [#72](https://github.com/movahedan/fivenines/issues/72) [#73](https://github.com/movahedan/fivenines/issues/73) [#74](https://github.com/movahedan/fivenines/issues/74) [#75](https://github.com/movahedan/fivenines/issues/75)
 
 **Stack:** `feature/m4-infrastructure-preparation-and-operations` on [#104](https://github.com/movahedan/fivenines/pull/104) (`feature/m3-demand-and-learning-foundations`). Do not treat old M3 slice branches as the merge target. Slice PRs stack on the M4 base; after review they fold into the base PR titled **Milestone 4: Infrastructure preparation and operations**.
 
@@ -39,7 +42,8 @@ flowchart TB
   Review -->|"acceptProject, no serverId"| Advance["postCashDelta +advance"]
   Advance --> Setup["accepted / setup clock"]
   Setup -->|"allowance then patience"| Withdraw["refund advance"]
-  Setup --> Queue["OperationalQueue #72"]
+  Setup --> Playlist["named Game.tick playlist #113"]
+  Playlist --> Queue["OperationalQueue #72"]
   Queue --> Install["install + shared config #73"]
   Install --> Ready["ready, not active"]
   Ready -->|"startProject"| Active["served + billingOriginHour"]
@@ -65,6 +69,7 @@ flowchart TB
 - First-project preset is two installs + one shared configuration = 5h; do not add per-technology configuration a second time.
 - Hub/Lab must still launch. Figma app is visual reference only.
 - Overload fixtures (`oneBronzeInitial` / `twoBronzeInitial`) stay constructible as already-`served` with `billingOriginHour: 0` so existing physics tests do not walk setup.
+- **Tick structure (option C, [#113](https://github.com/movahedan/fivenines/issues/113), before #72):** `Game.tick` is an authored playlist. Entities expose their hour. Game sequences, shared-capacity, and `postCashDelta`. No `TickPhase[]` registry, no manager that copies `customers[]`.
 
 ## Implementation choice (not a product conflict)
 
@@ -159,15 +164,47 @@ bun run overall
 
 - `packages/fivenines-engine/AGENTS.md` — accept payload, `accepted`, advance/refund, Start/billing origin, setup Park block
 - `apps/web/AGENTS.md` — Contract Review, accept without fleet
-- `docs/milestones/infrastructure-preparation-and-operations.md` — #71 in review
+- `docs/milestones/infrastructure-preparation-and-operations.md` — #71 merged into #111
 
 ---
 
-## Phase 2 — Operational queue and readiness (#72)
+## Phase 2 — Hourly tick orchestration (#113)
+
+**Goal:** Behavior-preserving structure: `Game.tick` is a named playlist. Project-local setup TTL/patience live on the project; offer spawn, cap, reputation, and wallet commit stay on Game. Split `tickSetupContracts` along that cut. Optional `simulateHour` / `advanceCalendar` names for the post-increment boundary.
+
+**Hard constraints:**
+- Do not change acquaintance accept/advance/refund/hour-39/TTL/spawn numbers.
+- Do not add an ops queue (that is #72).
+- No plugin phase registry, no ECS, no entity→Game cash callbacks.
+- Game still must not import identity/topology/demand-engine/work/baseline.
+
+### Code/config surfaces
+
+- `packages/fivenines-engine/src/game.ts` — short playlist; call entity ticks and shared steps
+- `packages/fivenines-engine/src/project.ts` — offer expiry and setup patience as project hour (return refund delta)
+- `packages/fivenines-engine/src/setup-clock.ts` — shrink to Game-only market spawn / reputation, or delete if inlined
+- Tests: existing `contract.accept.test.ts` and physics suite must stay green
+
+### Verification
+
+```bash
+bun test packages/fivenines-engine
+bun run overall
+```
+
+### Documentation before PR
+
+- `packages/fivenines-engine/AGENTS.md` — live playlist order
+- `docs/milestones/infrastructure-preparation-and-operations.md` — #113 in review
+- `docs/milestones/engine-architecture-and-mathematics.md` — current vs intended order already drafted; confirm runtime matches
+
+---
+
+## Phase 3 — Operational queue and readiness (#72)
 
 **Goal:** One player operational queue with prerequisites, retained progress, skill-adjusted duration using **stored** M3 course levels (Deployment Automation 0.92/level when that work exists). Explicit `ready` vs `active`; completing queue work never calls `startProject`.
 
-**Hard constraints:** No install application to instances yet (commands enqueue only / duration math). No M5 solver. Do not silently start contracts.
+**Hard constraints:** No install application to instances yet (commands enqueue only / duration math). No M5 solver. Do not silently start contracts. Call the queue from the #113 playlist; do not add a second clock.
 
 ### Code/config surfaces
 
@@ -192,7 +229,7 @@ bun run overall
 
 ---
 
-## Phase 3 — Installation and configuration actions (#73)
+## Phase 4 — Installation and configuration actions (#73)
 
 **Goal:** Application Runtime + Relational Database installs on instances plus **one** shared configuration (5h preset). Power-on immediate; power-off drops volatile work, keeps durable data. Ready after those tasks; Start still explicit.
 
@@ -220,7 +257,7 @@ bun run overall
 
 ---
 
-## Phase 4 — Duplication and transfer lifecycle (#74)
+## Phase 5 — Duplication and transfer lifecycle (#74)
 
 **Goal:** Duplicate **this project only**. Destination compatibility checks. Transfer state `pending`. Source keeps serving during prep. Completed movement is M5.
 
@@ -235,7 +272,7 @@ bun run overall
 
 ---
 
-## Phase 5 — System workspace operations (#75)
+## Phase 6 — System workspace operations (#75)
 
 **Goal:** Desktop left Projects / right business panels / mobile nav; rack reuse in acquisition and Inventory; bottom drawers; project-scoped Park/Resume with Gameplay blockers; honest #66.
 

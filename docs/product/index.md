@@ -16,6 +16,7 @@ For the approved visual direction, start with the preserved [Figma design refere
 | [Product direction](product-direction.md) | What changes next, what can be reused, and what stays independent? |
 | [Interface design brief](interface-design-brief.md) | Which UI constraints are agreed, which layouts are proposed, and what should a Figma Make handoff cover? |
 | [Infrastructure editor](infrastructure-editor.md) | How do Requirements, placement, proposed changes and automatic setup work? |
+| [Game shell and section map](game-shell.md) | Where does each desktop/mobile section live, and what can 5.1 bind versus leave empty? |
 | [Interaction specification](interaction-specification.md) | Which actions belong to each infrastructure object, how are they prioritized, and what states and impact reviews must the design cover? |
 | [Repository boundaries](repository-boundaries.md) | Which application or package owns each technical responsibility? |
 | [Open questions](open-questions.md) | Which implementation, verification, and deferred work remains? |

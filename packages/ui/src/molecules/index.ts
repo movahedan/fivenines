@@ -1,5 +1,7 @@
 export * from "./active-project-card/active-project-card";
 export * from "./event-log/event-log";
+export * from "./game-clock-controls/game-clock-controls";
+export * from "./game-status-bar/game-status-bar";
 export * from "./hud/hud";
 export * from "./metric-stat/metric-stat";
 export * from "./panel-header/panel-header";

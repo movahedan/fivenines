@@ -9,6 +9,7 @@ export interface MetricStatProps {
 	readonly label: string;
 	readonly value: string;
 	readonly tone?: MetricTone;
+	readonly compact?: boolean;
 	readonly className?: string;
 }
 
@@ -24,11 +25,32 @@ export function metricToneClass(tone: MetricTone = "default"): string {
 	return METRIC_TONE_CLASS[tone];
 }
 
-function MetricStat({ label, value, tone = "default", className }: MetricStatProps) {
+function MetricStat({
+	label,
+	value,
+	tone = "default",
+	compact = false,
+	className,
+}: MetricStatProps) {
 	return (
-		<View className={cn("flex-col gap-0.5", className)}>
-			<Text className="font-mono text-xs text-muted-foreground">{label}</Text>
-			<Text className={cn("font-mono font-semibold", metricToneClass(tone))}>{value}</Text>
+		<View className={cn("flex-col", compact ? "gap-px" : "gap-0.5", className)}>
+			<Text
+				className={cn(
+					"font-bold tracking-wider text-muted-foreground",
+					compact ? "text-[8px]" : "text-[9px]",
+				)}
+			>
+				{label}
+			</Text>
+			<Text
+				className={cn(
+					"font-mono font-bold leading-none",
+					compact ? "text-xs" : "text-sm",
+					metricToneClass(tone),
+				)}
+			>
+				{value}
+			</Text>
 		</View>
 	);
 }

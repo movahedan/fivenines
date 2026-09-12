@@ -1,6 +1,6 @@
 # Interface design and documentation
 
-Milestone 5.1. Status: planned; no implementation PR is claimed delivered. Prerequisite: **M5 completed and merged**. Follow the [delivery workflow](README.md).
+Milestone 5.1. Status: in progress on a stack above open [PR #134](https://github.com/movahedan/fivenines/pull/134); nothing in this milestone is merged. Prerequisite: **M5 completed and merged**. Follow the [delivery workflow](README.md). Do not merge #134 from this work.
 
 GitHub: [M5.1](https://github.com/movahedan/fivenines/milestone/11).
 
@@ -8,7 +8,7 @@ GitHub: [M5.1](https://github.com/movahedan/fivenines/milestone/11).
 
 Deliver the approved desktop/mobile game design and documents without changing the engine. Fixture interactions stay in development stories; production consumes only unchanged supported APIs or honest empty states. No engine source/tests/catalog/API or balance-number changes.
 
-Product sources: [editor](../product/infrastructure-editor.md), [interface brief](../product/interface-design-brief.md), [interaction specification](../product/interaction-specification.md). Technical steps: [execution plan](../../.cursor/plans/infrastructure-editor-redesign.plan.md).
+Product sources: [editor](../product/infrastructure-editor.md), [shell map](../product/game-shell.md), [interface brief](../product/interface-design-brief.md), [interaction specification](../product/interaction-specification.md). Technical steps: [execution plan](../../.cursor/plans/infrastructure-editor-redesign.plan.md). Current-code PR: [game-template plan](../../.cursor/plans/m51-game-template.plan.md).
 
 ## Proposed PR sequence
 
@@ -67,7 +67,7 @@ These short steps explain the intended approach; the assigned PR still needs a c
 
 | Slice | Status | Issue | PR/evidence |
 |---|---|---|---|
-| Product decisions and milestone reconciliation | Planned | [#126](https://github.com/movahedan/fivenines/issues/126) | Not implemented |
-| Responsive game template and destination slots | Planned | [#127](https://github.com/movahedan/fivenines/issues/127) | Not implemented |
-| Infrastructure editor and setup interaction design | Planned | [#128](https://github.com/movahedan/fivenines/issues/128) | Not implemented |
-| Existing behavior integration and visual acceptance | Planned | [#129](https://github.com/movahedan/fivenines/issues/129) | Not implemented |
+| Product decisions and milestone reconciliation | In progress (same PR as template) | [#126](https://github.com/movahedan/fivenines/issues/126) | Foundation in [PR #134](https://github.com/movahedan/fivenines/pull/134) (open, unmerged). Durable map: [game-shell.md](../product/game-shell.md). Unresolved engine decisions stay in [open questions](../product/open-questions.md). |
+| Responsive game template and destination slots | In progress (same PR as #126) | [#127](https://github.com/movahedan/fivenines/issues/127) | `GameTemplate` + `GameStatusBar` in `@packages/ui`; Storybook only. Hub not cut over. |
+| Infrastructure editor and setup interaction design | Planned | [#128](https://github.com/movahedan/fivenines/issues/128) | Not started |
+| Existing behavior integration and visual acceptance | Planned | [#129](https://github.com/movahedan/fivenines/issues/129) | Not started |

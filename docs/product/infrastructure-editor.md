@@ -4,7 +4,7 @@ Status: approved interaction direction from the September 2026 design interview;
 
 ## Project workspace and requirements
 
-Preserve the repository Figma reference's desktop/mobile shell and details except the explicitly approved changes here. The project contains Contract, a horizontal Requirements strip, Infrastructure, the persistent Setup checklist and the appropriate project-status content. Status, Performance and Finances remain tabs beneath Infrastructure. Completing setup does not remove access to the checklist.
+Preserve the repository Figma reference's desktop/mobile shell and details except the explicitly approved changes here. Desktop/mobile destination ownership is in the [game shell map](game-shell.md). The project contains Contract, a horizontal Requirements strip, Infrastructure, the persistent Setup checklist and the appropriate project-status content. Status, Performance and Finances remain tabs beneath Infrastructure. Completing setup does not remove access to the checklist.
 
 Requirements contains one card per required component or integration, rather than an entire workload bundle. Click/tap activates target selection; dragging is also supported. A used card moves to the end, keeping unmet requirements near the front. The strip is a convenience, never an eligibility gate: Add and additional instances are available from the beginning where domain rules permit.
 

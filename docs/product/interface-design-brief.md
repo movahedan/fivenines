@@ -4,7 +4,7 @@ Status: reconciled with the supplied Figma design on 2026-09-10. The user approv
 
 ## Approved editor revision
 
-The [infrastructure editor contract](infrastructure-editor.md) records the subsequent approved changes to the preserved design: Requirements after Contract, a persistent setup checklist, full-width software rows, automatic-only layout, manual host/entity links with visible anchors, contextual pickers and one unapplied project state. It owns these revised interactions. The supplied shell/layout remains the reference; inventory/acquisition use compact representations rather than the full editor rack. Desktop and mobile are delivered together. See the [delivery bridge](../milestones/infrastructure-editor-and-interface-redesign.md) for visual versus runtime sequencing.
+Desktop and mobile section ownership for implementation is in the [game shell map](game-shell.md). The [infrastructure editor contract](infrastructure-editor.md) records the subsequent approved changes to the preserved design: Requirements after Contract, a persistent setup checklist, full-width software rows, automatic-only layout, manual host/entity links with visible anchors, contextual pickers and one unapplied project state. It owns these revised interactions. The supplied shell/layout remains the reference; inventory/acquisition use compact representations rather than the full editor rack. Desktop and mobile are delivered together. See the [delivery bridge](../milestones/infrastructure-editor-and-interface-redesign.md) for visual versus runtime sequencing.
 
 ## Design objective
 

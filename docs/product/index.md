@@ -15,6 +15,7 @@ For the approved visual direction, start with the preserved [Figma design refere
 | [Balance baseline](balance/index.md) | What authored catalog entries, policy numbers, and validation evidence support the next engine design? |
 | [Product direction](product-direction.md) | What changes next, what can be reused, and what stays independent? |
 | [Interface design brief](interface-design-brief.md) | Which UI constraints are agreed, which layouts are proposed, and what should a Figma Make handoff cover? |
+| [Infrastructure editor](infrastructure-editor.md) | How do Requirements, placement, proposed changes and automatic setup work? |
 | [Interaction specification](interaction-specification.md) | Which actions belong to each infrastructure object, how are they prioritized, and what states and impact reviews must the design cover? |
 | [Repository boundaries](repository-boundaries.md) | Which application or package owns each technical responsibility? |
 | [Open questions](open-questions.md) | Which implementation, verification, and deferred work remains? |

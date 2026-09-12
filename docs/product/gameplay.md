@@ -1,5 +1,9 @@
 # Gameplay
 
+## Infrastructure preparation update
+
+The approved [infrastructure editor contract](infrastructure-editor.md) replaces manual per-item installation/configuration submission with one project-level proposed change set and automatic dependency-aware preparation. Apply begins real work; preview does not. Incomplete configuration may warn and install, but software remains off until ready. Software auto-start after preparation remains distinct from explicit contract activation. Longer preparation is approved as a direction; exact policy changes await timing/affordability validation. Existing numeric defaults are not silently replaced by this document.
+
 ## The intended loop
 
 The player receives an opportunity, understands the customer's requirements, accepts work they can deliver, prepares the required system, and operates it under the agreed commitment. Revenue supports operating costs and investment. A track record opens further opportunities.
@@ -18,7 +22,7 @@ Reputation is public business standing. Trust and hatred are separate per-custom
 
 Acceptance and service activation must become distinct. A project may require an application, a database, and the configuration that allows them to work together. They may share a server or run on separate servers. Not every workload necessarily needs the same components. The first project is a simple appointment-booking site for an acquaintance: one application and one database on one server, low demand, and an 80% SLA target. It requires no email, payments, or new research.
 
-The preparation flow is to select a server, install the application and database, and configure their connection. Installation and configuration consume simulation time; selections and visual canvas layout are immediate. Enable Start service once the required components are ready. Task duration depends on the task and technology, with exact values balanced against simulation speed.
+The preparation flow is to place required components on servers, draw required inter-server connections, and apply the proposed setup; installation and compatible configuration work are discovered automatically as specified in the [infrastructure editor](infrastructure-editor.md). Installation and configuration consume simulation time; selections and visual canvas layout are immediate. Enable Start service once the required components are ready. Task duration depends on the task and technology, with exact values balanced against simulation speed.
 
 The player performs one operational task requiring attention at a time, with subsequent tasks queued. Running services continue to process demand independently. Cancelling an operational task preserves completed preparation so it can later resume rather than restart from zero. This work queue is distinct from simulated request and job queues.
 
@@ -311,7 +315,7 @@ Keep the server's shared identity visible: software shown for the current projec
 
 Selecting a software component opens its contextual details and actions in a bottom drawer on both desktop and mobile, leaving the business-wide right panel independent. Selecting a server or software component exposes its relevant operational actions and preparation progress. Required missing components should be understandable from the project view. Use compact indicators for supporting capabilities, revealing details on selection, so multiple servers remain readable on mobile. Dependencies, placement, and traffic routing retain their distinct meanings even when shown together.
 
-Canvas layout is freely editable and does not change processing behavior. Allow connections only between compatible components and suggest required project connections. Load balancers may connect to other load balancers, but reject routing loops. These routing rules do not imply that every kind of graph edge has identical semantics.
+Canvas layout is automatic; manual movement is deferred and layout does not change processing behavior. Allow connections only between compatible components and suggest required project connections. Load balancers may connect to other load balancers, but reject routing loops. These routing rules do not imply that every kind of graph edge has identical semantics.
 
 ## Data movement and retention
 

@@ -2,6 +2,10 @@
 
 This is the standing working agreement for agents planning and delivering Five Nines. Read it with the assigned milestone, current code, and the relevant product documents. The user should not need to repeat this workflow for each task.
 
+## Additional milestones after M5
+
+The ordered sequence is **M5 → M5.1 → M5.2 → M6 → M7 → M8 → M9 → M10**. [M5.1](interface-design-and-documentation.md) delivers documents and UI without engine changes. [M5.2](infrastructure-engine-and-interface-integration.md) delivers scoped engine follow-ups and real UI integration. Neither stage marks future capabilities delivered; balancing remains M8. Existing M1–M5 history remains intact.
+
 ## Document responsibilities
 
 | Location | Authority |
@@ -15,7 +19,7 @@ Use [initiative-workflow](../../.cursor/skills/initiative-workflow/SKILL.md) as 
 
 ## Agreed milestone sequence
 
-These ten documents define delivery outcomes, proposed PR slices and acceptance scenarios. All implementation is currently planned; authoring a milestone does not complete it. PR breakdowns are refined against current code before execution.
+These milestone documents define delivery outcomes, proposed PR slices and acceptance scenarios. All implementation is currently planned; authoring a milestone does not complete it. PR breakdowns are refined against current code before execution.
 
 | Order | Milestone | Intended boundary |
 |---|---|---|
@@ -24,6 +28,8 @@ These ten documents define delivery outcomes, proposed PR slices and acceptance 
 | 3 | [Demand, work retention and learning foundations](demand-and-learning-foundations.md) | Demand batches, queues and age/progress; two-slot research/course lifecycle, tuition and completion effects recorded for later integration |
 | 4 | [Infrastructure preparation and operations](infrastructure-preparation-and-operations.md) | Installation, configuration, operational queue and readiness; named `Game.tick` playlist before the queue; prepare transfer lifecycle without claiming resource-dependent transfer complete |
 | 5 | [Resource allocation and system execution](resource-allocation-and-execution.md) | Fair shared-resource execution, full-path outcomes, queues and actual resource-consuming transfers |
+| 5.1 | [Interface design and documentation](interface-design-and-documentation.md) | Complete desktop/mobile design and documentation; no engine changes |
+| 5.2 | [Infrastructure engine and interface integration](infrastructure-engine-and-interface-integration.md) | Existing-foundation follow-ups and real editor integration before M6 |
 | 6 | [Contracts, economy and business growth](contracts-economy-and-growth.md) | Obligations, settlement, customer relationships, financial recovery and incoming opportunities |
 | 7 | [Observation, incidents and recovery](observation-incidents-and-recovery.md) | Coverage-aware history, diagnosis, attribution, repair, backups and checkpoints |
 | 8 | [Routing and automation](routing-and-automation.md) | Balancers, health checks, replication/failover, replacements and automatic leasing |

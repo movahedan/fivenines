@@ -4,6 +4,10 @@ Status: interaction hierarchy approved 2026-09-09; presentation and Park reconci
 
 The [interface brief](interface-design-brief.md) now follows the approved 2026-09-10 design: central offer/contract pages, embedded project sections, business side panels and shell task progress. Contextual action and recovery requirements below remain in scope even when their controls are absent from the preserved prototype. The inactive exported `InspectorPanel.tsx` does not define the final layout.
 
+## Revised preparation and placement interaction
+
+Use the [infrastructure editor contract](infrastructure-editor.md) for initial/incremental preparation. Requirements cards and both Add pickers prepare changes in one project-owned state. Configuration work is discovered automatically; the per-service Configure actions below describe contextual access to configuration and its scope, not a required series of manual dispatches before Setup. The project-level action commits preparation. Rows expose state/progress and power after readiness; body selection opens details. Visible host/entity anchors support drag connections alongside the existing Connect alternative. Placement targets are valid-only and empty results explain prerequisites inline.
+
 ## Selection, ownership, and presentation
 
 Selecting an object highlights it and its relevant connections without moving or automatically fitting the canvas. Selection opens the object’s bottom drawer on both desktop and mobile without replacing business navigation. Checklist entries open the same drawer at the required action; recovery and destination selection continue within this contextual flow. Flows launched into a bottom drawer, including acquisition, target selection and impact reviews, retain that presentation on both devices. Offer browsing and Contract Review instead use the central content page. Returning preserves selection, canvas position, and list scroll.
@@ -17,7 +21,7 @@ Use four levels of action presentation:
 3. Visible groups: Configuration, Operations, and capability-specific sections such as Recovery or Targets. Use descriptive buttons, not an opaque overflow menu for essential operations.
 4. Separated Removal section: uninstall, sell, or release with explicit impact review.
 
-Configuration changes show their full service scope and become operational through the existing work policy. Opening a form has no simulation effect. Show current settings separately from pending changes; Apply configuration starts the required work rather than pretending the change is already active.
+Configuration changes show their full service scope and become operational through the existing work policy. Opening a form has no simulation effect. Show current settings separately from pending changes; the project-level apply/setup action starts the required work rather than pretending the change is already active.
 
 ## Action states and feedback
 

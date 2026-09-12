@@ -2,6 +2,10 @@
 
 The [design-0.3 balance baseline](balance/index.md) now selects this library and supplies explicit research times, fees, resource baselines, workloads, and policy numbers. The conceptual descriptions below remain useful context; the baseline is the current authored numeric specification. It is not live engine configuration or a playtested final balance. Live Game SKUs stay in engine `src/catalog/` TypeScript until a cutover replaces those modules; do not compile this catalog into a parallel runtime.
 
+## Requirement card semantics
+
+The [editor](infrastructure-editor.md) uses a common Requirements strip without treating every entry as the same entity. Applications/databases/workers require software placement; Payment Gateway Integration attaches to a compatible application; Monitoring combines installation with selected project coverage; replication requires source/standby roles and data readiness; research unlocks use but never installs a capability. Eligibility and preparation are domain-owned, including proposed additions. Extend these semantics with each capability's owning milestone, rather than inventing generic install behavior for unsupported entries.
+
 ## Status and reading conventions
 
 This is the authored design catalog, not a claim about existing engine features or a requirement to implement all capabilities in one change. Basic application and database tools being initially available, research unlocking additional capabilities, and email/chat/video/payments as project traits are agreed. The authored catalog and dependencies are the working baseline; implementation and playtesting remain necessary.

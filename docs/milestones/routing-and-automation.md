@@ -2,6 +2,16 @@
 
 Milestone 8 of 10. Status: planned; no implementation PR is claimed delivered. Follow the [standing delivery workflow](README.md).
 
+## Approved interface integration amendment
+
+**Dependencies:** Hosted balancing remains in M8; the [delivery bridge](infrastructure-editor-and-interface-redesign.md) does not pull this implementation forward. Consume its proposal/apply contracts.
+
+**Changes to the proposed slices:** The load-balancing slice implements a small circular independent visual entity backed by software on a real host, accounted once. Support player-drawn host/entity links, direction inference, ambiguity resolution and the retained non-drag Connect path. Resolve host selection and semantic mapping before code.
+
+**Additional acceptance:** Verify direct Demand-to-Server without a balancer, nested loop rejection, capacity accounting, detected health, and routing/automation integration in existing node/drawer/checklist slots. Do not make server anchors into attached balancer entities.
+
+Status: planned; this documentation amendment does not claim implementation.
+
 ## Outcome and boundaries
 
 Allow researched infrastructure automation to distribute traffic and recover service through healthy targets, ready replicas and replacement capacity.

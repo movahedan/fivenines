@@ -2,6 +2,12 @@
 
 Milestone 3 of 10. Status: in review on [#104](https://github.com/movahedan/fivenines/pull/104), stacked on [#101](https://github.com/movahedan/fivenines/pull/101) (`docs/m2-base`). Follow the [standing delivery workflow](README.md). Execution plan: [`.cursor/plans/m3-demand-and-learning-foundations.plan.md`](../../.cursor/plans/m3-demand-and-learning-foundations.plan.md). Slice PRs [#105](https://github.com/movahedan/fivenines/pull/105) [#106](https://github.com/movahedan/fivenines/pull/106) [#107](https://github.com/movahedan/fivenines/pull/107) [#108](https://github.com/movahedan/fivenines/pull/108) are merged into #104. Milestone 4 stacks on this same head.
 
+## Interface-driven follow-up (planned)
+
+Preserve demand cohorts, retained work and learning lifecycle. F1 reruns demand regressions; F3 verifies existing Deployment Automation effects against longer preparation. No Terraform technology or second learning system is introduced.
+
+Execution timing and gates: [F1–F3 delivery bridge](infrastructure-editor-and-interface-redesign.md). These follow-ups execute in M5.2, after M5.1 completes; they are not part of M5.1. This amendment does not change the historical PR/merge claims below.
+
 ## Outcome and boundaries
 
 Generate typed project demand and preserve waiting work correctly, while introducing the complete enrollment lifecycle needed by subsequent operational capabilities.

@@ -2,6 +2,10 @@
 
 Status: reconciled with the supplied Figma design on 2026-09-10. The user approved its final shell and workspace layout while retaining product capabilities absent from the prototype. The preserved [design reference](../../apps/figma-design/README.md) supplies visual treatment; this brief and the [interaction specification](interaction-specification.md) define the intended production interface. This document does not replace gameplay rules or claim runtime completion.
 
+## Approved editor revision
+
+The [infrastructure editor contract](infrastructure-editor.md) records the subsequent approved changes to the preserved design: Requirements after Contract, a persistent setup checklist, full-width software rows, automatic-only layout, manual host/entity links with visible anchors, contextual pickers and one unapplied project state. It owns these revised interactions. The supplied shell/layout remains the reference; inventory/acquisition use compact representations rather than the full editor rack. Desktop and mobile are delivered together. See the [delivery bridge](../milestones/infrastructure-editor-and-interface-redesign.md) for visual versus runtime sequencing.
+
 ## Design objective
 
 Make running an infrastructure business tangible: accept a customer's contract, assemble and prepare their system, observe demand, improve reliability, and understand the commercial consequences. The project infrastructure is the main play surface. Customers own their applications and business outcomes.
@@ -85,9 +89,9 @@ The first project should feel personal: an acquaintance's simple appointment-boo
 
 ## Infrastructure presentation
 
-The server rack in the main project workspace (`InfraCanvas.tsx`, `ServerRack` in the reference) is the visual source for servers everywhere. Inventory, acquisition, selection and detail views must reuse that recognizable shell, identity/tenure header, status lamp, software area where relevant, and resource-bar language. Adapt density and contextual content; do not copy the unstyled acquisition listing or invent an unrelated server card from incomplete secondary pages. This was explicitly clarified by the user during design review.
+The project workspace rack is the starting visual reference for the editor. The subsequent approved revision uses full-width software rows. Inventory, acquisition, selection and detail views use compact context-appropriate presentations, with consistent identity/state language but no requirement to reproduce the whole rack.
 
-Propose a left-to-right flow for an initial auto-layout: incoming demand, routing where installed, then application/worker and data dependencies. Server containers establish placement; arrows establish relationships. Freely moving a container changes presentation, not capacity or latency.
+Propose a left-to-right flow for an initial auto-layout: incoming demand, routing where installed, then application/worker and data dependencies. Server containers establish placement; arrows establish relationships. Manual container movement is deferred; automatic layout never changes capacity or latency.
 
 At normal zoom, show each software instance as a distinct labeled module. Supporting capabilities can use compact modules or indicators that reveal coverage on selection. At distant zoom, collapse details into server name, condition, and a compact utilization cue. Re-expand when selected or zoomed in. Selection highlights related links; do not draw every monitoring-coverage line permanently over every traffic connection.
 
@@ -97,7 +101,7 @@ For shared hardware, show total use and an indication of other hosted projects. 
 
 Component selection opens contextual details with name, state, host, configuration, work progress, and actions. Keep these scoped to the selected object, distinct from the business-wide right panel. Use a bottom drawer on both desktop and mobile, with the same visual language and an explicit return to project information. Keep the business-wide right panel independent. Checklist items open this drawer directly at the required installation/configuration action; recovery and destination selection use the same contextual flow. Use one clear primary action for the current state; group less frequent lifecycle actions separately. Explain unavailable actions inline rather than relying on hover.
 
-Connections use Select source → Connect → Select compatible destination, accessible by touch and keyboard without requiring drag. Show compatible endpoints, explain invalid targets, and reject loops. Keep Add server available after the first acquisition. On mobile, contain pan and zoom within the infrastructure canvas; the surrounding page and headers must fit the viewport. Preserve the main rack design rather than clipping it or creating a different mobile server visual.
+Connections primarily use dragging between visible host/entity anchors or node bodies; retain Select source → Connect → Select compatible destination for touch/keyboard use without drag. Show compatible endpoints, explain invalid targets, and reject loops. Keep Add server available after the first acquisition. On mobile, contain pan and zoom within the infrastructure canvas; the surrounding page and headers must fit the viewport. Preserve the main rack design rather than clipping it or creating a different mobile server visual.
 
 ## Status, performance, and money
 

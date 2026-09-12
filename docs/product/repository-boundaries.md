@@ -2,6 +2,10 @@
 
 This is a short map of the repository's essential responsibilities, checked against workspace guidance on 2026-09-09. Follow the linked `AGENTS.md` for implementation details. This page does not replace those rules or the code-review rubric.
 
+## Planned interface boundaries
+
+`packages/ui/src/templates/game-template` owns named section slots and their desktop-panel/mobile-navigation presentation. Shared organisms include `pick-software` and `pick-infrastructure`; the temporary target-selection overlay is a molecule. Shared components take display data and callbacks and remain native-compatible, without engine/auth/React Flow imports. `apps/web/src/infrastructure-editor` owns the React Flow adapter, component-first `node-*` folders and automatic layout. `node-server` contains `node-server-software-row`; the rack is not a universal UI organism. Project workspace owns unapplied changes across all sections. These are planned boundaries, not a claim those paths are implemented. Engine eligibility/planning remains domain-owned.
+
 ## Applications
 
 | Workspace | Responsibility | Essential boundary |

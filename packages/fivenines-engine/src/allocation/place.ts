@@ -426,6 +426,7 @@ function assignedByProjectFromSettlements(
 ): Map<string, number> {
 	const handledByItem = new Map(settlements.map((row) => [row.itemId, row] as const));
 	const assigned = new Map<string, number>();
+	const byCohort = new Map<string, { projectId: string; requests: number }>();
 
 	for (const item of items) {
 		const meta = requestCostByItem.get(item.id);
@@ -446,8 +447,23 @@ function assignedByProjectFromSettlements(
 			settlement !== undefined && settlement.infeasible > 0
 				? 0
 				: Math.floor((settlement?.handled ?? 0) / meta.cost);
-		const current = assigned.get(meta.projectId);
-		assigned.set(meta.projectId, current === undefined ? requests : Math.min(current, requests));
+
+		if (meta.demandTypeId === undefined) {
+			const current = assigned.get(meta.projectId);
+			assigned.set(meta.projectId, current === undefined ? requests : Math.min(current, requests));
+			continue;
+		}
+
+		const key = `${meta.projectId}\0${meta.demandTypeId}\0${String(meta.arrivalHour)}`;
+		const current = byCohort.get(key);
+		byCohort.set(key, {
+			projectId: meta.projectId,
+			requests: current === undefined ? requests : Math.min(current.requests, requests),
+		});
+	}
+
+	for (const cohort of byCohort.values()) {
+		assigned.set(cohort.projectId, (assigned.get(cohort.projectId) ?? 0) + cohort.requests);
 	}
 
 	return assigned;

@@ -28,7 +28,7 @@ Package scripts: `typecheck` (`tsc --noEmit`), `test` (re-roots to repo `bun tes
 
 Ids are unique per game (`customer.id`, `project.id` global, `asset.id`) via `@packages/shared/ids`. Construct throws on duplicates.
 
-`#placeDemand` calls `allocateHour` (`src/allocation/place.ts`): `settleHostTick` on a full `HostBudget` (CPU, GPU, memory, disk ops/capacity, network). Contended CPU (and other throughput axes) splits by demand-proportional largest remainder, not project iteration order. `oneBronzeInitial` still totals **1000** handled / **400** unroutable, but the two 700 RPS projects share **500** each. GPU work on `gpuCount === 0` is infeasible, not CPU. There is no pool and no cross-region overflow. A project whose route is absent (parked) is fully unroutable. After allocation, `assignSlice` still records `{ category, requests, sourceRegion, remote, projectId }`; `server.tick` applies `CAPACITY_POLICY` min-ratio including disk ops. Cross-region routing stays legal and still costs extra p95. `compileDemandGraph` is a static per-type lookup (graphs stay ≤8 nodes; do not allocate per-request objects or rebuild every tick). Seeded permutation of project order is in `src/projections.runtime.test.ts`.
+`#placeDemand` calls `allocateHour` (`src/allocation/place.ts`): `settleHostTick` on a full `HostBudget` (CPU, GPU, memory, disk ops/capacity, network). Contended CPU (and other throughput axes) splits by demand-proportional largest remainder, not project iteration order. `oneBronzeInitial` still totals **1000** handled / **400** unroutable, but the two 700 RPS projects share **500** each. GPU work on `gpuCount === 0` is infeasible, not CPU. There is no pool and no cross-region overflow. A project whose route is absent (parked) is fully unroutable. After allocation, `assignSlice` still records `{ category, requests, sourceRegion, remote, projectId }`; `server.tick` applies `CAPACITY_POLICY` min-ratio including disk ops. Cross-region routing stays legal and still costs extra p95. `compileDemandGraph` is a static per-type lookup (graphs stay ≤8 nodes; do not allocate per-request objects or rebuild every tick). Appointment mix types (`page-read` and `record-write`) complete independently: assigned requests are the **sum** of per-type mins across that type’s required nodes, not the min across the whole mix (a global min would score ~20% SLA on a healthy Bronze). Seeded permutation of project order is in `src/projections.runtime.test.ts`.
 
 On each box, `server.tick` converts slices via `CAPACITY_POLICY` (`src/catalog/capacity-policy.ts`): v1 `cpuPerRequest = 1` for all categories; shopping/saas/portfolio differ on `bytesPerRequest` (40/10/20) and `memPerInflight` (2/4/1). `cpuLoad` / `netLoad` are per assigned request this hour. `inFlight = floor(assigned × inflightPerThousandRequests / 1000)` (v1: 10). `memOcc = baseMemoryMiB + inFlight ×` request-weighted `memPerInflight`. Handled scales by the **min** finite cap/load ratio (floor) across CPU/net/RAM; leftover on that box is dropped. Utilization is the **tightest** axis.
 
@@ -146,7 +146,7 @@ Learning enroll/pause/resume/cancel remain on the same union (see Learning below
 |---------|------------|
 | `acceptProject` | `offered` → `accepted`, no route; posts advance once (`recurringCentsPerPeriod` via `postCashDelta`) |
 | `declineProject` | `offered` → `declined` |
-| `startProject` | `accepted` + `ready` → `served` on `serverId`; sets `billingOriginHour` |
+| `startProject` | `accepted` + `ready` → `served` on `serverId`; sets `billingOriginHour`. Throws `start server mismatch` when `setupServerId` is set and differs; unset setup still starts on any existing box |
 | `cancelSetup` | `accepted` → `withdrawn`; refunds `advancePostedCents` via `postCashDelta` |
 | `moveProject` | `served` → `served` on another box |
 | `unassignProject` | `served` → `offline`, clearing the route (park). Throws `cannot park during setup` on `accepted` |
@@ -159,7 +159,7 @@ Learning enroll/pause/resume/cancel remain on the same union (see Learning below
 | `powerOn` / `powerOff` | immediate; off drops volatile ops progress and live slices, keeps completed installs |
 | `duplicateProject` | copies **this** served project only onto a compatible destination (CPU, RAM, net, disk capacity/IOPS); copy is `accepted` with `pendingTransfer` remaining network/disk; source stays served. Each tick allocates that work on source and dest; when both remaining counters hit 0, pending clears and the copy becomes ready in the same outer hour |
 
-Unknown project id or wrong source status throws. `startProject` throws when `ready` is false or `pendingTransfer` is set. Completing ops work never calls `startProject` and still will not mark ready while a transfer remains. Cash-changing commands are `acceptProject` (credit advance), `cancelSetup` (debit refund), `buyServer` (debit purchase), and `sellServer` (credit salvage). `leaseServer` and `releaseServer` do not change cash. Any command carrying a `serverId` throws `unknown server id` when the box is absent.
+Unknown project id or wrong source status throws. `startProject` throws when `ready` is false, `pendingTransfer` is set, or `setupServerId` is set and `payload.serverId` differs. Completing ops work never calls `startProject` and still will not mark ready while a transfer remains. Cash-changing commands are `acceptProject` (credit advance), `cancelSetup` (debit refund), `buyServer` (debit purchase), and `sellServer` (credit salvage). `leaseServer` and `releaseServer` do not change cash. Any command carrying a `serverId` throws `unknown server id` when the box is absent.
 
 `acceptProject`, `startProject`, `buyServer`, `leaseServer`, `enqueueOperationalTask`, `placeSetup`, `installService`, and `configureConnection` throw while `jailed`; `cancelSetup` / `cancelOperationalTask` / `powerOn` / `powerOff` / `moveProject` / `unassignProject` / `assignProject` / `sellServer` / `releaseServer` / `declineProject` are allowed while jailed.
 
@@ -207,7 +207,7 @@ Hourly arrival: `m = baseline × rhythm × campaign × spike`, then Gamma–Pois
 
 `src/learning/board.ts` is two shared slots, monthly tuition on `Game.cashCents` via `postCashDelta` (same helper as buy/sell). Base techs start completed. Research does not stack; courses are sequential through five levels. `enrollLearning` / `pauseLearning` / `resumeLearning` / `cancelLearning` are `dispatch` commands. Enroll is blocked while jailed. Progress ticks after opex. Completion at a renewal boundary does not charge again. Effects are stored (completed ids / course levels). Deployment Automation levels shorten operational-queue durations; installs are still not applied to instances. Incident/CPU consumers remain missing. Research is not installation.
 
-`learningCatalog` / `Game.learningCatalog` projects locked, available, insufficient-funds, active, paused, and completed rows. Completed course levels are a different projection from the active next-level enrollment. Lab may import `@packages/fivenines-engine/demand-engine` (engine entry only — do not barrel `queue.ts` into Hub/Lab coverage).
+`learningCatalog` / `Game.learningCatalog` projects locked, available, insufficient-funds, active, paused, and completed rows, including v1 base technologies that start completed. Completed course levels are a different projection from the active next-level enrollment. Hub maps `COURSE_CATALOG` and `RESEARCH_CATALOG` from the package barrel. Lab may import `@packages/fivenines-engine/demand-engine` (engine entry only — do not barrel `queue.ts` into Hub/Lab coverage).
 
 ## Operational queue
 
@@ -219,7 +219,7 @@ Hourly arrival: `m = baseline × rhythm × campaign × spike`, then Gamma–Pois
 
 ## Topology graph
 
-`src/topology/graph.ts` holds project services, deployment instances, shared assets, dependency edges, and placement. Mutations are atomic and rebuild instance-by-asset indexes. Live `Game` still routes one `RouteTarget` and must not import this tree.
+`src/topology/graph.ts` holds project services, deployment instances, shared assets, dependency edges, and placement. Mutations are atomic and rebuild instance-by-asset indexes. Live `Game` still routes one `RouteTarget` and must not import this tree. M5.2 F1 (#130) audited this split and kept it: same-host / split-host project placement already runs on `RouteTarget`; instance health and shared service config stay in the scaffold until later slices.
 
 ## Related
 

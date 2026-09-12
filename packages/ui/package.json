@@ -67,6 +67,21 @@
 			"import": "./src/molecules/game-clock-controls/game-clock-controls.tsx",
 			"default": "./src/molecules/game-clock-controls/game-clock-controls.tsx"
 		},
+		"./molecules/game-account-control": {
+			"types": "./src/molecules/game-account-control/game-account-control.tsx",
+			"import": "./src/molecules/game-account-control/game-account-control.tsx",
+			"default": "./src/molecules/game-account-control/game-account-control.tsx"
+		},
+		"./molecules/game-pipeline-chip": {
+			"types": "./src/molecules/game-pipeline-chip/game-pipeline-chip.tsx",
+			"import": "./src/molecules/game-pipeline-chip/game-pipeline-chip.tsx",
+			"default": "./src/molecules/game-pipeline-chip/game-pipeline-chip.tsx"
+		},
+		"./molecules/game-learning-panel": {
+			"types": "./src/molecules/game-learning-panel/game-learning-panel.tsx",
+			"import": "./src/molecules/game-learning-panel/game-learning-panel.tsx",
+			"default": "./src/molecules/game-learning-panel/game-learning-panel.tsx"
+		},
 		"./molecules/hud": {
 			"types": "./src/molecules/hud/hud.tsx",
 			"import": "./src/molecules/hud/hud.tsx",

@@ -2,7 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { View } from "react-native";
 
 import { Text } from "../../atoms/text";
+import { GameAccountControl } from "../game-account-control/game-account-control";
 import { GameClockControls } from "../game-clock-controls/game-clock-controls";
+import { GamePipelineChip } from "../game-pipeline-chip/game-pipeline-chip";
 import { MetricStat } from "../metric-stat/metric-stat";
 import { GameStatusBar } from "./game-status-bar";
 
@@ -29,7 +31,7 @@ const meta: Meta<typeof GameStatusBar> = {
 		},
 	},
 	args: {
-		leading: <Text className="px-3.5 text-[11px] font-bold">Operator</Text>,
+		leading: <GameAccountControl onPress={() => undefined} />,
 		metrics: (
 			<>
 				<MetricStat label="CASH" tone="primary" value="♦500.00" />
@@ -61,8 +63,12 @@ export const Static: Story = {
 export const WithPipelines: Story = {
 	args: {
 		placement: "static",
-		operationsProgress: <Text className="text-[10px] text-foreground">App Runtime install</Text>,
-		learningProgress: <Text className="text-[10px] text-foreground">Capacity planning</Text>,
+		operationsProgress: (
+			<GamePipelineChip detail="1h" label="App Runtime install" progress={55} tone="ops" />
+		),
+		learningProgress: (
+			<GamePipelineChip detail="40%" label="Capacity planning" progress={40} tone="learn" />
+		),
 	},
 };
 
@@ -71,7 +77,7 @@ export const Mobile: Story = {
 		placement: "static",
 		density: "mobile",
 		showTaskGroup: false,
-		leading: <Text className="px-2 text-[10px] font-bold">OP</Text>,
+		leading: <GameAccountControl compact onPress={() => undefined} />,
 		metrics: (
 			<>
 				<MetricStat compact label="CASH" tone="primary" value="♦500" />

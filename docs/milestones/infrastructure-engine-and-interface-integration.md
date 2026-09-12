@@ -1,6 +1,6 @@
 # Infrastructure engine and interface integration
 
-Milestone 5.2. Status: planned; no implementation PR is claimed delivered. Prerequisite: **M5.1 completed and merged**. Follow the [delivery workflow](README.md).
+Milestone 5.2. Status: first slice in progress, stacked on open [#135](https://github.com/movahedan/fivenines/pull/135) by assignment (M5.1 not yet merged). Follow the [delivery workflow](README.md).
 
 GitHub: [M5.2](https://github.com/movahedan/fivenines/milestone/12).
 
@@ -67,7 +67,7 @@ Before each engine PR, show the developer a compact comparison of current behavi
 
 | Slice | Status | Issue | PR/evidence |
 |---|---|---|---|
-| Live placement and identity integration follow-up | Planned | [#130](https://github.com/movahedan/fivenines/issues/130) | Not implemented |
+| Live placement and identity integration follow-up | In progress (stacked on #135) | [#130](https://github.com/movahedan/fivenines/issues/130) | [#136](https://github.com/movahedan/fivenines/pull/136): audit kept live `RouteTarget` placement; bind `startProject` to `setupServerId` when set; Game still does not import topology/identity. |
 | Proposal evaluation and eligible-target queries | Planned | [#131](https://github.com/movahedan/fivenines/issues/131) | Not implemented |
 | Apply and automatic preparation | Planned | [#132](https://github.com/movahedan/fivenines/issues/132) | Not implemented |
 | Live editor integration and commercial regression | Planned | [#133](https://github.com/movahedan/fivenines/issues/133) | Not implemented |

@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
-import { cn } from "@/utils";
 import { Text } from "../../atoms/text";
+import { GameAccountControl } from "../../molecules/game-account-control/game-account-control";
 import { GameClockControls } from "../../molecules/game-clock-controls/game-clock-controls";
+import { GamePipelineChip } from "../../molecules/game-pipeline-chip/game-pipeline-chip";
 import { MetricStat } from "../../molecules/metric-stat/metric-stat";
 import { GameTemplate } from "./game-template";
 import type { GameDestination, GameRightDestination } from "./game-template.types";
@@ -14,35 +15,6 @@ function Placeholder({ label }: { label: string }) {
 		<View className="p-4">
 			<Text className="text-sm text-muted-foreground">{label}</Text>
 		</View>
-	);
-}
-
-function AccountControl({ compact, onPress }: { compact: boolean; onPress: () => void }) {
-	return (
-		<Pressable
-			accessibilityLabel="Account"
-			accessibilityRole="button"
-			className="h-full flex-row items-center gap-2.5 px-3.5"
-			onPress={onPress}
-			style={
-				compact ? { width: 40, paddingHorizontal: 0, justifyContent: "center" } : { width: 168 }
-			}
-		>
-			<View
-				className={cn(
-					"items-center justify-center rounded border border-primary/40 bg-primary/15",
-					compact ? "h-5 w-5" : "h-6 w-6",
-				)}
-			>
-				<Text className="font-mono text-[10px] font-extrabold text-primary">OP</Text>
-			</View>
-			{compact ? null : (
-				<View className="min-w-0">
-					<Text className="text-[11px] font-bold leading-none text-foreground">Operator</Text>
-					<Text className="mt-0.5 text-[9px] text-muted-foreground">ops@fivenines.io</Text>
-				</View>
-			)}
-		</Pressable>
 	);
 }
 
@@ -58,55 +30,6 @@ function CashGroup({ compact }: { compact: boolean }) {
 			<MetricStat compact={compact} label="REP" value="0" />
 			<MetricStat compact={compact} label="OPEX" value={compact ? "♦9" : "♦8.90"} />
 		</>
-	);
-}
-
-function PipelineChip({
-	label,
-	detail,
-	progress,
-	tone,
-	flush = false,
-}: {
-	label: string;
-	detail: string;
-	progress: number;
-	tone: "ops" | "learn";
-	flush?: boolean;
-}) {
-	const bar = tone === "ops" ? "bg-info" : "bg-warning";
-	const lamp = tone === "ops" ? "bg-info shadow-glow-info" : "bg-warning shadow-glow-warning";
-	const detailClass = tone === "ops" ? "text-info" : "text-warning";
-
-	return (
-		<View
-			className={cn(
-				"flex-row items-center",
-				flush
-					? "w-full border-t border-border"
-					: "gap-1.5 rounded border border-border bg-muted px-2 py-0.5",
-			)}
-		>
-			<View className={cn("items-center justify-center", flush ? "h-8 w-8" : undefined)}>
-				<View className={cn("h-1.5 w-1.5 rounded-full", lamp)} />
-			</View>
-			<Text className={cn("text-[10px] text-foreground", flush ? "min-w-0 flex-1" : undefined)}>
-				{label}
-			</Text>
-			<View
-				className={cn(
-					"h-0.5 overflow-hidden bg-border",
-					flush ? "w-16 border-x border-border" : "w-12 rounded-full",
-				)}
-			>
-				<View className={cn("h-full", bar)} style={{ width: `${String(progress)}%` }} />
-			</View>
-			<Text
-				className={cn("font-mono text-[9px]", flush ? "w-10 text-center" : undefined, detailClass)}
-			>
-				{detail}
-			</Text>
-		</View>
 	);
 }
 
@@ -129,22 +52,24 @@ function GameTemplatePlayground({
 	const [speed, setSpeed] = useState<0 | 1 | 2 | 4>(1);
 	const [detailsOpen, setDetailsOpen] = useState(drawerOpen ?? false);
 
-	const opsChip = <PipelineChip detail="1h" label="App Runtime install" progress={55} tone="ops" />;
+	const opsChip = (
+		<GamePipelineChip detail="1h" label="App Runtime install" progress={55} tone="ops" />
+	);
 	const learnChip = (
-		<PipelineChip detail="40%" label="Capacity planning" progress={40} tone="learn" />
+		<GamePipelineChip detail="40%" label="Capacity planning" progress={40} tone="learn" />
 	);
 	const opsRow = (
-		<PipelineChip detail="1h" flush label="App Runtime install" progress={55} tone="ops" />
+		<GamePipelineChip detail="1h" flush label="App Runtime install" progress={55} tone="ops" />
 	);
 	const learnRow = (
-		<PipelineChip detail="40%" flush label="Capacity planning" progress={40} tone="learn" />
+		<GamePipelineChip detail="40%" flush label="Capacity planning" progress={40} tone="learn" />
 	);
 
 	return (
 		<View style={{ height: "100%", flex: 1 }}>
 			<GameTemplate
 				accountControl={
-					<AccountControl
+					<GameAccountControl
 						compact={isMobile}
 						onPress={() => {
 							setAccountOpen(true);

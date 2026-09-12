@@ -77,6 +77,15 @@ export function applyCommand(graph: GameGraph, command: EngineCommand): GameGrap
 
 			assertServerExists(graph.assets, command.payload.serverId);
 
+			const current = findProject(graph.customers, command.payload.projectId);
+
+			if (
+				current.setupServerId !== undefined &&
+				current.setupServerId !== command.payload.serverId
+			) {
+				throw new Error(`start server mismatch: ${command.payload.projectId}`);
+			}
+
 			return {
 				...graph,
 				customers: replaceProject(

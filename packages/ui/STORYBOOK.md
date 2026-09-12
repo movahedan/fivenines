@@ -14,7 +14,7 @@ URL: **http://localhost:9000**. `dev-storybook.ts` launches the Storybook CLI wi
 
 Preview CSS: `.storybook/preview.tsx` imports `../src/style.css` (ops navy canvas, Inter + JetBrains Mono). Default Storybook background is **ops** (`#050912`); the decorator uses `bg-background font-sans text-foreground`. Do not import `react-native` or `@rn-primitives` in preview (the Node CLI loads that file without Vite aliases). There is no light theme toggle.
 
-Ops chrome lives under **Components**: Hud (9s mark + primary glow), GameStatusBar (static or absolute-bottom), GameClockControls (date + day progress + speed), PanelHeader and ServerCard (glowing dots). MetricStat, ProjectOfferCard, ActiveProjectCard, EventLog share the same molecule glob. **Templates / GameTemplate** is the desktop/mobile shell.
+Ops chrome lives under **Components**: Hud (9s mark + primary glow), GameStatusBar (static or absolute-bottom), GameClockControls (date + day progress + speed), GameAccountControl, GamePipelineChip, GameLearningPanel, PanelHeader and ServerCard (glowing dots). MetricStat, ProjectOfferCard, ActiveProjectCard, EventLog share the same molecule glob. **Templates / GameTemplate** is the desktop/mobile shell.
 
 ## RN-web + NativeWind
 

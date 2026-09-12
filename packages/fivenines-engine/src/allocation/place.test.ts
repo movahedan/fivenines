@@ -1,12 +1,16 @@
 import { describe, expect, it } from "bun:test";
 
+import { APPOINTMENT_SITE_BASELINE } from "../catalog/acquaintance-offer";
 import { PAYG_ONLY_COMMERCIAL_STUB } from "../catalog/commercial-policy";
 import { BRONZE } from "../catalog/kernel";
+import { DemandEngine } from "../demand-engine/engine";
 import { oneBronzeInitial, twoBronzeInitial } from "../fixtures";
 import { Game } from "../game";
+import { Project } from "../project";
 import { Server } from "../server";
 import { FixedRandomSource } from "../traffic/random-source";
 import { settleHostTick } from "../work/share";
+import { allocateHour } from "./place";
 
 describe("Game - resource allocator", () => {
 	it("splits contended Bronze CPU equally instead of by project iteration order", () => {
@@ -109,5 +113,46 @@ describe("Game - resource allocator", () => {
 		);
 		expect(game.pathHour.estimatedLatency).toBeGreaterThan(0);
 		expect(game.hourIndex).toBe(1);
+	});
+
+	it("assigns the sum of appointment mix types instead of the smaller type", () => {
+		const project = new Project({
+			id: "shaped-1",
+			estimatedRequestsPerHour: APPOINTMENT_SITE_BASELINE,
+			status: "served",
+			demand: "shaped",
+			category: "saas",
+			region: "utc+0",
+			campaignProne: false,
+			commercial: PAYG_ONLY_COMMERCIAL_STUB,
+			route: { kind: "server", serverId: "server-1" },
+		});
+		const server = new Server({ id: "server-1", catalogId: "bronze", region: "utc+0" });
+		const engines = new Map<string, DemandEngine>();
+
+		engines.set(
+			project.id,
+			DemandEngine.hourly("appointment-site", {
+				projectId: project.id,
+				region: project.region,
+				random: new FixedRandomSource(0.5),
+				constant: true,
+				active: true,
+			}),
+		);
+
+		allocateHour({
+			hour: 10,
+			rng: new FixedRandomSource(0.5),
+			projects: [project],
+			serversById: new Map([[server.id, server]]),
+			queues: new Map(),
+			engines,
+		});
+
+		const assigned = server.slices.reduce((sum, slice) => sum + slice.requests, 0);
+
+		expect(project.metrics.emittedRequests).toBeGreaterThan(0);
+		expect(assigned).toBe(project.metrics.emittedRequests);
 	});
 });

@@ -11,6 +11,7 @@ describe("learningCatalog - projections", () => {
 
 		expect(monitoring?.status).toBe("available");
 		expect(health?.status).toBe("locked");
+		expect(rows.find((row) => row.id === "application-runtime")?.status).toBe("completed");
 		expect(learningSlotLabel(new LearningBoard().snapshot())).toBe("0/2");
 	});
 

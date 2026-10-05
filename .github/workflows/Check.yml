@@ -64,7 +64,7 @@ jobs:
 
       - name: 🐳 Setup Docker Buildx
         if: steps.affected-services.outputs.affected-services != ''
-        uses: docker/setup-buildx-action@v4.3.0
+        uses: docker/setup-buildx-action@v4.4.1
 
       - name: 🏗️ Test Production Build
         if: steps.affected-services.outputs.affected-services != ''

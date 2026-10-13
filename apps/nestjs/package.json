@@ -22,7 +22,7 @@
 		"@anatine/esbuild-decorators": "0.2.19",
 		"@nestjs/common": "11.1.29",
 		"@nestjs/core": "11.1.29",
-		"@nestjs/platform-express": "11.1.29",
+		"@nestjs/platform-express": "12.1.2",
 		"@nestjs/swagger": "11.4.7",
 		"@packages/auth": "workspace:*",
 		"@packages/shared": "workspace:*",

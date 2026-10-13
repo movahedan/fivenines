@@ -38,7 +38,7 @@
 	"devDependencies": {
 		"@types/pg": "8.15.6",
 		"@nestjs/testing": "11.1.29",
-		"prisma": "7.1.0",
+		"prisma": "7.10.0",
 		"@tools/tests-preset": "workspace:*",
 		"@tools/typescript": "workspace:*",
 		"@types/express": "5.0.6",

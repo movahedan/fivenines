@@ -20,7 +20,7 @@
 	"dependencies": {
 		"@packages/auth": "workspace:*",
 		"@packages/shared": "workspace:*",
-		"@prisma/client": "6.19.3",
+		"@prisma/client": "7.10.0",
 		"@trpc/server": "11.8.0",
 		"jose": "6.1.0",
 		"pg": "8.16.3",

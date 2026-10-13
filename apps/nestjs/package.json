@@ -27,7 +27,7 @@
 		"@packages/auth": "workspace:*",
 		"@packages/shared": "workspace:*",
 		"@prisma/adapter-pg": "7.1.0",
-		"@prisma/client": "7.1.0",
+		"@prisma/client": "7.10.0",
 		"@prisma/client-runtime-utils": "7.1.0",
 		"jose": "6.1.0",
 		"pg": "8.16.3",
